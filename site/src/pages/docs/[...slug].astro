@@ -1,0 +1,40 @@
+---
+import { getCollection, render } from 'astro:content';
+import Shell from '../../layouts/Shell.astro';
+
+export async function getStaticPaths() {
+	const docs = await getCollection('docs');
+	return docs.map((doc) => ({
+		params: { slug: doc.id },
+		props: { doc },
+	}));
+}
+
+const { doc } = Astro.props;
+const { Content, headings } = await render(doc);
+
+const all = await getCollection('docs');
+const sidebar = all
+	.map((d) => ({ slug: d.id, title: d.data.title, order: d.data.order }))
+	.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title, 'zh-CN'));
+
+const base = import.meta.env.BASE_URL;
+const breadcrumbs = [
+	{ label: '文档', href: `${base}docs/welcome` },
+	{ label: doc.data.title },
+];
+---
+
+<Shell
+	title={doc.data.title}
+	description={doc.data.description}
+	sidebar={sidebar}
+	currentSlug={doc.id}
+	breadcrumbs={breadcrumbs}
+	headings={headings}
+>
+	<article class="prose">
+		<h1>{doc.data.title}</h1>
+		<Content />
+	</article>
+</Shell>

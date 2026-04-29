@@ -1,0 +1,267 @@
+---
+import '../styles/global.css';
+
+interface NavItem {
+	slug: string;
+	title: string;
+}
+
+interface Crumb {
+	label: string;
+	href?: string;
+}
+
+interface TocHeading {
+	depth: number;
+	slug: string;
+	text: string;
+}
+
+interface Props {
+	title: string;
+	description?: string;
+	sidebar?: NavItem[];
+	currentSlug?: string;
+	noSidebar?: boolean;
+	breadcrumbs?: Crumb[];
+	headings?: TocHeading[];
+}
+
+const { title, description, sidebar, currentSlug, noSidebar, breadcrumbs, headings } = Astro.props;
+const siteName = '思源开发文档';
+const base = import.meta.env.BASE_URL;
+const logoSrc = `${base}siyuan.png`;
+
+const tocItems = (headings ?? []).filter((h) => h.depth >= 2 && h.depth <= 4);
+const pagefindBundle = `${base}pagefind/`;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		{description ? <meta name="description" content={description} /> : null}
+		<link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..600;1,14..32,400..600&display=swap"
+			rel="stylesheet"
+		/>
+		<title>{title === siteName ? title : `${title} · ${siteName}`}</title>
+		{
+			import.meta.env.PROD ? (
+				<>
+					<link rel="stylesheet" href={`${pagefindBundle}pagefind-component-ui.css`} />
+					<script type="module" src={`${pagefindBundle}pagefind-component-ui.js`}></script>
+				</>
+			) : null
+		}
+	</head>
+	<body>
+		{
+			import.meta.env.PROD ? (
+				<pagefind-config bundle-path={pagefindBundle} lang="zh" />
+			) : null
+		}
+		{
+			noSidebar ? (
+				<>
+					<header class="topbar topbar--simple">
+						<div class="topbar__inner">
+							<a class="brand-lockup" href={base}>
+								<img class="brand-lockup__logo" src={logoSrc} width="28" height="28" alt="" />
+								<span class="brand-lockup__text">{siteName}</span>
+							</a>
+							<div class="topbar__search-slot" data-pagefind-ignore>
+								{
+									import.meta.env.DEV ? (
+										<p class="pagefind-dev-hint">搜索：pnpm build 后 pnpm preview</p>
+									) : (
+										<pagefind-modal-trigger
+											class="pf-trigger-wrap"
+											compact
+											placeholder=""
+											shortcut="mod+k"
+											title="打开文档搜索（⌘K / Ctrl+K）"
+										/>
+									)
+								}
+							</div>
+							<nav class="topbar__nav" aria-label="顶部">
+								<a href={`${base}docs/welcome`}>文档</a>
+								<a href="https://github.com/siyuan-note/siyuan" target="_blank" rel="noopener noreferrer">
+									GitHub
+								</a>
+							</nav>
+						</div>
+					</header>
+					<div class="home-wrap" data-pagefind-body>
+						<slot />
+					</div>
+				</>
+			) : (
+				<div class="doc-app">
+					<aside class="left-rail" aria-label="文档导航" data-pagefind-ignore>
+						<div class="rail-top">
+							<a class="brand-lockup brand-lockup--rail" href={base}>
+								<img class="brand-lockup__logo" src={logoSrc} width="28" height="28" alt="" />
+								<span class="brand-lockup__text">{siteName}</span>
+							</a>
+							<div class="rail-top__actions">
+								{
+									import.meta.env.DEV ? (
+										<p class="pagefind-dev-hint pagefind-dev-hint--rail">pnpm build 后 preview</p>
+									) : (
+										<pagefind-modal-trigger
+											class="pf-trigger-wrap"
+											compact
+											placeholder=""
+											shortcut="mod+k"
+											title="打开文档搜索（⌘K / Ctrl+K）"
+										/>
+									)
+								}
+							</div>
+						</div>
+						<nav class="rail-nav" aria-label="侧栏目录">
+							<button type="button" class="rail-section" aria-expanded="true">
+								<span class="rail-section__label">文档</span>
+								<svg class="rail-section__chev" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+									<path
+										d="M3 4.5L6 7.5L9 4.5"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.25"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							</button>
+							<ul class="rail-nav__list">
+								{
+									sidebar?.map((item) => (
+										<li>
+											<a
+												class:list={['rail-nav__link', { 'is-active': item.slug === currentSlug }]}
+												href={`${base}docs/${item.slug}`}
+											>
+												<svg class="rail-nav__icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+													<path
+														d="M4 2.5h8A1.5 1.5 0 0113.5 4v8A1.5 1.5 0 0112 13.5H4A1.5 1.5 0 012.5 12V4A1.5 1.5 0 014 2.5z"
+														fill="none"
+														stroke="currentColor"
+														stroke-width="1.1"
+													/>
+													<path d="M5 5.5h6M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" />
+												</svg>
+												<span>{item.title}</span>
+											</a>
+										</li>
+									))
+								}
+							</ul>
+						</nav>
+						<div class="rail-footer">
+							<div class="rail-footer__rule" />
+							<ul class="rail-footer__links">
+								<li>
+									<a href={`${base}docs/welcome`}>文档</a>
+								</li>
+								<li>
+									<a href="https://github.com/siyuan-note/siyuan" target="_blank" rel="noopener noreferrer">
+										思源仓库
+									</a>
+								</li>
+							</ul>
+						</div>
+					</aside>
+
+					<div class="doc-center">
+						<div class="content-head" data-pagefind-ignore>
+							<nav class="breadcrumbs" aria-label="面包屑">
+								{breadcrumbs?.map((c, i) => (
+									<span class="breadcrumbs__seg">
+										{i > 0 ? <span class="breadcrumbs__sep">/</span> : null}
+										{c.href ? (
+											<a class="breadcrumbs__link" href={c.href}>
+												{c.label}
+											</a>
+										) : (
+											<span class="breadcrumbs__current">{c.label}</span>
+										)}
+									</span>
+								))}
+							</nav>
+							<div class="content-head__actions">
+								<button type="button" class="icon-btn" id="copy-page" aria-label="复制当前页面链接" title="复制链接">
+									<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+										<rect
+											x="5.5"
+											y="5.5"
+											width="8"
+											height="8"
+											rx="1.5"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="1.2"
+										/>
+										<path
+											d="M4.5 10.5h-1A1.5 1.5 0 012 9V3.5A1.5 1.5 0 013.5 2H9A1.5 1.5 0 0110.5 3.5v1"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="1.2"
+										/>
+									</svg>
+								</button>
+								<a
+									class="btn-primary"
+									href="https://b3log.org/siyuan"
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									了解思源
+								</a>
+							</div>
+						</div>
+						<main class="doc-main" data-pagefind-body>
+							<slot />
+						</main>
+					</div>
+
+					<aside class="toc-rail" aria-label="本页目录" data-pagefind-ignore>
+						{tocItems.length > 0 ? <p class="toc-rail__title">本页</p> : null}
+						{tocItems.length > 0 ? (
+							<ul class="toc-rail__list">
+								{tocItems.map((h) => (
+									<li class:list={[`toc-depth-${h.depth}`]}>
+										<a href={`#${h.slug}`}>{h.text}</a>
+									</li>
+								))}
+							</ul>
+						) : (
+							<p class="toc-rail__empty">本页暂无目录</p>
+						)}
+					</aside>
+				</div>
+			)
+		}
+
+		{import.meta.env.PROD ? <pagefind-modal reset-on-close></pagefind-modal> : null}
+
+		<script is:inline>
+			(function () {
+				var btn = document.getElementById('copy-page');
+				if (!btn) return;
+				btn.addEventListener('click', function () {
+					var url = window.location.href;
+					if (navigator.clipboard && navigator.clipboard.writeText) {
+						navigator.clipboard.writeText(url).catch(function () {});
+					}
+				});
+			})();
+		</script>
+	</body>
+</html>
