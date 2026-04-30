@@ -1,16 +1,22 @@
 ---
-import Shell from '../layouts/Shell.astro';
+const base = import.meta.env.BASE_URL;
+const target = `${base}developers/welcome`;
+const targetJson = JSON.stringify(target);
 ---
 
-<Shell title="思源开发文档" description="Astro 静态演示 · Linear 风格布局" noSidebar>
-	<div class="hero">
-		<h1>开发者文档（预览）</h1>
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>正在跳转至文档…</title>
+		<meta http-equiv="refresh" content={`0;url=${target}`} />
+		<link rel="canonical" href={target} />
+		<script is:inline set:html={`location.replace(${targetJson});`} />
+	</head>
+	<body>
 		<p>
-			白底、深色正文、1px 细边框与系统无衬线字体，用于对齐 Linear 式阅读体验。内容由 Markdown 构建，可后续替换为
-			Lute 渲染。
+			正在跳转至 <a href={target}>开发者文档</a>…
 		</p>
-		<p>
-			<a class="btn" href={`${import.meta.env.BASE_URL}docs/welcome`}>进入文档</a>
-		</p>
-	</div>
-</Shell>
+	</body>
+</html>

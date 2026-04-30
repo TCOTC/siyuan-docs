@@ -1,9 +1,18 @@
 ---
 import '../styles/global.css';
+import BrandLogo from '../components/BrandLogo.astro';
+import PagefindToolbarTrigger from '../components/PagefindToolbarTrigger.astro';
+import { Sun, Moon, ChevronDown, Copy, Check, X } from '@lucide/astro';
 
 interface NavItem {
-	slug: string;
+	/** 相对 `developers/` 的路径，如 `welcome`、`plugin/plugin-overview` */
+	path: string;
 	title: string;
+}
+
+interface NavGroup {
+	label: string;
+	items: NavItem[];
 }
 
 interface Crumb {
@@ -20,247 +29,819 @@ interface TocHeading {
 interface Props {
 	title: string;
 	description?: string;
-	sidebar?: NavItem[];
-	currentSlug?: string;
+	sidebarGroups?: NavGroup[];
+	/** 当前文档在 `developers/` 下的路径，如 `welcome`、`theme/theme-overview` */
+	currentPath?: string;
 	noSidebar?: boolean;
 	breadcrumbs?: Crumb[];
 	headings?: TocHeading[];
 }
 
-const { title, description, sidebar, currentSlug, noSidebar, breadcrumbs, headings } = Astro.props;
-const siteName = '思源开发文档';
+const { title, description, sidebarGroups, currentPath, noSidebar, breadcrumbs, headings } = Astro.props;
+const siteName = '思源开发者文档';
+// 侧栏顶栏文案（与全站标题区分）
+const railSiteLabel = '开发者文档';
 const base = import.meta.env.BASE_URL;
-const logoSrc = `${base}siyuan.png`;
 
 const tocItems = (headings ?? []).filter((h) => h.depth >= 2 && h.depth <= 4);
 const pagefindBundle = `${base}pagefind/`;
+const docHomeHref = `${base}developers/welcome`;
+/** 与当前页同路径的 Markdown 地址，如 /developers/foo → /developers/foo.md（复制时按需 fetch） */
+const mdViewHref = `${Astro.url.pathname.replace(/\/+$/, '')}.md`;
+/** 仅开发者文档页带 `currentPath`，用于在点击复制时请求 `.md`，避免把正文塞进 HTML */
+const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 ---
 
 <!doctype html>
 <html lang="zh-CN">
 	<head>
+		<script is:inline>
+			(function () {
+				function systemTheme() {
+					try {
+						return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+					} catch (e) {
+						return 'light';
+					}
+				}
+				try {
+					var t = localStorage.getItem('siyuan-docs-theme');
+					// 仅当用户曾手动切换过时写入有效值；否则跟随系统（清除站点数据后即恢复跟随系统）
+					if (t !== 'light' && t !== 'dark') t = systemTheme();
+					document.documentElement.setAttribute('data-theme', t);
+				} catch (e) {
+					document.documentElement.setAttribute('data-theme', systemTheme());
+				}
+			})();
+		</script>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="generator" content={Astro.generator} />
 		{description ? <meta name="description" content={description} /> : null}
 		<link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+		<link rel="icon" href={`${base}favicon.ico`} sizes="any" />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..600;1,14..32,400..600&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..600;1,14..32,400..600&display=optional"
 			rel="stylesheet"
 		/>
-		<title>{title === siteName ? title : `${title} · ${siteName}`}</title>
-		{
-			import.meta.env.PROD ? (
-				<>
-					<link rel="stylesheet" href={`${pagefindBundle}pagefind-component-ui.css`} />
-					<script type="module" src={`${pagefindBundle}pagefind-component-ui.js`}></script>
-				</>
-			) : null
-		}
+		<title>{title === siteName ? title : `${title} – ${siteName}`}</title>
+		<link rel="stylesheet" href={`${pagefindBundle}pagefind-component-ui.css`} />
+		<script type="module" src={`${pagefindBundle}pagefind-component-ui.js`}></script>
 	</head>
-	<body>
-		{
-			import.meta.env.PROD ? (
-				<pagefind-config bundle-path={pagefindBundle} lang="zh" />
-			) : null
-		}
+	<body class:list={[{ 'doc-layout': !noSidebar }]}>
+		<a class="skip-link" href="#main-content">跳到正文 →</a>
+		<pagefind-config bundle-path={pagefindBundle} lang="zh" />
 		{
 			noSidebar ? (
 				<>
 					<header class="topbar topbar--simple">
 						<div class="topbar__inner">
-							<a class="brand-lockup" href={base}>
-								<img class="brand-lockup__logo" src={logoSrc} width="28" height="28" alt="" />
+							<a class="brand-lockup" href={docHomeHref}>
+								<BrandLogo />
 								<span class="brand-lockup__text">{siteName}</span>
 							</a>
 							<div class="topbar__search-slot" data-pagefind-ignore>
-								{
-									import.meta.env.DEV ? (
-										<p class="pagefind-dev-hint">搜索：pnpm build 后 pnpm preview</p>
-									) : (
-										<pagefind-modal-trigger
-											class="pf-trigger-wrap"
-											compact
-											placeholder=""
-											shortcut="mod+k"
-											title="打开文档搜索（⌘K / Ctrl+K）"
-										/>
-									)
-								}
+								<PagefindToolbarTrigger />
+							</div>
+							<div class="u-floating-hint" data-anchored-floating-hint>
+								<button
+									type="button"
+									class="icon-btn"
+									id="theme-toggle"
+									data-theme-toggle
+									data-floating-hint-anchor
+									aria-label="切换浅色或深色主题（快捷键 T）"
+								>
+									<Sun class="theme-icon theme-icon--sun" />
+									<Moon class="theme-icon theme-icon--moon" style="display:none" />
+								</button>
+								<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
+									<span class="u-floating-hint__text">切换主题</span>
+									<kbd class="u-floating-hint__key">T</kbd>
+								</div>
 							</div>
 							<nav class="topbar__nav" aria-label="顶部">
-								<a href={`${base}docs/welcome`}>文档</a>
+								<a href={`${base}developers/welcome`}>文档</a>
 								<a href="https://github.com/siyuan-note/siyuan" target="_blank" rel="noopener noreferrer">
 									GitHub
 								</a>
 							</nav>
 						</div>
 					</header>
-					<div class="home-wrap" data-pagefind-body>
+					<div id="main-content" class="home-wrap" tabindex="-1" data-pagefind-body>
 						<slot />
 					</div>
 				</>
 			) : (
 				<div class="doc-app">
-					<aside class="left-rail" aria-label="文档导航" data-pagefind-ignore>
-						<div class="rail-top">
-							<a class="brand-lockup brand-lockup--rail" href={base}>
-								<img class="brand-lockup__logo" src={logoSrc} width="28" height="28" alt="" />
-								<span class="brand-lockup__text">{siteName}</span>
+					<div class="rail-backdrop" id="rail-backdrop" aria-hidden="true" />
+					<aside class="left-rail" id="doc-left-rail" aria-label="文档导航" data-pagefind-ignore>
+						<header class="rail-header">
+							<a class="brand-lockup brand-lockup--rail" href={docHomeHref}>
+								<BrandLogo />
+								<span class="brand-lockup__divider" aria-hidden="true" />
+								<span class="brand-lockup__text">{railSiteLabel}</span>
 							</a>
-							<div class="rail-top__actions">
-								{
-									import.meta.env.DEV ? (
-										<p class="pagefind-dev-hint pagefind-dev-hint--rail">pnpm build 后 preview</p>
-									) : (
-										<pagefind-modal-trigger
-											class="pf-trigger-wrap"
-											compact
-											placeholder=""
-											shortcut="mod+k"
-											title="打开文档搜索（⌘K / Ctrl+K）"
-										/>
-									)
-								}
+							<div id="doc-toolbar-slot-rail" class="doc-toolbar-slot doc-toolbar-slot--in-rail"></div>
+							<div class="rail-header__actions">
+								<div class="rail-header__search-slot">
+									<PagefindToolbarTrigger />
+								</div>
 							</div>
-						</div>
-						<nav class="rail-nav" aria-label="侧栏目录">
-							<button type="button" class="rail-section" aria-expanded="true">
-								<span class="rail-section__label">文档</span>
-								<svg class="rail-section__chev" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-									<path
-										d="M3 4.5L6 7.5L9 4.5"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="1.25"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									/>
-								</svg>
-							</button>
-							<ul class="rail-nav__list">
-								{
-									sidebar?.map((item) => (
-										<li>
-											<a
-												class:list={['rail-nav__link', { 'is-active': item.slug === currentSlug }]}
-												href={`${base}docs/${item.slug}`}
-											>
-												<svg class="rail-nav__icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-													<path
-														d="M4 2.5h8A1.5 1.5 0 0113.5 4v8A1.5 1.5 0 0112 13.5H4A1.5 1.5 0 012.5 12V4A1.5 1.5 0 014 2.5z"
-														fill="none"
-														stroke="currentColor"
-														stroke-width="1.1"
-													/>
-													<path d="M5 5.5h6M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" />
-												</svg>
-												<span>{item.title}</span>
-											</a>
-										</li>
-									))
-								}
-							</ul>
-						</nav>
-						<div class="rail-footer">
-							<div class="rail-footer__rule" />
-							<ul class="rail-footer__links">
-								<li>
-									<a href={`${base}docs/welcome`}>文档</a>
-								</li>
-								<li>
-									<a href="https://github.com/siyuan-note/siyuan" target="_blank" rel="noopener noreferrer">
-										思源仓库
-									</a>
-								</li>
-							</ul>
+						</header>
+						<div class="rail-body">
+							<div class="rail-scroll-clip" data-rail-scroll-clip>
+								<div class="rail-scroll">
+									<nav class="rail-nav" aria-label="侧栏目录">
+										<ul class="rail-nav__root">
+										{
+											sidebarGroups?.map((group, gi) => {
+												const headId = `rail-nav-head-${gi}`;
+												const panelId = `rail-nav-panel-${gi}`;
+												return (
+													<li class="rail-nav__section" data-state="open">
+														<button
+															type="button"
+															class="rail-nav__trigger"
+															id={headId}
+															aria-expanded="true"
+															aria-controls={panelId}
+														>
+															<span class="rail-nav__trigger-text">{group.label}</span>
+															<ChevronDown class="rail-nav__chev" />
+														</button>
+														<div
+															class="rail-nav__panel"
+															id={panelId}
+															role="region"
+															aria-labelledby={headId}
+														>
+															<ul class="rail-nav__list">
+																{group.items.map((item) => (
+																	<li>
+																		<a
+																			class:list={['rail-nav__link', { 'is-active': item.path === currentPath }]}
+																			href={`${base}developers/${item.path}`}
+																		>
+																			{item.title}
+																		</a>
+																	</li>
+																))}
+															</ul>
+														</div>
+													</li>
+												);
+											})
+										}
+										</ul>
+									</nav>
+								</div>
+								<div class="rail-scroll__edge rail-scroll__edge--top" aria-hidden="true" />
+								<div class="rail-scroll__edge rail-scroll__edge--bottom" aria-hidden="true" />
+							</div>
+							<div class="rail-footer">
+								<ul class="rail-footer__links">
+									<li>
+										<a
+											class:list={[{ 'is-current': currentPath === 'welcome' }]}
+											href={`${base}developers/welcome`}
+										>
+											开发者文档
+										</a>
+									</li>
+									<li>
+										<a href="https://github.com/siyuan-note/bazaar" target="_blank" rel="noopener noreferrer">
+											集市
+										</a>
+									</li>
+									<li>
+										<a href="https://b3log.org/siyuan" target="_blank" rel="noopener noreferrer">
+											官网
+										</a>
+									</li>
+								</ul>
+							</div>
 						</div>
 					</aside>
 
 					<div class="doc-center">
 						<div class="content-head" data-pagefind-ignore>
 							<nav class="breadcrumbs" aria-label="面包屑">
-								{breadcrumbs?.map((c, i) => (
-									<span class="breadcrumbs__seg">
-										{i > 0 ? <span class="breadcrumbs__sep">/</span> : null}
-										{c.href ? (
-											<a class="breadcrumbs__link" href={c.href}>
-												{c.label}
-											</a>
-										) : (
-											<span class="breadcrumbs__current">{c.label}</span>
-										)}
-									</span>
-								))}
+								<ol class="breadcrumbs__list">
+									{breadcrumbs?.map((c, i, arr) => {
+										const isLast = i === arr.length - 1;
+										return (
+											<li class="breadcrumbs__item">
+												{c.href ? (
+													<a
+														class:list={['breadcrumbs__link', { 'breadcrumbs__current': isLast }]}
+														href={c.href}
+														aria-current={isLast ? 'page' : undefined}
+													>
+														{c.label}
+													</a>
+												) : isLast ? (
+													<span class="breadcrumbs__current" aria-current="page">
+														{c.label}
+													</span>
+												) : (
+													<span class="breadcrumbs__text">{c.label}</span>
+												)}
+											</li>
+										);
+									})}
+								</ol>
 							</nav>
 							<div class="content-head__actions">
-								<button type="button" class="icon-btn" id="copy-page" aria-label="复制当前页面链接" title="复制链接">
-									<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-										<rect
-											x="5.5"
-											y="5.5"
-											width="8"
-											height="8"
-											rx="1.5"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="1.2"
-										/>
-										<path
-											d="M4.5 10.5h-1A1.5 1.5 0 012 9V3.5A1.5 1.5 0 013.5 2H9A1.5 1.5 0 0110.5 3.5v1"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="1.2"
-										/>
-									</svg>
-								</button>
-								<a
-									class="btn-primary"
-									href="https://b3log.org/siyuan"
-									target="_blank"
-									rel="noopener noreferrer"
+								<div id="doc-toolbar-slot-content-head" class="doc-toolbar-slot doc-toolbar-slot--in-head">
+									<div id="doc-toolbar-floater" class="doc-toolbar-floater">
+										<div class="content-head__search-slot content-head__search--when-rail-drawer" data-pagefind-ignore>
+											<PagefindToolbarTrigger />
+										</div>
+										<div class="content-head__desktop-only">
+											<div class="u-floating-hint" data-anchored-floating-hint>
+												<button
+													type="button"
+													class="icon-btn"
+													id="theme-toggle"
+													data-theme-toggle
+													data-floating-hint-anchor
+													aria-label="切换浅色或深色主题（快捷键 T）"
+												>
+													<Sun class="theme-icon theme-icon--sun" />
+													<Moon class="theme-icon theme-icon--moon" style="display:none" />
+												</button>
+												<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
+													<span class="u-floating-hint__text">切换主题</span>
+													<kbd class="u-floating-hint__key">T</kbd>
+												</div>
+											</div>
+											<div class="copy-split">
+												<div class="u-floating-hint u-floating-hint--split" data-anchored-floating-hint>
+													<button
+														type="button"
+														class="copy-split__main js-copy-page-md"
+														id="copy-page-md"
+														data-floating-hint-anchor
+														aria-label="复制页面内容为 Markdown"
+														data-copy-md-src={markdownCopyFetchHref}
+													>
+														<span class="copy-split__main-icons" aria-hidden="true">
+															<span class="copy-split__main-icon copy-split__main-icon--copy">
+																<Copy />
+															</span>
+															<span class="copy-split__main-icon copy-split__main-icon--check">
+																<Check />
+															</span>
+															<span class="copy-split__main-icon copy-split__main-icon--fail">
+																<X />
+															</span>
+														</span>
+														<span>复制页面</span>
+													</button>
+													<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
+														<span class="u-floating-hint__text">复制页面内容为 Markdown</span>
+													</div>
+												</div>
+												<span class="copy-split__divider" aria-hidden="true" />
+												<div class="copy-split__menu">
+													<button
+														type="button"
+														class="copy-split__chev"
+														id="copy-page-menu-btn"
+														aria-expanded="false"
+														aria-haspopup="true"
+														aria-controls="copy-page-menu"
+														title="更多选项"
+													>
+														<ChevronDown />
+													</button>
+													<ul class="copy-split__panel" id="copy-page-menu" role="menu" hidden>
+														<li role="presentation">
+															<button
+																type="button"
+																role="menuitem"
+																class="copy-split__panel-item"
+																id="copy-page-menu-md"
+															>
+																<span class="copy-split__panel-item__title">复制页面</span>
+																<span class="copy-split__panel-item__desc">复制页面内容为 Markdown</span>
+															</button>
+														</li>
+														<li role="presentation">
+															<a
+																role="menuitem"
+																class="copy-split__panel-item"
+																id="copy-page-view-md"
+																href={mdViewHref}
+															>
+																<span class="copy-split__panel-item__title">查看 Markdown</span>
+																<span class="copy-split__panel-item__desc">查看该页面的纯文本</span>
+															</a>
+														</li>
+													</ul>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<button
+									type="button"
+									class="rail-menu-trigger"
+									id="rail-menu-toggle"
+									aria-expanded="false"
+									aria-controls="doc-left-rail"
+									aria-label="打开文档导航"
 								>
-									了解思源
-								</a>
+									<span class="rail-menu-trigger__icon" aria-hidden="true">
+										<span class="rail-menu-trigger__bar"></span>
+										<span class="rail-menu-trigger__bar"></span>
+										<span class="rail-menu-trigger__bar"></span>
+									</span>
+								</button>
 							</div>
 						</div>
-						<main class="doc-main" data-pagefind-body>
-							<slot />
-						</main>
+						<div class="doc-reading">
+							<main id="main-content" class="doc-main" tabindex="-1" data-pagefind-body>
+								<slot />
+							</main>
+							{tocItems.length > 0 && (
+								<aside class="toc-rail" aria-label="本页目录" data-pagefind-ignore>
+									<div class="toc-rail__container">
+										<ul class="toc-rail__list" id="doc-toc-list" style="--top: 0px; --height: 0px;">
+											{tocItems.map((h) => (
+												<li class:list={[`toc-depth-${h.depth}`]}>
+													<a href={`#${h.slug}`}>{h.text}</a>
+												</li>
+											))}
+										</ul>
+									</div>
+								</aside>
+							)}
+						</div>
 					</div>
-
-					<aside class="toc-rail" aria-label="本页目录" data-pagefind-ignore>
-						{tocItems.length > 0 ? <p class="toc-rail__title">本页</p> : null}
-						{tocItems.length > 0 ? (
-							<ul class="toc-rail__list">
-								{tocItems.map((h) => (
-									<li class:list={[`toc-depth-${h.depth}`]}>
-										<a href={`#${h.slug}`}>{h.text}</a>
-									</li>
-								))}
-							</ul>
-						) : (
-							<p class="toc-rail__empty">本页暂无目录</p>
-						)}
-					</aside>
 				</div>
 			)
 		}
 
-		{import.meta.env.PROD ? <pagefind-modal reset-on-close></pagefind-modal> : null}
+		<pagefind-modal reset-on-close></pagefind-modal>
+
+		<script src="../scripts/anchored-floating-hint.mjs"></script>
 
 		<script is:inline>
 			(function () {
-				var btn = document.getElementById('copy-page');
-				if (!btn) return;
-				btn.addEventListener('click', function () {
-					var url = window.location.href;
-					if (navigator.clipboard && navigator.clipboard.writeText) {
-						navigator.clipboard.writeText(url).catch(function () {});
+				var themeKey = 'siyuan-docs-theme';
+				function getSystemTheme() {
+					try {
+						return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+					} catch (e) {
+						return 'light';
 					}
+				}
+				function getTheme() {
+					var t = document.documentElement.getAttribute('data-theme');
+					return t === 'dark' ? 'dark' : 'light';
+				}
+				function syncThemeIcons() {
+					var dark = getTheme() === 'dark';
+					document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
+						var sun = btn.querySelector('.theme-icon--sun');
+						var moon = btn.querySelector('.theme-icon--moon');
+						if (sun) sun.style.display = dark ? 'block' : 'none';
+						if (moon) moon.style.display = dark ? 'none' : 'block';
+					});
+				}
+				/** 手动选择主题并写入 localStorage（清除该键后恢复按系统 prefers-color-scheme） */
+				function setTheme(next) {
+					document.documentElement.setAttribute('data-theme', next);
+					try {
+						localStorage.setItem(themeKey, next);
+					} catch (e) {}
+					syncThemeIcons();
+				}
+				function applySystemThemeIfUnpinned() {
+					try {
+						var t = localStorage.getItem(themeKey);
+						if (t === 'light' || t === 'dark') return;
+					} catch (e) {}
+					document.documentElement.setAttribute('data-theme', getSystemTheme());
+					syncThemeIcons();
+				}
+
+				var mqColorScheme = window.matchMedia('(prefers-color-scheme: dark)');
+				function onSystemColorSchemeChange() {
+					applySystemThemeIfUnpinned();
+				}
+				if (mqColorScheme.addEventListener) {
+					mqColorScheme.addEventListener('change', onSystemColorSchemeChange);
+				} else if (mqColorScheme.addListener) {
+					mqColorScheme.addListener(onSystemColorSchemeChange);
+				}
+
+				window.addEventListener('storage', function (e) {
+					if (e.key !== themeKey) return;
+					var v = e.newValue;
+					if (v === 'light' || v === 'dark') {
+						document.documentElement.setAttribute('data-theme', v);
+					} else {
+						document.documentElement.setAttribute('data-theme', getSystemTheme());
+					}
+					syncThemeIcons();
 				});
+
+				document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
+					btn.addEventListener('click', function () {
+						setTheme(getTheme() === 'dark' ? 'light' : 'dark');
+					});
+				});
+				syncThemeIcons();
+
+				var docToolbarFloater = document.getElementById('doc-toolbar-floater');
+				var docToolbarSlotHead = document.getElementById('doc-toolbar-slot-content-head');
+				var docToolbarSlotRail = document.getElementById('doc-toolbar-slot-rail');
+				if (docToolbarFloater && docToolbarSlotHead && docToolbarSlotRail && document.body.classList.contains('doc-layout')) {
+					var mqDocToolbar = window.matchMedia('(min-width: 450px)');
+					function placeDocToolbar() {
+						if (mqDocToolbar.matches) {
+							docToolbarSlotHead.appendChild(docToolbarFloater);
+						} else {
+							docToolbarSlotRail.appendChild(docToolbarFloater);
+						}
+					}
+					placeDocToolbar();
+					if (mqDocToolbar.addEventListener) {
+						mqDocToolbar.addEventListener('change', placeDocToolbar);
+					} else if (mqDocToolbar.addListener) {
+						mqDocToolbar.addListener(placeDocToolbar);
+					}
+				}
+
+				function copyMainAsMarkdown() {
+					var btn = document.getElementById('copy-page-md');
+					var mdSrc = btn && btn.getAttribute('data-copy-md-src');
+					if (mdSrc) {
+						return fetch(mdSrc, { credentials: 'same-origin' })
+							.then(function (res) {
+								if (!res.ok) return false;
+								return res.text();
+							})
+							.then(function (text) {
+								if (!text || typeof text !== 'string') return false;
+								if (!navigator.clipboard || !navigator.clipboard.writeText) return false;
+								return navigator.clipboard
+									.writeText(text)
+									.then(function () {
+										return true;
+									})
+									.catch(function () {
+										return false;
+									});
+							})
+							.catch(function () {
+								return false;
+							});
+					}
+					var main = document.getElementById('main-content');
+					if (!main) return Promise.resolve(false);
+					var fallback = main.innerText.replace(/\s+\n/g, '\n').trim();
+					if (fallback && navigator.clipboard && navigator.clipboard.writeText) {
+						return navigator.clipboard
+							.writeText(fallback)
+							.then(function () {
+								return true;
+							})
+							.catch(function () {
+								return false;
+							});
+					}
+					return Promise.resolve(false);
+				}
+
+				var copyPageMdBtn = document.getElementById('copy-page-md');
+				var copyFeedbackTimer;
+				function flashCopyPageMdFeedback(success) {
+					if (!copyPageMdBtn) return;
+					copyPageMdBtn.classList.remove('copy-split__main--success', 'copy-split__main--error');
+					if (success) {
+						copyPageMdBtn.classList.add('copy-split__main--success');
+					} else {
+						copyPageMdBtn.classList.add('copy-split__main--error');
+					}
+					window.clearTimeout(copyFeedbackTimer);
+					copyFeedbackTimer = window.setTimeout(function () {
+						copyPageMdBtn.classList.remove('copy-split__main--success', 'copy-split__main--error');
+					}, 1600);
+				}
+
+				function triggerCopyPageMdWithFeedback() {
+					copyMainAsMarkdown().then(function (ok) {
+						flashCopyPageMdFeedback(ok);
+					});
+				}
+
+				document.querySelectorAll('.js-copy-page-md').forEach(function (el) {
+					el.addEventListener('click', function () {
+						triggerCopyPageMdWithFeedback();
+					});
+				});
+
+				function isGlobalShortcutTarget(el) {
+					return el && el.closest && !!el.closest('input, textarea, select, [contenteditable="true"]');
+				}
+
+				document.addEventListener(
+					'keydown',
+					function (e) {
+						if (isGlobalShortcutTarget(e.target)) return;
+						if (e.defaultPrevented) return;
+						/* 仅单独按下 T 键（无任何修饰键），避免与 Ctrl+T、Shift+T 等冲突 */
+						if (
+							e.code === 'KeyT' &&
+							!e.ctrlKey &&
+							!e.metaKey &&
+							!e.altKey &&
+							!e.shiftKey
+						) {
+							e.preventDefault();
+							setTheme(getTheme() === 'dark' ? 'light' : 'dark');
+							return;
+						}
+					},
+					true
+				);
+
+				var menuBtn = document.getElementById('copy-page-menu-btn');
+				var panel = document.getElementById('copy-page-menu');
+				var copyPageMenuMd = document.getElementById('copy-page-menu-md');
+				var viewPageMd = document.getElementById('copy-page-view-md');
+				function closeMenu() {
+					if (!panel || !menuBtn) return;
+					panel.hidden = true;
+					panel.classList.remove('is-open');
+					menuBtn.setAttribute('aria-expanded', 'false');
+				}
+				function openMenu() {
+					if (!panel || !menuBtn) return;
+					panel.hidden = false;
+					panel.classList.add('is-open');
+					menuBtn.setAttribute('aria-expanded', 'true');
+				}
+				if (menuBtn && panel) {
+					menuBtn.addEventListener('click', function (e) {
+						e.stopPropagation();
+						if (panel.classList.contains('is-open')) closeMenu();
+						else openMenu();
+					});
+					panel.addEventListener('click', function (e) {
+						e.stopPropagation();
+					});
+				}
+				document.addEventListener('click', function () {
+					closeMenu();
+				});
+				if (copyPageMenuMd) {
+					copyPageMenuMd.addEventListener('click', function () {
+						triggerCopyPageMdWithFeedback();
+						closeMenu();
+					});
+				}
+				if (viewPageMd) {
+					viewPageMd.addEventListener('click', function () {
+						closeMenu();
+					});
+				}
+				var railToggle = document.getElementById('rail-menu-toggle');
+				var railBackdrop = document.getElementById('rail-backdrop');
+				var railAside = document.getElementById('doc-left-rail');
+				var contentHeadEl = document.querySelector('.content-head');
+				function syncDocOverlayTop() {
+					if (!contentHeadEl) return;
+					try {
+						var h = Math.ceil(contentHeadEl.getBoundingClientRect().height);
+						document.documentElement.style.setProperty('--doc-overlay-top', h + 'px');
+					} catch (e) {}
+				}
+				function setDocRailOpen(open) {
+					document.body.classList.toggle('doc-rail-open', open);
+					if (railToggle) {
+						railToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+						railToggle.setAttribute('aria-label', open ? '关闭文档导航' : '打开文档导航');
+					}
+					if (railBackdrop) {
+						railBackdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
+					}
+					if (railAside) {
+						if (open) {
+							railAside.setAttribute('aria-modal', 'true');
+						} else {
+							railAside.removeAttribute('aria-modal');
+						}
+					}
+					try {
+						document.body.style.overflow = open ? 'hidden' : '';
+					} catch (e) {}
+					if (open) {
+						syncDocOverlayTop();
+					}
+				}
+				function closeDocRail() {
+					setDocRailOpen(false);
+				}
+				if (railToggle && railBackdrop && railAside) {
+					railToggle.addEventListener('click', function () {
+						setDocRailOpen(!document.body.classList.contains('doc-rail-open'));
+					});
+					railBackdrop.addEventListener('click', closeDocRail);
+					document.addEventListener('keydown', function (e) {
+						if (e.key === 'Escape' && document.body.classList.contains('doc-rail-open')) {
+							closeDocRail();
+						}
+					});
+					railAside.addEventListener('click', function (e) {
+						var t = e.target;
+						if (t && t.closest && t.closest('a[href]')) {
+							closeDocRail();
+						}
+					});
+					/* 自 851px 起为固定侧栏档，离开 0–850px 抽屉档时关闭抽屉 */
+					var mqDocMid = window.matchMedia('(width >= 851px)');
+					function onDocMidTier(e) {
+						if (e.matches) {
+							closeDocRail();
+						}
+					}
+					if (mqDocMid.addEventListener) {
+						mqDocMid.addEventListener('change', onDocMidTier);
+					} else if (mqDocMid.addListener) {
+						mqDocMid.addListener(onDocMidTier);
+					}
+					window.addEventListener(
+						'resize',
+						function () {
+							if (document.body.classList.contains('doc-rail-open')) {
+								syncDocOverlayTop();
+							}
+						},
+						{ passive: true }
+					);
+				}
+
+				var railScrollEl = document.querySelector('.rail-scroll');
+				var railScrollClip = document.querySelector('[data-rail-scroll-clip]');
+				function syncRailScrollEdges() {
+					if (!railScrollEl || !railScrollClip) return;
+					var el = railScrollEl;
+					var maxScroll = Math.max(0, el.scrollHeight - el.clientHeight);
+					var canScroll = maxScroll > 2;
+					var st = el.scrollTop;
+					var atTop = st <= 1;
+					var atBottom = st >= maxScroll - 1;
+					railScrollClip.setAttribute('data-edge-top', canScroll && !atTop ? '1' : '0');
+					railScrollClip.setAttribute('data-edge-bottom', canScroll && !atBottom ? '1' : '0');
+				}
+				if (railScrollEl && railScrollClip) {
+					railScrollEl.addEventListener('scroll', syncRailScrollEdges, { passive: true });
+					window.addEventListener('resize', syncRailScrollEdges, { passive: true });
+					if (typeof ResizeObserver !== 'undefined') {
+						var roRailScroll = new ResizeObserver(syncRailScrollEdges);
+						roRailScroll.observe(railScrollEl);
+					}
+					syncRailScrollEdges();
+				}
+
+				var docRailNav = document.querySelector('.rail-nav');
+				if (docRailNav) {
+					docRailNav.addEventListener('click', function (e) {
+						var btn = e.target && e.target.closest ? e.target.closest('.rail-nav__trigger') : null;
+						if (!btn || !docRailNav.contains(btn)) return;
+						var expanded = btn.getAttribute('aria-expanded') === 'true';
+						var next = !expanded;
+						btn.setAttribute('aria-expanded', next ? 'true' : 'false');
+						var panelId = btn.getAttribute('aria-controls');
+						var panel = panelId ? document.getElementById(panelId) : null;
+						var section = btn.closest('.rail-nav__section');
+						if (panel) panel.hidden = !next;
+						if (section) section.setAttribute('data-state', next ? 'open' : 'closed');
+						requestAnimationFrame(syncRailScrollEdges);
+					});
+				}
+
+				/* 本页目录：与正文滚动同步；凡本节（标题至下一标题）与阅读视口相交则高亮，可多选（--top / --height 覆盖全部活动项） */
+				var tocList = document.getElementById('doc-toc-list');
+				var docMainEl = document.getElementById('main-content');
+				if (tocList && docMainEl && docMainEl.classList.contains('doc-main')) {
+					var tocLinks = tocList.querySelectorAll('a[href^="#"]');
+					var tocRaf = null;
+					function tocSync() {
+						var idWanted = {};
+						for (var ti = 0; ti < tocLinks.length; ti++) {
+							var href = tocLinks[ti].getAttribute('href') || '';
+							var tid = href.charAt(0) === '#' ? href.slice(1) : '';
+							if (tid) idWanted[tid] = true;
+						}
+						var allHeads = docMainEl.querySelectorAll('h2[id], h3[id], h4[id]');
+						var ordered = [];
+						for (var hi = 0; hi < allHeads.length; hi++) {
+							var he = allHeads[hi];
+							if (idWanted[he.id]) ordered.push(he);
+						}
+						var scrollRootEl = docMainEl.closest('.doc-reading');
+						var vpTop;
+						var vpBottom;
+						if (scrollRootEl) {
+							var rr = scrollRootEl.getBoundingClientRect();
+							vpTop = rr.top;
+							vpBottom = rr.bottom;
+						} else {
+							vpTop = 0;
+							vpBottom = window.innerHeight || document.documentElement.clientHeight || 0;
+						}
+						var mainBottom = docMainEl.getBoundingClientRect().bottom;
+						var activeHeadEls = [];
+						for (var oi = 0; oi < ordered.length; oi++) {
+							var headEl = ordered[oi];
+							var sectionTop = headEl.getBoundingClientRect().top;
+							var nextHead = ordered[oi + 1];
+							var sectionBottom = nextHead
+								? nextHead.getBoundingClientRect().top
+								: mainBottom;
+							/* 本节与阅读视口在纵向上有交集即视为可见 */
+							if (sectionBottom > vpTop && sectionTop < vpBottom) activeHeadEls.push(headEl);
+						}
+						for (var li = 0; li < tocLinks.length; li++) {
+							tocLinks[li].classList.remove('is-active');
+							tocLinks[li].removeAttribute('aria-current');
+						}
+						var minLiTop = null;
+						var maxLiBottom = null;
+						var firstAria = true;
+						for (var ai = 0; ai < activeHeadEls.length; ai++) {
+							var hid = activeHeadEls[ai].id;
+							for (var lj = 0; lj < tocLinks.length; lj++) {
+								var cand = tocLinks[lj];
+								if ((cand.getAttribute('href') || '').replace(/^#/, '') !== hid) continue;
+								cand.classList.add('is-active');
+								if (firstAria) {
+									cand.setAttribute('aria-current', 'location');
+									firstAria = false;
+								}
+								var liNode = cand.closest('li');
+								if (liNode) {
+									var t = liNode.offsetTop;
+									var b = t + liNode.offsetHeight;
+									if (minLiTop === null || t < minLiTop) minLiTop = t;
+									if (maxLiBottom === null || b > maxLiBottom) maxLiBottom = b;
+								}
+								break;
+							}
+						}
+						if (minLiTop !== null && maxLiBottom !== null) {
+							tocList.style.setProperty('--top', minLiTop + 'px');
+							tocList.style.setProperty('--height', maxLiBottom - minLiTop + 'px');
+						} else {
+							tocList.style.setProperty('--top', '0px');
+							tocList.style.setProperty('--height', '0px');
+						}
+					}
+					function tocSchedule() {
+						if (tocRaf) return;
+						tocRaf = requestAnimationFrame(function () {
+							tocRaf = null;
+							tocSync();
+						});
+					}
+					function tocScheduleSoon() {
+						tocSchedule();
+						requestAnimationFrame(function () {
+							tocSchedule();
+						});
+						setTimeout(tocSchedule, 0);
+						setTimeout(tocSchedule, 64);
+					}
+					var docScrollRoot = docMainEl.closest('.doc-reading');
+					function tocBindScrollTargets(fn) {
+						if (docScrollRoot) {
+							docScrollRoot.addEventListener('scroll', fn, { passive: true });
+							try {
+								docScrollRoot.addEventListener('scrollend', fn, { passive: true });
+							} catch (e) {}
+						}
+						/* 窄屏下由 body / document 滚动，与 .doc-reading 内滚动二选一 */
+						window.addEventListener('scroll', fn, { passive: true });
+					}
+					tocBindScrollTargets(tocSchedule);
+					window.addEventListener('resize', tocSchedule, { passive: true });
+					window.addEventListener('hashchange', tocScheduleSoon, { passive: true });
+					tocList.addEventListener('click', function (e) {
+						var t = e.target;
+						var a = t && t.closest ? t.closest('a[href^="#"]') : null;
+						if (!a || !tocList.contains(a)) return;
+						tocScheduleSoon();
+					});
+					tocSchedule();
+				}
 			})();
 		</script>
 	</body>

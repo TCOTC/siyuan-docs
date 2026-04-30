@@ -1,11 +1,11 @@
-# Obsidian 开发文档参考
+# Obsidian 开发者文档参考
 _Exported on 2026/4/29 at GMT+8 16:59:53 from Cursor (3.2.16)_
 
 ---
 
 **User**
 
-我想参考 https://github.com/obsidianmd/obsidian-developer-docs 做个思源笔记的开发文档，现在我需要先了解 https://github.com/obsidianmd/obsidian-developer-docs 项目
+我想参考 https://github.com/obsidianmd/obsidian-developer-docs 做个思源笔记的开发者文档，现在我需要先了解 https://github.com/obsidianmd/obsidian-developer-docs 项目
 
 ---
 
@@ -19,7 +19,7 @@ _Exported on 2026/4/29 at GMT+8 16:59:53 from Cursor (3.2.16)_
 
 
 
-下面是对 [obsidianmd/obsidian-developer-docs](https://github.com/obsidianmd/obsidian-developer-docs) 的整理，方便你后面做「思源笔记开发文档」时对照取舍。
+下面是对 [obsidianmd/obsidian-developer-docs](https://github.com/obsidianmd/obsidian-developer-docs) 的整理，方便你后面做「思源笔记开发者文档」时对照取舍。
 
 ---
 
@@ -86,7 +86,7 @@ README 里特别说明：`References/TypeScript API`（实际路径是 `Referenc
 
 ---
 
-## 和「思源笔记开发文档」的对应关系（简要）
+## 和「思源笔记开发者文档」的对应关系（简要）
 
 | Obsidian 做法 | 思源侧可考虑的点 |
 |---------------|------------------|
@@ -104,7 +104,7 @@ README 里特别说明：`References/TypeScript API`（实际路径是 `Referenc
 
 **User**
 
-我想生成跟 ob 的开发文档网站一样的网站，这个有开源吗
+我想生成跟 ob 的开发者文档网站一样的网站，这个有开源吗
 
 ---
 
@@ -124,7 +124,7 @@ README 里特别说明：`References/TypeScript API`（实际路径是 `Referenc
 
 [docs.obsidian.md](https://docs.obsidian.md/) 用的是官方 **Obsidian Publish** 托管：在 Obsidian 里配置发布，由 Obsidian 的服务器渲染、搜索、导航等。**Publish 本身是商业订阅服务**，没有官方开源的「和线上一模一样的 Publish 服务端」给你自建。
 
-所以：**“跟 OB 开发文档站一样的站”若指「同一套 Publish 产品」→ 没有开源替代品是官方同款；若指「观感/结构类似的文档站」→ 可以自己做。**
+所以：**“跟 OB 开发者文档站一样的站”若指「同一套 Publish 产品」→ 没有开源替代品是官方同款；若指「观感/结构类似的文档站」→ 可以自己做。**
 
 ## 3. 想要「类似效果」时常见开源路线
 
@@ -136,7 +136,7 @@ README 里特别说明：`References/TypeScript API`（实际路径是 `Referenc
 | **偏 Obsidian 语法的发布** | 社区里有「类 Publish」的自托管方案，例如 [mdbrain](https://github.com/blackstorm/mdbrain)、[obsidian-userland/publish](https://github.com/obsidian-userland/publish) 等（成熟度、协议、功能各自不同，需自己评估）。 |
 | **数字花园 / Quartz 一类** | 很多人用 [Quartz](https://github.com/jackyzha0/quartz) 等把 Obsidian 库打成静态站，视觉和双链可以做得接近「知识库站点」，但和官方 Publish 仍不是同一套 UI。 |
 
-对你做 **思源开发文档**：通常更省事的是 **VitePress / Docusaurus + 自己的 Markdown**，不必绑 Obsidian Publish；若坚持「库即仓库、维基链接」，再在构建脚本里做链接解析即可。
+对你做 **思源开发者文档**：通常更省事的是 **VitePress / Docusaurus + 自己的 Markdown**，不必绑 Obsidian Publish；若坚持「库即仓库、维基链接」，再在构建脚本里做链接解析即可。
 
 如果你愿意说下更在意 **「长得像 docs.obsidian.md」** 还是 **「搜索/版本/多语言」**，可以收窄到 1～2 种具体技术选型（仍用中文说明）。
 

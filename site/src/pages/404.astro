@@ -1,0 +1,24 @@
+---
+import Shell from '../layouts/Shell.astro';
+import { getDeveloperDocsNavGroups } from '../lib/getDeveloperDocsNav';
+
+const base = import.meta.env.BASE_URL;
+const sidebarGroups = await getDeveloperDocsNavGroups();
+---
+
+<Shell
+	title="页面未找到"
+	description="未找到该页面。可从侧栏进入其他章节或使用顶栏搜索。"
+	sidebarGroups={sidebarGroups}
+	breadcrumbs={[{ label: '页面未找到' }]}
+	headings={[]}
+>
+	<article class="prose not-found-doc" data-pagefind-ignore>
+		<p class="not-found__code" aria-hidden="true">404</p>
+		<h1>页面未找到</h1>
+		<p>该地址可能已移动、拼写有误，或当前部署中尚不存在。</p>
+		<p class="not-found__actions">
+			<a class="btn" href={`${base}developers/welcome`}>打开文档首页</a>
+		</p>
+	</article>
+</Shell>

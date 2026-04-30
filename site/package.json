@@ -8,13 +8,18 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build && pagefind --site dist --force-language zh",
+    "check": "astro check",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
+    "@lucide/astro": "^1.14.0",
     "astro": "^6.1.10"
   },
   "devDependencies": {
-    "pagefind": "^1.5.2"
+    "@astrojs/check": "^0.9.9",
+    "@types/node": "^22.15.3",
+    "pagefind": "^1.5.2",
+    "typescript": "^5.9.3"
   }
 }
