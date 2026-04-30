@@ -1,6 +1,6 @@
 ---
 import { ChevronDown } from '@lucide/astro';
-import { developerPageRelativePath, withBaseUrl } from '../lib/docRoutes';
+import { developerPageRelativePath } from '../lib/docRoutes';
 import type { AppLocale } from '../lib/appLocale';
 
 interface NavItem {
@@ -19,11 +19,10 @@ interface Props {
 	idPrefix: string;
 	sidebarGroups: NavGroup[];
 	railNavAria: string;
-	base: string;
 	currentPath?: string;
 }
 
-const { locale, idPrefix, sidebarGroups, railNavAria, base, currentPath } = Astro.props;
+const { locale, idPrefix, sidebarGroups, railNavAria, currentPath } = Astro.props;
 ---
 
 <nav class="rail-nav" aria-label={railNavAria}>
@@ -44,7 +43,7 @@ const { locale, idPrefix, sidebarGroups, railNavAria, base, currentPath } = Astr
 									<li>
 										<a
 											class:list={['rail-nav__link', { 'is-active': item.path === currentPath }]}
-											href={withBaseUrl(base, developerPageRelativePath(locale, item.path))}
+											href={developerPageRelativePath(locale, item.path)}
 										>
 											{item.title}
 										</a>

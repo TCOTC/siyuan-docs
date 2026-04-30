@@ -12,15 +12,10 @@ export function developerDocsUrlPath(docRelPath: string): string {
 }
 
 /**
- * 返回以 `/` 开头的站内路径（不含 `import.meta.env.BASE_URL`），供与 base 拼接
+ * 返回以 `/` 开头的完整文档路径。`getRelativeLocaleUrl` 会包含 `astro.config` 的 `base`，
+ * 勿再与 `import.meta.env.BASE_URL` 手动拼接。
  */
 export function developerPageRelativePath(locale: AppLocale, docRelPath: string): string {
 	const path = developerDocsUrlPath(docRelPath);
 	return getRelativeLocaleUrl(locale, path);
-}
-
-export function withBaseUrl(base: string, relativePath: string): string {
-	const b = base.endsWith('/') ? base.slice(0, -1) : base;
-	const p = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
-	return `${b}${p}`;
 }

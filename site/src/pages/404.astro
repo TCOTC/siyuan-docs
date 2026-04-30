@@ -1,7 +1,7 @@
 ---
 import Shell from '../layouts/Shell.astro';
 import NotFoundLocaleHeadScript from '../components/NotFoundLocaleHeadScript.astro';
-import { developerPageRelativePath, withBaseUrl } from '../lib/docRoutes';
+import { developerPageRelativePath } from '../lib/docRoutes';
 import { getDeveloperDocsNavGroups } from '../lib/getDeveloperDocsNav';
 import { notFoundUi, pagefindToolbarUi, shellUi } from '../lib/uiStrings';
 
@@ -21,7 +21,7 @@ const patchZh = {
 	pagefindLang: 'zh',
 	docNavAria: tShellZh.docNavAria,
 	skipToContent: tShellZh.skipToContent,
-	railBrandHref: withBaseUrl(base, developerPageRelativePath('zh', 'welcome')),
+	railBrandHref: developerPageRelativePath('zh', 'welcome'),
 	railSiteLabel: tShellZh.railSiteLabel,
 	searchHint: pfZh.searchHint,
 	themeToggleAria: tShellZh.themeToggleAria,
@@ -57,14 +57,14 @@ const patchZh = {
 			<h1>{nfZh.heading}</h1>
 			<p>{nfZh.body}</p>
 			<p class="not-found__actions">
-				<a class="btn" href={withBaseUrl(base, developerPageRelativePath('zh', 'welcome'))}>{nfZh.button}</a>
+				<a class="btn" href={developerPageRelativePath('zh', 'welcome')}>{nfZh.button}</a>
 			</p>
 		</div>
 		<div class="doc-i18n doc-i18n--en">
 			<h1>{nfEn.heading}</h1>
 			<p>{nfEn.body}</p>
 			<p class="not-found__actions">
-				<a class="btn" href={withBaseUrl(base, developerPageRelativePath('en', 'welcome'))}>{nfEn.button}</a>
+				<a class="btn" href={developerPageRelativePath('en', 'welcome')}>{nfEn.button}</a>
 			</p>
 		</div>
 	</article>

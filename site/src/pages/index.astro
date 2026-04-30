@@ -1,9 +1,8 @@
 ---
-import { developerPageRelativePath, withBaseUrl } from '../lib/docRoutes';
+import { developerPageRelativePath } from '../lib/docRoutes';
 
-const base = import.meta.env.BASE_URL;
-const zhWelcome = withBaseUrl(base, developerPageRelativePath('zh', 'welcome'));
-const enWelcome = withBaseUrl(base, developerPageRelativePath('en', 'welcome'));
+const zhWelcome = developerPageRelativePath('zh', 'welcome');
+const enWelcome = developerPageRelativePath('en', 'welcome');
 ---
 
 <!doctype html>
