@@ -1,16 +1,27 @@
-/** 侧栏与面包屑用的分组标签（由文件所在子目录决定） */
-export type DeveloperNavLabel = '入门' | '插件' | '主题';
+const LOCALE_PREFIXES = ['zh/', 'en/'] as const;
+
+/** 去掉集合 id 前的 `zh/`、`en/` 等语言前缀 */
+export function stripLocalePrefixFromDocId(id: string): string {
+	for (const p of LOCALE_PREFIXES) {
+		if (id.startsWith(p)) return id.slice(p.length);
+	}
+	return id;
+}
 
 const INTRO_PREFIX = 'intro/';
 
-/** 文档在站点内的路径（位于 `developers/` 之后，不含前后斜杠） */
+/** 文档在 `developers/` 之后的路径段（不含前后斜杠），如 `welcome`、`plugin/plugin-overview` */
 export function developerDocPath(doc: { id: string }): string {
-	if (doc.id.startsWith(INTRO_PREFIX)) return doc.id.slice(INTRO_PREFIX.length);
-	return doc.id;
+	const id = stripLocalePrefixFromDocId(doc.id);
+	if (id.startsWith(INTRO_PREFIX)) return id.slice(INTRO_PREFIX.length);
+	return id;
 }
 
-export function developerNavGroupLabel(id: string): DeveloperNavLabel {
-	if (id.startsWith('plugin/')) return '插件';
-	if (id.startsWith('theme/')) return '主题';
-	return '入门';
+export type NavGroupKey = 'intro' | 'plugin' | 'theme';
+
+export function developerNavGroupKey(id: string): NavGroupKey {
+	const stripped = stripLocalePrefixFromDocId(id);
+	if (stripped.startsWith('plugin/')) return 'plugin';
+	if (stripped.startsWith('theme/')) return 'theme';
+	return 'intro';
 }

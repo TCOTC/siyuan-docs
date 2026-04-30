@@ -1,24 +1,71 @@
 ---
 import Shell from '../layouts/Shell.astro';
+import NotFoundLocaleHeadScript from '../components/NotFoundLocaleHeadScript.astro';
+import { developerPageRelativePath, withBaseUrl } from '../lib/docRoutes';
 import { getDeveloperDocsNavGroups } from '../lib/getDeveloperDocsNav';
+import { notFoundUi, pagefindToolbarUi, shellUi } from '../lib/uiStrings';
 
 const base = import.meta.env.BASE_URL;
-const sidebarGroups = await getDeveloperDocsNavGroups();
+const nfZh = notFoundUi('zh');
+const nfEn = notFoundUi('en');
+const tShellZh = shellUi('zh');
+const pfZh = pagefindToolbarUi('zh');
+
+const sidebarGroupsZh = await getDeveloperDocsNavGroups('zh');
+const sidebarGroupsEn = await getDeveloperDocsNavGroups('en');
+
+/** 首屏 SSR 为英文；判定为中文时在 head 内联脚本中套用 */
+const patchZh = {
+	title: `${nfZh.shellTitle} – ${tShellZh.siteName}`,
+	description: nfZh.shellDescription,
+	pagefindLang: 'zh',
+	docNavAria: tShellZh.docNavAria,
+	skipToContent: tShellZh.skipToContent,
+	railBrandHref: withBaseUrl(base, developerPageRelativePath('zh', 'welcome')),
+	railSiteLabel: tShellZh.railSiteLabel,
+	searchHint: pfZh.searchHint,
+	themeToggleAria: tShellZh.themeToggleAria,
+	themeToggleHint: tShellZh.themeToggleHint,
+	copyPageMdAria: tShellZh.copyPageMdAria,
+	copyPageHint: tShellZh.copyPageHint,
+	copyMenuMoreTitle: tShellZh.copyMenuMoreTitle,
+	copyMenuMdTitle: tShellZh.copyMenuMdTitle,
+	copyMenuMdDesc: tShellZh.copyMenuMdDesc,
+	copyMenuViewTitle: tShellZh.copyMenuViewTitle,
+	copyMenuViewDesc: tShellZh.copyMenuViewDesc,
+	langSwitcherAria: tShellZh.langSwitcherAria,
+	langSwitcherHint: tShellZh.langSwitcherHint,
+	railMenuOpenAria: tShellZh.railMenuOpenAria,
+	railMenuCloseAria: tShellZh.railMenuCloseAria,
+};
 ---
 
 <Shell
-	title="页面未找到"
-	description="未找到该页面。可从侧栏进入其他章节或使用顶栏搜索。"
-	sidebarGroups={sidebarGroups}
-	breadcrumbs={[{ label: '页面未找到' }]}
+	locale="en"
+	htmlLang="en"
+	pagefindUiLang="en"
+	title={nfEn.shellTitle}
+	description={nfEn.shellDescription}
+	notFoundDualSidebars={{ zh: sidebarGroupsZh, en: sidebarGroupsEn }}
+	notFoundDualCrumbLabels={{ zh: nfZh.crumbLabel, en: nfEn.crumbLabel }}
 	headings={[]}
 >
+	<NotFoundLocaleHeadScript slot="head-after-title" base={base} patchZh={patchZh} />
 	<article class="prose not-found-doc" data-pagefind-ignore>
 		<p class="not-found__code" aria-hidden="true">404</p>
-		<h1>页面未找到</h1>
-		<p>该地址可能已移动、拼写有误，或当前部署中尚不存在。</p>
-		<p class="not-found__actions">
-			<a class="btn" href={`${base}developers/welcome`}>打开文档首页</a>
-		</p>
+		<div class="doc-i18n doc-i18n--zh">
+			<h1>{nfZh.heading}</h1>
+			<p>{nfZh.body}</p>
+			<p class="not-found__actions">
+				<a class="btn" href={withBaseUrl(base, developerPageRelativePath('zh', 'welcome'))}>{nfZh.button}</a>
+			</p>
+		</div>
+		<div class="doc-i18n doc-i18n--en">
+			<h1>{nfEn.heading}</h1>
+			<p>{nfEn.body}</p>
+			<p class="not-found__actions">
+				<a class="btn" href={withBaseUrl(base, developerPageRelativePath('en', 'welcome'))}>{nfEn.button}</a>
+			</p>
+		</div>
 	</article>
 </Shell>

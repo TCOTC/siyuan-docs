@@ -1,0 +1,60 @@
+---
+import { ChevronDown } from '@lucide/astro';
+import { developerPageRelativePath, withBaseUrl } from '../lib/docRoutes';
+import type { AppLocale } from '../lib/appLocale';
+
+interface NavItem {
+	path: string;
+	title: string;
+}
+
+interface NavGroup {
+	label: string;
+	items: NavItem[];
+}
+
+interface Props {
+	locale: AppLocale;
+	/** 避免双语侧栏时 `id` 冲突 */
+	idPrefix: string;
+	sidebarGroups: NavGroup[];
+	railNavAria: string;
+	base: string;
+	currentPath?: string;
+}
+
+const { locale, idPrefix, sidebarGroups, railNavAria, base, currentPath } = Astro.props;
+---
+
+<nav class="rail-nav" aria-label={railNavAria}>
+	<ul class="rail-nav__root">
+		{
+			sidebarGroups.map((group, gi) => {
+				const headId = `${idPrefix}-rail-nav-head-${gi}`;
+				const panelId = `${idPrefix}-rail-nav-panel-${gi}`;
+				return (
+					<li class="rail-nav__section" data-state="open">
+						<button type="button" class="rail-nav__trigger" id={headId} aria-expanded="true" aria-controls={panelId}>
+							<span class="rail-nav__trigger-text">{group.label}</span>
+							<ChevronDown class="rail-nav__chev" />
+						</button>
+						<div class="rail-nav__panel" id={panelId} role="region" aria-labelledby={headId}>
+							<ul class="rail-nav__list">
+								{group.items.map((item) => (
+									<li>
+										<a
+											class:list={['rail-nav__link', { 'is-active': item.path === currentPath }]}
+											href={withBaseUrl(base, developerPageRelativePath(locale, item.path))}
+										>
+											{item.title}
+										</a>
+									</li>
+								))}
+							</ul>
+						</div>
+					</li>
+				);
+			})
+		}
+	</ul>
+</nav>

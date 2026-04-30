@@ -1,0 +1,69 @@
+---
+import { Languages } from '@lucide/astro';
+import type { AppLocale } from '../lib/appLocale';
+import type { ShellUi } from '../lib/uiStrings';
+
+interface Props {
+	locale: AppLocale;
+	zhHref: string;
+	enHref: string;
+	t: ShellUi;
+}
+
+const { locale, zhHref, enHref, t } = Astro.props;
+---
+
+<div class="lang-switch" data-lang-switch>
+	<div class="u-floating-hint" data-anchored-floating-hint>
+		<button
+			type="button"
+			class="icon-btn"
+			id="lang-switch-btn"
+			data-lang-menu-btn
+			data-floating-hint-anchor
+			aria-expanded="false"
+			aria-haspopup="menu"
+			aria-controls="lang-switch-panel"
+			aria-label={t.langSwitcherAria}
+		>
+			<Languages class="lang-switch__icon" aria-hidden="true" />
+		</button>
+		<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
+			<span class="u-floating-hint__text">{t.langSwitcherHint}</span>
+		</div>
+	</div>
+	<ul
+		class="copy-split__panel lang-switch__panel"
+		id="lang-switch-panel"
+		role="menu"
+		hidden
+		aria-label={t.langSwitcherAria}
+	>
+		<li role="presentation">
+			<a
+				role="menuitem"
+				class="copy-split__panel-item lang-switch__panel-item"
+				href={zhHref}
+				hreflang="zh-Hans"
+				lang="zh-Hans"
+				data-lang-locale="zh"
+				aria-current={locale === 'zh' ? 'page' : undefined}
+			>
+				<span class="copy-split__panel-item__title">{t.langSwitcherZh}</span>
+			</a>
+		</li>
+		<li role="presentation">
+			<a
+				role="menuitem"
+				class="copy-split__panel-item lang-switch__panel-item"
+				href={enHref}
+				hreflang="en"
+				lang="en"
+				data-lang-locale="en"
+				aria-current={locale === 'en' ? 'page' : undefined}
+			>
+				<span class="copy-split__panel-item__title">{t.langSwitcherEn}</span>
+			</a>
+		</li>
+	</ul>
+</div>

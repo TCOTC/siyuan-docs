@@ -1,0 +1,19 @@
+---
+import { getCollection } from 'astro:content';
+import DeveloperDocPage from '../../../components/DeveloperDocPage.astro';
+import { developerDocPath } from '../../../lib/developerDocPath';
+
+export async function getStaticPaths() {
+	const docs = await getCollection('docs');
+	return docs
+		.filter((d) => d.id.startsWith('en/'))
+		.map((doc) => ({
+			params: { slug: developerDocPath(doc) },
+			props: { doc },
+		}));
+}
+
+const { doc } = Astro.props;
+---
+
+<DeveloperDocPage locale="en" doc={doc} />

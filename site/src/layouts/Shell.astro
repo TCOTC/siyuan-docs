@@ -1,7 +1,12 @@
 ---
 import '../styles/global.css';
 import BrandLogo from '../components/BrandLogo.astro';
+import LangSwitcher from '../components/LangSwitcher.astro';
 import PagefindToolbarTrigger from '../components/PagefindToolbarTrigger.astro';
+import RailNavSections from '../components/RailNavSections.astro';
+import { developerPageRelativePath, withBaseUrl } from '../lib/docRoutes';
+import { pagefindToolbarUi, shellUi } from '../lib/uiStrings';
+import type { AppLocale } from '../lib/appLocale';
 import { Sun, Moon, ChevronDown, Copy, Check, X } from '@lucide/astro';
 
 interface NavItem {
@@ -27,6 +32,11 @@ interface TocHeading {
 }
 
 interface Props {
+	locale: AppLocale;
+	/** `<html lang>`，如 zh-CN / en */
+	htmlLang: string;
+	/** Pagefind UI 语言代码，与 `pagefind-config` 的 `lang` 一致 */
+	pagefindUiLang: string;
 	title: string;
 	description?: string;
 	sidebarGroups?: NavGroup[];
@@ -35,25 +45,48 @@ interface Props {
 	noSidebar?: boolean;
 	breadcrumbs?: Crumb[];
 	headings?: TocHeading[];
+	/** 404：中英侧栏目录并存，由 `data-doc-locale` + 首屏脚本按 URL 切换 */
+	notFoundDualSidebars?: { zh: NavGroup[]; en: NavGroup[] };
+	/** 404：与中英侧栏配套的面包屑文案（单 crumb） */
+	notFoundDualCrumbLabels?: { zh: string; en: string };
 }
 
-const { title, description, sidebarGroups, currentPath, noSidebar, breadcrumbs, headings } = Astro.props;
-const siteName = '思源开发者文档';
-// 侧栏顶栏文案（与全站标题区分）
-const railSiteLabel = '开发者文档';
+const {
+	locale,
+	htmlLang,
+	pagefindUiLang,
+	title,
+	description,
+	sidebarGroups,
+	currentPath,
+	noSidebar,
+	breadcrumbs,
+	headings,
+	notFoundDualSidebars,
+	notFoundDualCrumbLabels,
+} = Astro.props;
+const t = shellUi(locale);
+const tZh = shellUi('zh');
+const tEn = shellUi('en');
+const pfToolbar = pagefindToolbarUi(locale);
+const siteName = t.siteName;
+const railSiteLabel = t.railSiteLabel;
 const base = import.meta.env.BASE_URL;
 
 const tocItems = (headings ?? []).filter((h) => h.depth >= 2 && h.depth <= 4);
 const pagefindBundle = `${base}pagefind/`;
-const docHomeHref = `${base}developers/welcome`;
-/** 与当前页同路径的 Markdown 地址，如 /developers/foo → /developers/foo.md（复制时按需 fetch） */
+const docHomeHref = withBaseUrl(base, developerPageRelativePath(locale, 'welcome'));
+const pathForLangSwitch = currentPath ?? 'welcome';
+const zhDocHref = withBaseUrl(base, developerPageRelativePath('zh', pathForLangSwitch));
+const enDocHref = withBaseUrl(base, developerPageRelativePath('en', pathForLangSwitch));
+/** 与当前页同路径的 Markdown 地址：在 pathname 末尾加 `.md`（复制时按需 fetch） */
 const mdViewHref = `${Astro.url.pathname.replace(/\/+$/, '')}.md`;
-/** 仅开发者文档页带 `currentPath`，用于在点击复制时请求 `.md`，避免把正文塞进 HTML */
+/** 仅开发者内容页带 `currentPath`，用于在点击复制时请求 `.md`，避免把正文塞进 HTML */
 const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang={htmlLang} data-doc-locale={notFoundDualSidebars ? 'en' : undefined}>
 	<head>
 		<script is:inline>
 			(function () {
@@ -87,12 +120,21 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 			rel="stylesheet"
 		/>
 		<title>{title === siteName ? title : `${title} – ${siteName}`}</title>
+		<slot name="head-after-title" />
+		{
+			currentPath ? (
+				<>
+					<link rel="alternate" hreflang="zh-Hans" href={withBaseUrl(base, developerPageRelativePath('zh', currentPath))} />
+					<link rel="alternate" hreflang="en" href={withBaseUrl(base, developerPageRelativePath('en', currentPath))} />
+				</>
+			) : null
+		}
 		<link rel="stylesheet" href={`${pagefindBundle}pagefind-component-ui.css`} />
 		<script type="module" src={`${pagefindBundle}pagefind-component-ui.js`}></script>
 	</head>
 	<body class:list={[{ 'doc-layout': !noSidebar }]}>
-		<a class="skip-link" href="#main-content">跳到正文 →</a>
-		<pagefind-config bundle-path={pagefindBundle} lang="zh" />
+		<a class="skip-link" href="#main-content">{t.skipToContent}</a>
+		<pagefind-config bundle-path={pagefindBundle} lang={pagefindUiLang} />
 		{
 			noSidebar ? (
 				<>
@@ -103,7 +145,7 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 								<span class="brand-lockup__text">{siteName}</span>
 							</a>
 							<div class="topbar__search-slot" data-pagefind-ignore>
-								<PagefindToolbarTrigger />
+								<PagefindToolbarTrigger searchHint={pfToolbar.searchHint} />
 							</div>
 							<div class="u-floating-hint" data-anchored-floating-hint>
 								<button
@@ -112,18 +154,19 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 									id="theme-toggle"
 									data-theme-toggle
 									data-floating-hint-anchor
-									aria-label="切换浅色或深色主题（快捷键 T）"
+									aria-label={t.themeToggleAria}
 								>
 									<Sun class="theme-icon theme-icon--sun" />
 									<Moon class="theme-icon theme-icon--moon" style="display:none" />
 								</button>
 								<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
-									<span class="u-floating-hint__text">切换主题</span>
-									<kbd class="u-floating-hint__key">T</kbd>
+									<span class="u-floating-hint__text">{t.themeToggleHint}</span>
+									<kbd class="u-floating-hint__key">{t.themeKeyT}</kbd>
 								</div>
 							</div>
-							<nav class="topbar__nav" aria-label="顶部">
-								<a href={`${base}developers/welcome`}>文档</a>
+							<nav class="topbar__nav" aria-label={t.topNavAria}>
+								<a href={docHomeHref}>{t.topNavDocs}</a>
+								<LangSwitcher locale={locale} zhHref={zhDocHref} enHref={enDocHref} t={t} />
 								<a href="https://github.com/siyuan-note/siyuan" target="_blank" rel="noopener noreferrer">
 									GitHub
 								</a>
@@ -137,7 +180,7 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 			) : (
 				<div class="doc-app">
 					<div class="rail-backdrop" id="rail-backdrop" aria-hidden="true" />
-					<aside class="left-rail" id="doc-left-rail" aria-label="文档导航" data-pagefind-ignore>
+					<aside class="left-rail" id="doc-left-rail" aria-label={t.docNavAria} data-pagefind-ignore>
 						<header class="rail-header">
 							<a class="brand-lockup brand-lockup--rail" href={docHomeHref}>
 								<BrandLogo />
@@ -147,118 +190,225 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 							<div id="doc-toolbar-slot-rail" class="doc-toolbar-slot doc-toolbar-slot--in-rail"></div>
 							<div class="rail-header__actions">
 								<div class="rail-header__search-slot">
-									<PagefindToolbarTrigger />
+									<PagefindToolbarTrigger searchHint={pfToolbar.searchHint} />
 								</div>
 							</div>
 						</header>
 						<div class="rail-body">
 							<div class="rail-scroll-clip" data-rail-scroll-clip>
 								<div class="rail-scroll">
-									<nav class="rail-nav" aria-label="侧栏目录">
-										<ul class="rail-nav__root">
-										{
-											sidebarGroups?.map((group, gi) => {
-												const headId = `rail-nav-head-${gi}`;
-												const panelId = `rail-nav-panel-${gi}`;
-												return (
-													<li class="rail-nav__section" data-state="open">
-														<button
-															type="button"
-															class="rail-nav__trigger"
-															id={headId}
-															aria-expanded="true"
-															aria-controls={panelId}
-														>
-															<span class="rail-nav__trigger-text">{group.label}</span>
-															<ChevronDown class="rail-nav__chev" />
-														</button>
-														<div
-															class="rail-nav__panel"
-															id={panelId}
-															role="region"
-															aria-labelledby={headId}
-														>
-															<ul class="rail-nav__list">
-																{group.items.map((item) => (
-																	<li>
-																		<a
-																			class:list={['rail-nav__link', { 'is-active': item.path === currentPath }]}
-																			href={`${base}developers/${item.path}`}
-																		>
-																			{item.title}
-																		</a>
-																	</li>
-																))}
-															</ul>
-														</div>
-													</li>
-												);
-											})
-										}
-										</ul>
-									</nav>
+									{
+										notFoundDualSidebars ? (
+											<div class="u-doc-locale-stack rail-nav-locale-stack">
+												<div class="doc-i18n doc-i18n--zh">
+													<RailNavSections
+														locale="zh"
+														idPrefix="nf-zh"
+														sidebarGroups={notFoundDualSidebars.zh}
+														railNavAria={tZh.railNavAria}
+														base={base}
+														currentPath={currentPath}
+													/>
+												</div>
+												<div class="doc-i18n doc-i18n--en">
+													<RailNavSections
+														locale="en"
+														idPrefix="nf-en"
+														sidebarGroups={notFoundDualSidebars.en}
+														railNavAria={tEn.railNavAria}
+														base={base}
+														currentPath={currentPath}
+													/>
+												</div>
+											</div>
+										) : (
+											<nav class="rail-nav" aria-label={t.railNavAria}>
+												<ul class="rail-nav__root">
+													{
+														sidebarGroups?.map((group, gi) => {
+															const headId = `rail-nav-head-${gi}`;
+															const panelId = `rail-nav-panel-${gi}`;
+															return (
+																<li class="rail-nav__section" data-state="open">
+																	<button
+																		type="button"
+																		class="rail-nav__trigger"
+																		id={headId}
+																		aria-expanded="true"
+																		aria-controls={panelId}
+																	>
+																		<span class="rail-nav__trigger-text">{group.label}</span>
+																		<ChevronDown class="rail-nav__chev" />
+																	</button>
+																	<div
+																		class="rail-nav__panel"
+																		id={panelId}
+																		role="region"
+																		aria-labelledby={headId}
+																	>
+																		<ul class="rail-nav__list">
+																			{group.items.map((item) => (
+																				<li>
+																					<a
+																						class:list={[
+																							'rail-nav__link',
+																							{ 'is-active': item.path === currentPath },
+																						]}
+																						href={withBaseUrl(base, developerPageRelativePath(locale, item.path))}
+																					>
+																						{item.title}
+																					</a>
+																				</li>
+																			))}
+																		</ul>
+																	</div>
+																</li>
+															);
+														})
+													}
+												</ul>
+											</nav>
+										)
+									}
 								</div>
 								<div class="rail-scroll__edge rail-scroll__edge--top" aria-hidden="true" />
 								<div class="rail-scroll__edge rail-scroll__edge--bottom" aria-hidden="true" />
 							</div>
 							<div class="rail-footer">
-								<ul class="rail-footer__links">
-									<li>
-										<a
-											class:list={[{ 'is-current': currentPath === 'welcome' }]}
-											href={`${base}developers/welcome`}
-										>
-											开发者文档
-										</a>
-									</li>
-									<li>
-										<a href="https://github.com/siyuan-note/bazaar" target="_blank" rel="noopener noreferrer">
-											集市
-										</a>
-									</li>
-									<li>
-										<a href="https://b3log.org/siyuan" target="_blank" rel="noopener noreferrer">
-											官网
-										</a>
-									</li>
-								</ul>
+								{
+									notFoundDualSidebars ? (
+										<div class="u-doc-locale-stack rail-footer-locale-stack">
+											<div class="doc-i18n doc-i18n--zh">
+												<ul class="rail-footer__links">
+													<li>
+														<a
+															class:list={[{ 'is-current': currentPath === 'welcome' }]}
+															href={withBaseUrl(base, developerPageRelativePath('zh', 'welcome'))}
+														>
+															{tZh.railFooterDocs}
+														</a>
+													</li>
+													<li>
+														<a href="https://github.com/siyuan-note/bazaar" target="_blank" rel="noopener noreferrer">
+															{tZh.railFooterBazaar}
+														</a>
+													</li>
+													<li>
+														<a href="https://b3log.org/siyuan" target="_blank" rel="noopener noreferrer">
+															{tZh.railFooterOfficial}
+														</a>
+													</li>
+												</ul>
+											</div>
+											<div class="doc-i18n doc-i18n--en">
+												<ul class="rail-footer__links">
+													<li>
+														<a
+															class:list={[{ 'is-current': currentPath === 'welcome' }]}
+															href={withBaseUrl(base, developerPageRelativePath('en', 'welcome'))}
+														>
+															{tEn.railFooterDocs}
+														</a>
+													</li>
+													<li>
+														<a href="https://github.com/siyuan-note/bazaar" target="_blank" rel="noopener noreferrer">
+															{tEn.railFooterBazaar}
+														</a>
+													</li>
+													<li>
+														<a href="https://b3log.org/siyuan" target="_blank" rel="noopener noreferrer">
+															{tEn.railFooterOfficial}
+														</a>
+													</li>
+												</ul>
+											</div>
+										</div>
+									) : (
+										<ul class="rail-footer__links">
+											<li>
+												<a
+													class:list={[{ 'is-current': currentPath === 'welcome' }]}
+													href={docHomeHref}
+												>
+													{t.railFooterDocs}
+												</a>
+											</li>
+											<li>
+												<a href="https://github.com/siyuan-note/bazaar" target="_blank" rel="noopener noreferrer">
+													{t.railFooterBazaar}
+												</a>
+											</li>
+											<li>
+												<a href="https://b3log.org/siyuan" target="_blank" rel="noopener noreferrer">
+													{t.railFooterOfficial}
+												</a>
+											</li>
+										</ul>
+									)
+								}
 							</div>
 						</div>
 					</aside>
 
 					<div class="doc-center">
 						<div class="content-head" data-pagefind-ignore>
-							<nav class="breadcrumbs" aria-label="面包屑">
-								<ol class="breadcrumbs__list">
-									{breadcrumbs?.map((c, i, arr) => {
-										const isLast = i === arr.length - 1;
-										return (
-											<li class="breadcrumbs__item">
-												{c.href ? (
-													<a
-														class:list={['breadcrumbs__link', { 'breadcrumbs__current': isLast }]}
-														href={c.href}
-														aria-current={isLast ? 'page' : undefined}
-													>
-														{c.label}
-													</a>
-												) : isLast ? (
+							{
+								notFoundDualSidebars && notFoundDualCrumbLabels ? (
+									<div class="content-head__breadcrumbs-stack u-doc-locale-stack">
+										<nav class="breadcrumbs doc-i18n doc-i18n--zh" aria-label={tZh.breadcrumbsAria}>
+											<ol class="breadcrumbs__list">
+												<li class="breadcrumbs__item">
 													<span class="breadcrumbs__current" aria-current="page">
-														{c.label}
+														{notFoundDualCrumbLabels.zh}
 													</span>
-												) : (
-													<span class="breadcrumbs__text">{c.label}</span>
-												)}
-											</li>
-										);
-									})}
-								</ol>
-							</nav>
+												</li>
+											</ol>
+										</nav>
+										<nav class="breadcrumbs doc-i18n doc-i18n--en" aria-label={tEn.breadcrumbsAria}>
+											<ol class="breadcrumbs__list">
+												<li class="breadcrumbs__item">
+													<span class="breadcrumbs__current" aria-current="page">
+														{notFoundDualCrumbLabels.en}
+													</span>
+												</li>
+											</ol>
+										</nav>
+									</div>
+								) : (
+									<nav class="breadcrumbs" aria-label={t.breadcrumbsAria}>
+										<ol class="breadcrumbs__list">
+											{breadcrumbs?.map((c, i, arr) => {
+												const isLast = i === arr.length - 1;
+												return (
+													<li class="breadcrumbs__item">
+														{c.href ? (
+															<a
+																class:list={['breadcrumbs__link', { 'breadcrumbs__current': isLast }]}
+																href={c.href}
+																aria-current={isLast ? 'page' : undefined}
+															>
+																{c.label}
+															</a>
+														) : isLast ? (
+															<span class="breadcrumbs__current" aria-current="page">
+																{c.label}
+															</span>
+														) : (
+															<span class="breadcrumbs__text">{c.label}</span>
+														)}
+													</li>
+												);
+											})}
+										</ol>
+									</nav>
+								)
+							}
 							<div class="content-head__actions">
 								<div id="doc-toolbar-slot-content-head" class="doc-toolbar-slot doc-toolbar-slot--in-head">
 									<div id="doc-toolbar-floater" class="doc-toolbar-floater">
+										<LangSwitcher locale={locale} zhHref={zhDocHref} enHref={enDocHref} t={t} />
 										<div class="content-head__search-slot content-head__search--when-rail-drawer" data-pagefind-ignore>
-											<PagefindToolbarTrigger />
+											<PagefindToolbarTrigger searchHint={pfToolbar.searchHint} />
 										</div>
 										<div class="content-head__desktop-only">
 											<div class="u-floating-hint" data-anchored-floating-hint>
@@ -268,14 +418,14 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 													id="theme-toggle"
 													data-theme-toggle
 													data-floating-hint-anchor
-													aria-label="切换浅色或深色主题（快捷键 T）"
+													aria-label={t.themeToggleAria}
 												>
 													<Sun class="theme-icon theme-icon--sun" />
 													<Moon class="theme-icon theme-icon--moon" style="display:none" />
 												</button>
 												<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
-													<span class="u-floating-hint__text">切换主题</span>
-													<kbd class="u-floating-hint__key">T</kbd>
+													<span class="u-floating-hint__text">{t.themeToggleHint}</span>
+													<kbd class="u-floating-hint__key">{t.themeKeyT}</kbd>
 												</div>
 											</div>
 											<div class="copy-split">
@@ -285,7 +435,7 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 														class="copy-split__main js-copy-page-md"
 														id="copy-page-md"
 														data-floating-hint-anchor
-														aria-label="复制页面内容为 Markdown"
+														aria-label={t.copyPageMdAria}
 														data-copy-md-src={markdownCopyFetchHref}
 													>
 														<span class="copy-split__main-icons" aria-hidden="true">
@@ -299,10 +449,9 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 																<X />
 															</span>
 														</span>
-														<span>复制页面</span>
 													</button>
 													<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
-														<span class="u-floating-hint__text">复制页面内容为 Markdown</span>
+														<span class="u-floating-hint__text">{t.copyPageHint}</span>
 													</div>
 												</div>
 												<span class="copy-split__divider" aria-hidden="true" />
@@ -314,7 +463,7 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 														aria-expanded="false"
 														aria-haspopup="true"
 														aria-controls="copy-page-menu"
-														title="更多选项"
+														title={t.copyMenuMoreTitle}
 													>
 														<ChevronDown />
 													</button>
@@ -326,8 +475,8 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 																class="copy-split__panel-item"
 																id="copy-page-menu-md"
 															>
-																<span class="copy-split__panel-item__title">复制页面</span>
-																<span class="copy-split__panel-item__desc">复制页面内容为 Markdown</span>
+																<span class="copy-split__panel-item__title">{t.copyMenuMdTitle}</span>
+																<span class="copy-split__panel-item__desc">{t.copyMenuMdDesc}</span>
 															</button>
 														</li>
 														<li role="presentation">
@@ -337,8 +486,8 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 																id="copy-page-view-md"
 																href={mdViewHref}
 															>
-																<span class="copy-split__panel-item__title">查看 Markdown</span>
-																<span class="copy-split__panel-item__desc">查看该页面的纯文本</span>
+																<span class="copy-split__panel-item__title">{t.copyMenuViewTitle}</span>
+																<span class="copy-split__panel-item__desc">{t.copyMenuViewDesc}</span>
 															</a>
 														</li>
 													</ul>
@@ -353,7 +502,9 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 									id="rail-menu-toggle"
 									aria-expanded="false"
 									aria-controls="doc-left-rail"
-									aria-label="打开文档导航"
+									aria-label={t.railMenuOpenAria}
+									data-aria-when-open={t.railMenuCloseAria}
+									data-aria-when-closed={t.railMenuOpenAria}
 								>
 									<span class="rail-menu-trigger__icon" aria-hidden="true">
 										<span class="rail-menu-trigger__bar"></span>
@@ -368,7 +519,7 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 								<slot />
 							</main>
 							{tocItems.length > 0 && (
-								<aside class="toc-rail" aria-label="本页目录" data-pagefind-ignore>
+								<aside class="toc-rail" aria-label={t.tocAsideAria} data-pagefind-ignore>
 									<div class="toc-rail__container">
 										<ul class="toc-rail__list" id="doc-toc-list" style="--top: 0px; --height: 0px;">
 											{tocItems.map((h) => (
@@ -457,6 +608,17 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 					});
 				});
 				syncThemeIcons();
+
+				document.querySelectorAll('a[data-lang-locale]').forEach(function (a) {
+					a.addEventListener('click', function () {
+						try {
+							var loc = a.getAttribute('data-lang-locale');
+							if (loc === 'en' || loc === 'zh') {
+								localStorage.setItem('siyuan-docs-locale', loc);
+							}
+						} catch (e) {}
+					});
+				});
 
 				var docToolbarFloater = document.getElementById('doc-toolbar-floater');
 				var docToolbarSlotHead = document.getElementById('doc-toolbar-slot-content-head');
@@ -576,40 +738,72 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 				var panel = document.getElementById('copy-page-menu');
 				var copyPageMenuMd = document.getElementById('copy-page-menu-md');
 				var viewPageMd = document.getElementById('copy-page-view-md');
-				function closeMenu() {
+				var langMenuBtn = document.getElementById('lang-switch-btn');
+				var langMenuPanel = document.getElementById('lang-switch-panel');
+				function closeCopyMenu() {
 					if (!panel || !menuBtn) return;
 					panel.hidden = true;
 					panel.classList.remove('is-open');
 					menuBtn.setAttribute('aria-expanded', 'false');
 				}
-				function openMenu() {
+				function openCopyMenu() {
 					if (!panel || !menuBtn) return;
 					panel.hidden = false;
 					panel.classList.add('is-open');
 					menuBtn.setAttribute('aria-expanded', 'true');
 				}
+				function closeLangMenu() {
+					if (!langMenuPanel || !langMenuBtn) return;
+					langMenuPanel.hidden = true;
+					langMenuPanel.classList.remove('is-open');
+					langMenuBtn.setAttribute('aria-expanded', 'false');
+				}
+				function openLangMenu() {
+					if (!langMenuPanel || !langMenuBtn) return;
+					langMenuPanel.hidden = false;
+					langMenuPanel.classList.add('is-open');
+					langMenuBtn.setAttribute('aria-expanded', 'true');
+				}
 				if (menuBtn && panel) {
 					menuBtn.addEventListener('click', function (e) {
 						e.stopPropagation();
-						if (panel.classList.contains('is-open')) closeMenu();
-						else openMenu();
+						closeLangMenu();
+						if (panel.classList.contains('is-open')) closeCopyMenu();
+						else openCopyMenu();
 					});
 					panel.addEventListener('click', function (e) {
 						e.stopPropagation();
 					});
 				}
+				if (langMenuBtn && langMenuPanel) {
+					langMenuBtn.addEventListener('click', function (e) {
+						e.stopPropagation();
+						closeCopyMenu();
+						if (langMenuPanel.classList.contains('is-open')) closeLangMenu();
+						else openLangMenu();
+					});
+					langMenuPanel.addEventListener('click', function (e) {
+						e.stopPropagation();
+					});
+				}
 				document.addEventListener('click', function () {
-					closeMenu();
+					closeCopyMenu();
+					closeLangMenu();
+				});
+				document.addEventListener('keydown', function (e) {
+					if (e.key !== 'Escape' || e.defaultPrevented) return;
+					closeCopyMenu();
+					closeLangMenu();
 				});
 				if (copyPageMenuMd) {
 					copyPageMenuMd.addEventListener('click', function () {
 						triggerCopyPageMdWithFeedback();
-						closeMenu();
+						closeCopyMenu();
 					});
 				}
 				if (viewPageMd) {
 					viewPageMd.addEventListener('click', function () {
-						closeMenu();
+						closeCopyMenu();
 					});
 				}
 				var railToggle = document.getElementById('rail-menu-toggle');
@@ -627,7 +821,9 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 					document.body.classList.toggle('doc-rail-open', open);
 					if (railToggle) {
 						railToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-						railToggle.setAttribute('aria-label', open ? '关闭文档导航' : '打开文档导航');
+						var whenOpen = railToggle.getAttribute('data-aria-when-open') || '';
+						var whenClosed = railToggle.getAttribute('data-aria-when-closed') || '';
+						railToggle.setAttribute('aria-label', open ? whenOpen : whenClosed);
 					}
 					if (railBackdrop) {
 						railBackdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
@@ -690,6 +886,20 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 
 				var railScrollEl = document.querySelector('.rail-scroll');
 				var railScrollClip = document.querySelector('[data-rail-scroll-clip]');
+				var railScrollbarHideMs = 1000;
+				function wireRailScrollbarOnScroll(el) {
+					if (!el) return;
+					var hideTimer = null;
+					function showRailScrollbarTransient() {
+						el.classList.add('rail-scrollbar--visible');
+						if (hideTimer) window.clearTimeout(hideTimer);
+						hideTimer = window.setTimeout(function () {
+							hideTimer = null;
+							el.classList.remove('rail-scrollbar--visible');
+						}, railScrollbarHideMs);
+					}
+					el.addEventListener('scroll', showRailScrollbarTransient, { passive: true });
+				}
 				function syncRailScrollEdges() {
 					if (!railScrollEl || !railScrollClip) return;
 					var el = railScrollEl;
@@ -709,6 +919,11 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 						roRailScroll.observe(railScrollEl);
 					}
 					syncRailScrollEdges();
+				}
+				wireRailScrollbarOnScroll(railScrollEl);
+				var railScrollAside = document.getElementById('doc-left-rail');
+				if (railScrollAside && railScrollAside !== railScrollEl) {
+					wireRailScrollbarOnScroll(railScrollAside);
 				}
 
 				var docRailNav = document.querySelector('.rail-nav');

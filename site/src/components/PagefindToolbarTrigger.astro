@@ -1,11 +1,16 @@
 ---
 /* 与主题、复制共用 u-floating-hint；hide-shortcut 仅隐藏内置徽章，⌘K / Ctrl+K 仍由 shortcut 绑定 */
+interface Props {
+	/** 搜索按钮旁气泡提示文案 */
+	searchHint: string;
+}
+const { searchHint } = Astro.props;
 ---
 
 <div class="u-floating-hint u-floating-hint--pagefind" data-anchored-floating-hint>
 	<pagefind-modal-trigger class="pf-trigger-wrap" compact placeholder="" shortcut="mod+k" hide-shortcut />
 	<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
-		<span class="u-floating-hint__text">搜索</span>
+		<span class="u-floating-hint__text">{searchHint}</span>
 		<kbd class="u-floating-hint__key" data-search-hint-mod>Ctrl</kbd>
 		<kbd class="u-floating-hint__key">K</kbd>
 	</div>

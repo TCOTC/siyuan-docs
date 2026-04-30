@@ -536,8 +536,34 @@ body.doc-rail-open .rail-menu-trigger__bar:nth-child(3) {
 	overflow-y: auto;
 	/* 在尚未出现滚动条时先留出槽位，避免显示滚动条后正文区宽度突变（与细滑块视觉宽度可能不完全一致，由 UA 决定） */
 	scrollbar-gutter: stable;
-	padding: var(--space-10) var(--space-10) var(--space-8) var(--space-16);
+	padding: var(--space-10) 0 var(--space-8) var(--space-16);
 	-webkit-overflow-scrolling: touch;
+}
+
+/* 侧栏文档列表：滑块默认透明，仅在滚动时由脚本加上 .rail-scrollbar--visible 后显示（与 macOS 覆盖式滚动条体验接近） */
+.rail-scroll:not(.rail-scrollbar--visible) {
+	scrollbar-color: transparent transparent;
+}
+
+.rail-scroll.rail-scrollbar--visible {
+	scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.rail-scroll:not(.rail-scrollbar--visible)::-webkit-scrollbar-thumb {
+	background-color: transparent;
+}
+
+.rail-scroll:not(.rail-scrollbar--visible)::-webkit-scrollbar-thumb:hover {
+	background-color: transparent;
+}
+
+.rail-scroll.rail-scrollbar--visible::-webkit-scrollbar-thumb {
+	background-color: var(--scrollbar-thumb);
+	transition: background-color 0.12s ease;
+}
+
+.rail-scroll.rail-scrollbar--visible::-webkit-scrollbar-thumb:hover {
+	background-color: var(--scrollbar-thumb-hover);
 }
 
 /* 与侧栏背景同色，仅在有可滚动内容且未顶/底时显隐；pointer-events: none 不挡点击 */
@@ -1049,6 +1075,33 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon {
 	align-items: center;
 	gap: var(--space-8);
 	flex-shrink: 0;
+}
+
+/* 语言：与主题按钮同形的图标 + 下拉菜单（Shell 内联脚本控制展开） */
+.lang-switch {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.lang-switch .copy-split__panel {
+	z-index: 55;
+}
+
+.lang-switch__panel-item.copy-split__panel-item {
+	min-height: var(--space-36);
+	justify-content: center;
+}
+
+.lang-switch__panel-item[aria-current='page'] {
+	font-weight: 600;
+	color: var(--text);
+	background: var(--bg-subtle);
+}
+
+.lang-switch__panel-item[aria-current='page']:hover {
+	color: var(--text);
 }
 
 .doc-toolbar-slot--in-rail {
@@ -1649,6 +1702,40 @@ html[data-theme='dark'] .btn:hover {
 	margin: 0;
 }
 
+/* 404：同页中英双份文案/目录，由 `data-doc-locale` + 首屏脚本按 URL 语言段切换 */
+.u-doc-locale-stack {
+	display: grid;
+	align-items: start;
+	justify-items: stretch;
+}
+
+.u-doc-locale-stack > .doc-i18n {
+	grid-area: 1 / 1;
+	min-width: 0;
+}
+
+.rail-nav-locale-stack {
+	min-height: 0;
+}
+
+.content-head__breadcrumbs-stack.u-doc-locale-stack {
+	flex: 1;
+	min-width: 0;
+	align-items: center;
+}
+
+.content-head__breadcrumbs-stack.u-doc-locale-stack > .breadcrumbs {
+	min-width: 0;
+}
+
+html[data-doc-locale='en'] .doc-i18n--zh {
+	display: none !important;
+}
+
+html[data-doc-locale='zh'] .doc-i18n--en {
+	display: none !important;
+}
+
 /* 宽屏文档三级版面（仅随视口宽度；分界用 width 范围语法，避免 max 与 min 在亚像素下留缝）：
  * 0–850px：仅正文 + 抽屉文档列表，无本页大纲
  * 851px–1000px：固定文档列表 + 正文，无本页大纲
@@ -1713,6 +1800,32 @@ html[data-theme='dark'] .btn:hover {
 		opacity: 1;
 		visibility: visible;
 		pointer-events: auto;
+	}
+
+	/* 抽屉档整栏滚动：与 .rail-scroll 相同，仅滚动时显示滑块 */
+	body.doc-layout .left-rail:not(.rail-scrollbar--visible) {
+		scrollbar-color: transparent transparent;
+	}
+
+	body.doc-layout .left-rail.rail-scrollbar--visible {
+		scrollbar-color: var(--scrollbar-thumb) transparent;
+	}
+
+	body.doc-layout .left-rail:not(.rail-scrollbar--visible)::-webkit-scrollbar-thumb {
+		background-color: transparent;
+	}
+
+	body.doc-layout .left-rail:not(.rail-scrollbar--visible)::-webkit-scrollbar-thumb:hover {
+		background-color: transparent;
+	}
+
+	body.doc-layout .left-rail.rail-scrollbar--visible::-webkit-scrollbar-thumb {
+		background-color: var(--scrollbar-thumb);
+		transition: background-color 0.12s ease;
+	}
+
+	body.doc-layout .left-rail.rail-scrollbar--visible::-webkit-scrollbar-thumb:hover {
+		background-color: var(--scrollbar-thumb-hover);
 	}
 
 	/* 与 .content-head 左内边距一致，使面包屑与抽屉内目录文字同列左对齐 */

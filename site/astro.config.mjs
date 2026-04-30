@@ -74,6 +74,13 @@ function pagefindDevAssets() {
 export default defineConfig({
 	output: 'static',
 	base,
+	i18n: {
+		defaultLocale: 'zh',
+		locales: ['zh', 'en'],
+		routing: {
+			prefixDefaultLocale: true,
+		},
+	},
 	vite: {
 		plugins: [pagefindDevAssets()],
 	},
