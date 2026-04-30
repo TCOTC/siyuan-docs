@@ -1,0 +1,16 @@
+---
+aliases: "Point.x"
+cssclasses: hide-title
+---
+<!-- 不要编辑此文件。它由 API Documenter 自动生成。 -->
+
+[`点`](点) › [`x`](点/x)
+
+## Point.x 属性
+
+
+**签名：**
+
+```typescript
+x: number;
+```

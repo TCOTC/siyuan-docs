@@ -1,0 +1,17 @@
+---
+aliases: "FrontmatterLinkCache.key"
+cssclasses: hide-title
+---
+
+<!-- 不要编辑此文件。它由 API Documenter 自动生成。 -->
+
+[`FrontmatterLinkCache`](FrontmatterLinkCache) › [`key`](FrontmatterLinkCache/key)
+
+## FrontmatterLinkCache.key 属性
+
+
+**签名：**
+
+```typescript
+key: string;
+```

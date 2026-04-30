@@ -1,0 +1,25 @@
+---
+aliases: "sortSearchResults"
+cssclasses: hide-title
+---
+<!-- 不要编辑此文件。它由 API Documenter 自动生成。 -->
+
+[`排序搜索结果`]（排序搜索结果）
+
+## sortSearchResults() 函数
+
+
+**签名：**
+
+```typescript
+export function sortSearchResults(results: SearchResultContainer[]): void;
+```## 参数
+
+|  参数|类型 |描述 |
+|  --- | --- | --- |
+|  <code>结果</code> | [`SearchResultContainer`](SearchResultContainer)<code>[]</code> |  |
+
+**退货：**
+
+`无效`
+

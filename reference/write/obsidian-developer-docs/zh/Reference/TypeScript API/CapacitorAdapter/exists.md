@@ -1,0 +1,30 @@
+---
+aliases: "CapacitorAdapter.exists"
+cssclasses: hide-title
+---
+
+<!-- 不要编辑此文件。它由 API Documenter 自动生成。 -->
+
+[`CapacitorAdapter`](CapacitorAdapter) › [`exists`](CapacitorAdapter/exists)
+
+## CapacitorAdapter.exists() 方法
+
+ 1.7.2
+
+**签名：**
+
+```typescript
+exists(normalizedPath: string, sensitive?: boolean): Promise<boolean>;
+```
+
+## 参数
+
+|  参数|类型 |描述 |
+|  --- | --- | --- |
+|  <code>标准化路径</code> | <code>字符串</code> |  |
+|  <code>敏感</code> | <code>布尔值</code> | _（可选）_ |
+
+**退货：**
+
+`承诺<布尔值>`
+
