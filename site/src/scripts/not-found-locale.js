@@ -119,7 +119,7 @@
 			}
 
 			var copyMenuBtn = document.getElementById('copy-page-menu-btn');
-			if (copyMenuBtn) copyMenuBtn.setAttribute('title', p.copyMenuMoreTitle);
+			if (copyMenuBtn) copyMenuBtn.setAttribute('aria-label', p.copyMenuMoreTitle);
 
 			var copyMd = document.getElementById('copy-page-menu-md');
 			if (copyMd) {

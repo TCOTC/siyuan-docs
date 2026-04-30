@@ -1617,6 +1617,82 @@ html[data-theme='dark'] .prose pre.astro-code span {
 	font-weight: inherit;
 }
 
+/* 代码块右上角复制（由 shell-ui.js 注入 .code-block-copy；悬浮/focus 时显示，不占文档流） */
+.prose pre .code-block-copy {
+	position: absolute;
+	top: var(--space-8);
+	right: var(--space-8);
+	left: auto;
+	z-index: 1;
+	width: var(--space-28);
+	height: var(--space-28);
+	min-width: var(--space-28);
+	min-height: var(--space-28);
+	margin: 0;
+	line-height: 0;
+	opacity: 0;
+	pointer-events: none;
+	transition:
+		opacity 0.12s ease,
+		color 0.12s ease,
+		background-color 0.12s ease,
+		border-color 0.12s ease;
+}
+
+.prose pre:hover .code-block-copy,
+.prose pre:focus-within .code-block-copy,
+.prose pre .code-block-copy.code-block-copy--success,
+.prose pre .code-block-copy.code-block-copy--error {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.prose pre .code-block-copy .code-block-copy__state {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+}
+
+/* [hidden] 的 display:none 被上一段 flex 覆盖，需显式恢复隐藏 */
+.prose pre .code-block-copy .code-block-copy__state[hidden] {
+	display: none;
+}
+
+.prose pre .code-block-copy svg {
+	display: block;
+	flex-shrink: 0;
+}
+
+.prose pre .code-block-copy--success {
+	color: var(--accent);
+	border-color: var(--border-strong);
+}
+
+.prose pre .code-block-copy--error {
+	color: #e11d48;
+	border-color: var(--border-strong);
+}
+
+html[data-theme='dark'] .prose pre .code-block-copy--error {
+	color: #fb7185;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.prose pre .code-block-copy {
+		transition: none;
+	}
+}
+
+/* 无悬停指针（触屏等）：无法依赖 hover 唤出，复制按钮保持可见 */
+@media (hover: none) {
+	.prose pre .code-block-copy {
+		opacity: 1;
+		pointer-events: auto;
+	}
+}
+
 .prose hr {
 	margin: 2.25em 0;
 	border: none;

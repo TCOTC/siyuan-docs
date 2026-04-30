@@ -514,4 +514,84 @@
 					});
 					tocSchedule();
 				}
+
+				/* 正文代码块（Shiki pre）右上角复制 */
+				(function initCodeBlockCopy() {
+					var root = document.documentElement;
+					var copyAria = root.getAttribute('data-code-copy-aria') || 'Copy code';
+					var copiedAria = root.getAttribute('data-code-copied-aria') || 'Copied';
+					var failedAria = root.getAttribute('data-code-copy-failed-aria') || 'Copy failed';
+					var copySvg =
+						'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+					var checkSvg =
+						'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+					var xSvg =
+						'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+					function getCodePlainText(pre) {
+						var c = pre.querySelector('code');
+						if (c) return c.innerText || '';
+						var clone = pre.cloneNode(true);
+						var rm = clone.querySelector('.code-block-copy');
+						if (rm) rm.remove();
+						return (clone.textContent || '').replace(/\s+$/, '');
+					}
+					function wireCopyButton(btn, pre) {
+						var idleEl = btn.querySelector('.code-block-copy__state--idle');
+						var doneEl = btn.querySelector('.code-block-copy__state--done');
+						var errEl = btn.querySelector('.code-block-copy__state--error');
+						var feedbackTimer;
+						function resetIdle() {
+							btn.classList.remove('code-block-copy--success', 'code-block-copy--error');
+							btn.setAttribute('aria-label', copyAria);
+							if (idleEl) idleEl.removeAttribute('hidden');
+							if (doneEl) doneEl.setAttribute('hidden', '');
+							if (errEl) errEl.setAttribute('hidden', '');
+						}
+						function flashSuccess() {
+							window.clearTimeout(feedbackTimer);
+							btn.classList.remove('code-block-copy--error');
+							if (errEl) errEl.setAttribute('hidden', '');
+							btn.classList.add('code-block-copy--success');
+							btn.setAttribute('aria-label', copiedAria);
+							if (idleEl) idleEl.setAttribute('hidden', '');
+							if (doneEl) doneEl.removeAttribute('hidden');
+							feedbackTimer = window.setTimeout(resetIdle, 1600);
+						}
+						function flashError() {
+							window.clearTimeout(feedbackTimer);
+							btn.classList.remove('code-block-copy--success');
+							if (doneEl) doneEl.setAttribute('hidden', '');
+							btn.classList.add('code-block-copy--error');
+							btn.setAttribute('aria-label', failedAria);
+							if (idleEl) idleEl.setAttribute('hidden', '');
+							if (errEl) errEl.removeAttribute('hidden');
+							feedbackTimer = window.setTimeout(resetIdle, 1600);
+						}
+						btn.addEventListener('click', function () {
+							var text = getCodePlainText(pre);
+							if (!text || !navigator.clipboard || !navigator.clipboard.writeText) {
+								flashError();
+								return;
+							}
+							navigator.clipboard.writeText(text).then(flashSuccess).catch(flashError);
+						});
+					}
+					document.querySelectorAll('.prose pre').forEach(function (pre) {
+						if (pre.querySelector('.code-block-copy')) return;
+						var btn = document.createElement('button');
+						btn.type = 'button';
+						btn.className = 'icon-btn code-block-copy';
+						btn.setAttribute('aria-label', copyAria);
+						btn.innerHTML =
+							'<span class="code-block-copy__state code-block-copy__state--idle">' +
+							copySvg +
+							'</span><span class="code-block-copy__state code-block-copy__state--done" hidden>' +
+							checkSvg +
+							'</span><span class="code-block-copy__state code-block-copy__state--error" hidden>' +
+							xSvg +
+							'</span>';
+						wireCopyButton(btn, pre);
+						pre.appendChild(btn);
+					});
+				})();
 			})();

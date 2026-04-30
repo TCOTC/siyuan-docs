@@ -86,7 +86,13 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 ---
 
 <!doctype html>
-<html lang={htmlLang} data-doc-locale={notFoundDualSidebars ? 'en' : undefined}>
+<html
+	lang={htmlLang}
+	data-doc-locale={notFoundDualSidebars ? 'en' : undefined}
+	data-code-copy-aria={t.copyCodeBlockAria}
+	data-code-copied-aria={t.copyCodeBlockCopiedAria}
+	data-code-copy-failed-aria={t.copyCodeBlockFailedAria}
+>
 	<head>
 		<script src="../scripts/shell-theme-head.js"></script>
 		<meta charset="utf-8" />
@@ -386,10 +392,10 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 							<div class="content-head__actions">
 								<div id="doc-toolbar-slot-content-head" class="doc-toolbar-slot doc-toolbar-slot--in-head">
 									<div id="doc-toolbar-floater" class="doc-toolbar-floater">
-										<LangSwitcher locale={locale} zhHref={zhDocHref} enHref={enDocHref} t={t} />
 										<div class="content-head__search-slot content-head__search--when-rail-drawer" data-pagefind-ignore>
 											<PagefindToolbarTrigger searchHint={pfToolbar.searchHint} />
 										</div>
+										<LangSwitcher locale={locale} zhHref={zhDocHref} enHref={enDocHref} t={t} />
 										<div class="content-head__desktop-only">
 											<div class="u-floating-hint" data-anchored-floating-hint>
 												<button
@@ -443,7 +449,7 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 														aria-expanded="false"
 														aria-haspopup="true"
 														aria-controls="copy-page-menu"
-														title={t.copyMenuMoreTitle}
+														aria-label={t.copyMenuMoreTitle}
 													>
 														<ChevronDown />
 													</button>
