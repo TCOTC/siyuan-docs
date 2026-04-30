@@ -73,6 +73,8 @@ function pagefindDevAssets() {
 // https://astro.build/config
 export default defineConfig({
 	output: 'static',
+	/** 生产构建压缩 HTML；内联 `is:inline` 脚本内容仍会原样保留，大块脚本已迁至 `src/scripts` 走 Vite 压缩 */
+	compressHTML: true,
 	base,
 	i18n: {
 		defaultLocale: 'zh',
@@ -82,6 +84,8 @@ export default defineConfig({
 		},
 	},
 	vite: {
+		/** 小体积 `?url` 资源默认会内联为 `data:`，无法走 esbuild 压缩；关闭内联以输出独立 .js 并参与压缩 */
+		build: { assetsInlineLimit: 0 },
 		plugins: [pagefindDevAssets()],
 	},
 	markdown: {

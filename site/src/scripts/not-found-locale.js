@@ -1,0 +1,186 @@
+// @ts-nocheck
+(function () {
+		var cfg = typeof window !== 'undefined' ? window.__NF_LOCALE__ : null;
+		if (!cfg) return;
+		var base = cfg.base;
+		var patchZh = cfg.patchZh;
+
+		/* 语言判定：URL 路径 → localStorage（站内语言切换写入）→ navigator → 默认英文 */
+		function stripBase(pathname, baseStr) {
+			var b = baseStr.replace(/\/$/, '');
+			if (!b) return pathname;
+			if (pathname.indexOf(b) === 0) {
+				var rest = pathname.slice(b.length);
+				return rest || '/';
+			}
+			return pathname;
+		}
+
+		/** @returns {'zh'|'en'|null} */
+		function localeFromPath(pathname, baseStr) {
+			var p = stripBase(pathname, baseStr);
+			if (!p || p.charAt(0) !== '/') {
+				p = '/' + (p || '');
+			}
+			var seg = p.split('/').filter(Boolean)[0];
+			if (seg === 'en') return 'en';
+			if (seg === 'zh') return 'zh';
+			return null;
+		}
+
+		/** @returns {'zh'|'en'|null} */
+		function localeFromStorage() {
+			try {
+				var v = localStorage.getItem('siyuan-docs-locale');
+				if (v === 'zh' || v === 'en') return v;
+			} catch (e) {}
+			return null;
+		}
+
+		/** @returns {'zh'|null} */
+		function localeFromNavigator() {
+			try {
+				var nav = typeof navigator !== 'undefined' ? navigator : null;
+				if (!nav) return null;
+				var list = nav.languages && nav.languages.length ? nav.languages : [nav.language];
+				for (var i = 0; i < list.length; i++) {
+					var raw = (list[i] || '').trim();
+					if (!raw) continue;
+					var primary = raw.split('-')[0].toLowerCase();
+					if (primary === 'zh') return 'zh';
+				}
+			} catch (e) {}
+			return null;
+		}
+
+		function detectLocale(pathname, baseStr) {
+			var fromPath = localeFromPath(pathname, baseStr);
+			if (fromPath) return fromPath;
+			var fromStore = localeFromStorage();
+			if (fromStore) return fromStore;
+			var fromNav = localeFromNavigator();
+			if (fromNav) return fromNav;
+			return 'en';
+		}
+
+		/** 仅更新 `<head>` 内已有节点（本脚本位于 body 解析之前执行） */
+		function applyNotFoundHeadZh(p) {
+			document.title = p.title;
+			var meta = document.querySelector('meta[name="description"]');
+			if (meta) meta.setAttribute('content', p.description);
+		}
+
+		/** 依赖 `<body>` 内 DOM（侧栏品牌、pagefind-config 等），须在 DOMContentLoaded 之后执行 */
+		function applyNotFoundBodyZh(p) {
+			var pfc = document.querySelector('pagefind-config');
+			if (pfc) pfc.setAttribute('lang', p.pagefindLang);
+
+			var skip = document.querySelector('.skip-link');
+			if (skip) skip.textContent = p.skipToContent;
+
+			var aside = document.getElementById('doc-left-rail');
+			if (aside) aside.setAttribute('aria-label', p.docNavAria);
+
+			var railBrand = document.querySelector('.rail-header .brand-lockup--rail');
+			if (railBrand && railBrand instanceof HTMLAnchorElement) {
+				railBrand.setAttribute('href', p.railBrandHref);
+				var railLbl = railBrand.querySelector('.brand-lockup__text');
+				if (railLbl) railLbl.textContent = p.railSiteLabel;
+			}
+
+			document.querySelectorAll('.rail-header .u-floating-hint--pagefind .u-floating-hint__text').forEach(function (el) {
+				el.textContent = p.searchHint;
+			});
+
+			var floater = document.getElementById('doc-toolbar-floater');
+			if (floater) {
+				var hint = floater.querySelector('.u-floating-hint--pagefind .u-floating-hint__text');
+				if (hint) hint.textContent = p.searchHint;
+			}
+
+			var themeBtn = document.getElementById('theme-toggle');
+			if (themeBtn) {
+				themeBtn.setAttribute('aria-label', p.themeToggleAria);
+				var th = themeBtn.closest('[data-anchored-floating-hint]');
+				if (th) {
+					var tl = th.querySelector('[data-floating-hint-layer] .u-floating-hint__text');
+					if (tl) tl.textContent = p.themeToggleHint;
+				}
+			}
+
+			var copyBtn = document.getElementById('copy-page-md');
+			if (copyBtn) {
+				copyBtn.setAttribute('aria-label', p.copyPageMdAria);
+				var cw = copyBtn.closest('[data-anchored-floating-hint]');
+				if (cw) {
+					var cl = cw.querySelector('[data-floating-hint-layer] .u-floating-hint__text');
+					if (cl) cl.textContent = p.copyPageHint;
+				}
+			}
+
+			var copyMenuBtn = document.getElementById('copy-page-menu-btn');
+			if (copyMenuBtn) copyMenuBtn.setAttribute('title', p.copyMenuMoreTitle);
+
+			var copyMd = document.getElementById('copy-page-menu-md');
+			if (copyMd) {
+				var t1 = copyMd.querySelector('.copy-split__panel-item__title');
+				var d1 = copyMd.querySelector('.copy-split__panel-item__desc');
+				if (t1) t1.textContent = p.copyMenuMdTitle;
+				if (d1) d1.textContent = p.copyMenuMdDesc;
+			}
+
+			var viewMd = document.getElementById('copy-page-view-md');
+			if (viewMd) {
+				var t2 = viewMd.querySelector('.copy-split__panel-item__title');
+				var d2 = viewMd.querySelector('.copy-split__panel-item__desc');
+				if (t2) t2.textContent = p.copyMenuViewTitle;
+				if (d2) d2.textContent = p.copyMenuViewDesc;
+			}
+
+			var langBtn = document.getElementById('lang-switch-btn');
+			var langPanel = document.getElementById('lang-switch-panel');
+			if (langBtn) langBtn.setAttribute('aria-label', p.langSwitcherAria);
+			if (langPanel) langPanel.setAttribute('aria-label', p.langSwitcherAria);
+
+			document.querySelectorAll('[data-lang-menu-btn]').forEach(function (btn) {
+				var wrap = btn.closest('[data-lang-switch]');
+				if (!wrap) return;
+				var hintLayer = wrap.querySelector('[data-floating-hint-layer] .u-floating-hint__text');
+				if (hintLayer) hintLayer.textContent = p.langSwitcherHint;
+			});
+
+			var railToggle = document.getElementById('rail-menu-toggle');
+			if (railToggle) {
+				railToggle.setAttribute('data-aria-when-open', p.railMenuCloseAria);
+				railToggle.setAttribute('data-aria-when-closed', p.railMenuOpenAria);
+				var open = railToggle.getAttribute('aria-expanded') === 'true';
+				railToggle.setAttribute('aria-label', open ? p.railMenuCloseAria : p.railMenuOpenAria);
+			}
+		}
+
+		function syncLangLinkAriaCurrent(loc) {
+			document.querySelectorAll('a[data-lang-locale]').forEach(function (a) {
+				var v = a.getAttribute('data-lang-locale');
+				if (loc === 'en' && v === 'en') a.setAttribute('aria-current', 'page');
+				else if (loc === 'zh' && v === 'zh') a.setAttribute('aria-current', 'page');
+				else a.removeAttribute('aria-current');
+			});
+		}
+
+		var loc = detectLocale(typeof location !== 'undefined' ? location.pathname : '/', base);
+		document.documentElement.setAttribute('data-doc-locale', loc);
+		document.documentElement.setAttribute('lang', loc === 'en' ? 'en' : 'zh-CN');
+
+		if (loc === 'zh') applyNotFoundHeadZh(patchZh);
+
+		function onDomReady() {
+			syncLangLinkAriaCurrent(loc);
+			if (loc === 'zh') applyNotFoundBodyZh(patchZh);
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', onDomReady);
+		} else {
+			onDomReady();
+		}
+	})();

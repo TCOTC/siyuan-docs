@@ -6,7 +6,7 @@ const enWelcome = developerPageRelativePath('en', 'welcome');
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-index-zh={zhWelcome} data-index-en={enWelcome}>
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -15,41 +15,7 @@ const enWelcome = developerPageRelativePath('en', 'welcome');
 		<noscript>
 			<meta http-equiv="refresh" content={`0;url=${enWelcome}`} />
 		</noscript>
-		<script is:inline define:vars={{ zhWelcome, enWelcome }}>
-			(function () {
-				/* 文档根路径：localStorage（站内语言）→ navigator → 默认英文（与 404 在无路径语言段时一致） */
-				function localeFromStorage() {
-					try {
-						var v = localStorage.getItem('siyuan-docs-locale');
-						if (v === 'zh' || v === 'en') return v;
-					} catch (e) {}
-					return null;
-				}
-				function localeFromNavigator() {
-					try {
-						var nav = typeof navigator !== 'undefined' ? navigator : null;
-						if (!nav) return null;
-						var list = nav.languages && nav.languages.length ? nav.languages : [nav.language];
-						for (var i = 0; i < list.length; i++) {
-							var raw = (list[i] || '').trim();
-							if (!raw) continue;
-							var primary = raw.split('-')[0].toLowerCase();
-							if (primary === 'zh') return 'zh';
-						}
-					} catch (e) {}
-					return null;
-				}
-				function detectRootLocale() {
-					var fromStore = localeFromStorage();
-					if (fromStore) return fromStore;
-					var fromNav = localeFromNavigator();
-					if (fromNav) return fromNav;
-					return 'en';
-				}
-				var loc = detectRootLocale();
-				location.replace(loc === 'zh' ? zhWelcome : enWelcome);
-			})();
-		</script>
+		<script src="../scripts/index-redirect.js"></script>
 	</head>
 	<body>
 		<p>Redirecting to documentation…</p>
