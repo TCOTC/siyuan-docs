@@ -6,9 +6,11 @@ export interface DocSourceInput {
 	body?: string;
 }
 
+import { stripLeadingUtf8Bom } from './utf8Bom';
+
 /** 去掉开头的 `---` frontmatter，并去掉紧随其后的一个空行（若有） */
 export function stripYamlFrontmatterAndOneBlankLine(raw: string): string {
-	const withoutBom = raw.replace(/^\uFEFF/, '');
+	const withoutBom = stripLeadingUtf8Bom(raw);
 	if (!withoutBom.startsWith('---')) return withoutBom;
 	const m = withoutBom.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n(?:\r?\n)?/);
 	if (!m) return withoutBom;

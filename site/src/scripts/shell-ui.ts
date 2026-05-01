@@ -1,4 +1,6 @@
 import { DOC_SCROLL_SESSION_PREFIX } from '../lib/docScrollSession';
+import { stripLeadingUtf8Bom } from '../lib/utf8Bom';
+import { onMediaQueryChange } from './lib/media-query';
 import {
 	scrollActiveRailNavIntoView,
 	shouldSuppressRailScrollbarTransient,
@@ -7,29 +9,32 @@ import {
 	tocSync,
 } from './lib/doc-reading-sync';
 import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
+import { safeLocalGet, safeLocalSet, safeSessionSet } from './lib/safe-storage';
 
 (function initShellUi(): void {
-	function readCodeCopyI18n(): {
-		copyAria: string;
-		copiedAria: string;
-		failedAria: string;
-	} {
+	type CodeCopyI18n = { copyAria: string; copiedAria: string; failedAria: string };
+
+	const CODE_COPY_FALLBACK: CodeCopyI18n = {
+		copyAria: 'Copy code',
+		copiedAria: 'Copied',
+		failedAria: 'Copy failed',
+	};
+
+	function readCodeCopyI18n(): CodeCopyI18n {
 		const el = document.getElementById('siyuan-code-copy-i18n');
-		const fallback = {
-			copyAria: 'Copy code',
-			copiedAria: 'Copied',
-			failedAria: 'Copy failed',
-		};
-		if (!el?.textContent?.trim()) return fallback;
+		const raw = el?.textContent?.trim();
+		if (!raw) return CODE_COPY_FALLBACK;
 		try {
-			const j = JSON.parse(el.textContent) as Record<string, unknown>;
+			const j = JSON.parse(raw) as Record<string, unknown>;
 			return {
-				copyAria: typeof j.copyAria === 'string' ? j.copyAria : fallback.copyAria,
-				copiedAria: typeof j.copiedAria === 'string' ? j.copiedAria : fallback.copiedAria,
-				failedAria: typeof j.failedAria === 'string' ? j.failedAria : fallback.failedAria,
+				copyAria: typeof j.copyAria === 'string' ? j.copyAria : CODE_COPY_FALLBACK.copyAria,
+				copiedAria:
+					typeof j.copiedAria === 'string' ? j.copiedAria : CODE_COPY_FALLBACK.copiedAria,
+				failedAria:
+					typeof j.failedAria === 'string' ? j.failedAria : CODE_COPY_FALLBACK.failedAria,
 			};
 		} catch {
-			return fallback;
+			return CODE_COPY_FALLBACK;
 		}
 	}
 
@@ -38,45 +43,29 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 	}
 
 	const themeKey = 'siyuan-docs-theme';
+
 	function getSystemTheme(): 'dark' | 'light' {
-		try {
-			return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-		} catch {
-			return 'light';
-		}
+		return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 	}
+
 	function getTheme(): 'dark' | 'light' {
-		const t = document.documentElement.getAttribute('data-theme');
-		return t === 'dark' ? 'dark' : 'light';
+		return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
 	}
+
 	/** 手动选择主题并写入 localStorage（清除该键后恢复按系统 prefers-color-scheme） */
 	function setTheme(next: 'dark' | 'light'): void {
 		document.documentElement.setAttribute('data-theme', next);
-		try {
-			localStorage.setItem(themeKey, next);
-		} catch {
-			/* 私密模式等 */
-		}
+		safeLocalSet(themeKey, next);
 	}
+
 	function applySystemThemeIfUnpinned(): void {
-		try {
-			const t = localStorage.getItem(themeKey);
-			if (t === 'light' || t === 'dark') return;
-		} catch {
-			/* ignore */
-		}
+		const t = safeLocalGet(themeKey);
+		if (t === 'light' || t === 'dark') return;
 		document.documentElement.setAttribute('data-theme', getSystemTheme());
 	}
 
 	const mqColorScheme = window.matchMedia('(prefers-color-scheme: dark)');
-	function onSystemColorSchemeChange(): void {
-		applySystemThemeIfUnpinned();
-	}
-	if (mqColorScheme.addEventListener) {
-		mqColorScheme.addEventListener('change', onSystemColorSchemeChange);
-	} else if (mqColorScheme.addListener) {
-		mqColorScheme.addListener(onSystemColorSchemeChange);
-	}
+	onMediaQueryChange(mqColorScheme, applySystemThemeIfUnpinned);
 
 	window.addEventListener('storage', (e: StorageEvent) => {
 		if (e.key !== themeKey) return;
@@ -88,24 +77,20 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 		}
 	});
 
-	document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((btn) => {
+	for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')) {
 		btn.addEventListener('click', () => {
 			setTheme(getTheme() === 'dark' ? 'light' : 'dark');
 		});
-	});
+	}
 
-	document.querySelectorAll<HTMLAnchorElement>('a[data-lang-locale]').forEach((a) => {
+	for (const a of document.querySelectorAll<HTMLAnchorElement>('a[data-lang-locale]')) {
 		a.addEventListener('click', () => {
-			try {
-				const loc = a.getAttribute('data-lang-locale');
-				if (loc === 'en' || loc === 'zh') {
-					localStorage.setItem('siyuan-docs-locale', loc);
-				}
-			} catch {
-				/* ignore */
+			const loc = a.getAttribute('data-lang-locale');
+			if (loc === 'en' || loc === 'zh') {
+				safeLocalSet('siyuan-docs-locale', loc);
 			}
 		});
-	});
+	}
 
 	const docToolbarFloater = document.getElementById('doc-toolbar-floater');
 	const docToolbarSlotHead = document.getElementById('doc-toolbar-slot-content-head');
@@ -116,51 +101,46 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 		docToolbarSlotRail &&
 		document.body.classList.contains('doc-layout')
 	) {
+		const floater = docToolbarFloater;
+		const slotHead = docToolbarSlotHead;
+		const slotRail = docToolbarSlotRail;
 		const mqDocToolbar = window.matchMedia('(min-width: 450px)');
 		function placeDocToolbar(): void {
 			if (mqDocToolbar.matches) {
-				docToolbarSlotHead!.appendChild(docToolbarFloater!);
+				slotHead.appendChild(floater);
 			} else {
-				docToolbarSlotRail!.appendChild(docToolbarFloater!);
+				slotRail.appendChild(floater);
 			}
 		}
 		placeDocToolbar();
-		if (mqDocToolbar.addEventListener) {
-			mqDocToolbar.addEventListener('change', placeDocToolbar);
-		} else if (mqDocToolbar.addListener) {
-			mqDocToolbar.addListener(placeDocToolbar);
-		}
+		onMediaQueryChange(mqDocToolbar, placeDocToolbar);
 	}
 
-	function copyMainAsMarkdown(): Promise<boolean> {
+	async function copyMainAsMarkdown(): Promise<boolean> {
 		const btn = document.getElementById('copy-page-md');
 		const mdSrc = btn?.getAttribute('data-copy-md-src');
 		if (mdSrc) {
-			return fetch(mdSrc, { credentials: 'same-origin' })
-				.then((res) => {
-					if (!res.ok) return Promise.resolve('');
-					return res.text();
-				})
-				.then((text) => {
-					if (!text || typeof text !== 'string') return false;
-					if (!navigator.clipboard?.writeText) return false;
-					return navigator.clipboard
-						.writeText(text)
-						.then(() => true)
-						.catch(() => false);
-				})
-				.catch(() => false);
+			try {
+				const res = await fetch(mdSrc, { credentials: 'same-origin' });
+				if (!res.ok) return false;
+				const text = stripLeadingUtf8Bom(await res.text());
+				if (!text) return false;
+				await navigator.clipboard.writeText(text);
+				return true;
+			} catch {
+				return false;
+			}
 		}
 		const main = document.getElementById('main-content');
-		if (!main) return Promise.resolve(false);
-		const fallback = main.innerText.replace(/\s+\n/g, '\n').trim();
-		if (fallback && navigator.clipboard?.writeText) {
-			return navigator.clipboard
-				.writeText(fallback)
-				.then(() => true)
-				.catch(() => false);
+		if (!main) return false;
+		const plain = main.innerText.replace(/\s+\n/g, '\n').trim();
+		if (!plain) return false;
+		try {
+			await navigator.clipboard.writeText(plain);
+			return true;
+		} catch {
+			return false;
 		}
-		return Promise.resolve(false);
 	}
 
 	const copyPageMdBtn = document.getElementById('copy-page-md');
@@ -168,11 +148,7 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 	function flashCopyPageMdFeedback(success: boolean): void {
 		if (!copyPageMdBtn) return;
 		copyPageMdBtn.classList.remove('copy-split__main--success', 'copy-split__main--error');
-		if (success) {
-			copyPageMdBtn.classList.add('copy-split__main--success');
-		} else {
-			copyPageMdBtn.classList.add('copy-split__main--error');
-		}
+		copyPageMdBtn.classList.add(success ? 'copy-split__main--success' : 'copy-split__main--error');
 		window.clearTimeout(copyFeedbackTimer);
 		copyFeedbackTimer = window.setTimeout(() => {
 			copyPageMdBtn.classList.remove('copy-split__main--success', 'copy-split__main--error');
@@ -185,11 +161,11 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 		});
 	}
 
-	document.querySelectorAll('.js-copy-page-md').forEach((el) => {
+	for (const el of document.querySelectorAll('.js-copy-page-md')) {
 		el.addEventListener('click', () => {
 			triggerCopyPageMdWithFeedback();
 		});
-	});
+	}
 
 	function isGlobalShortcutTarget(el: EventTarget | null): boolean {
 		return !!(el instanceof Element && el.closest('input, textarea, select, [contenteditable="true"]'));
@@ -215,30 +191,35 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 	const viewPageMd = document.getElementById('copy-page-view-md');
 	const langMenuBtn = document.getElementById('lang-switch-btn');
 	const langMenuPanel = document.getElementById('lang-switch-panel');
+
 	function closeCopyMenu(): void {
 		if (!panel || !menuBtn) return;
 		panel.hidden = true;
 		panel.classList.remove('is-open');
 		menuBtn.setAttribute('aria-expanded', 'false');
 	}
+
 	function openCopyMenu(): void {
 		if (!panel || !menuBtn) return;
 		panel.hidden = false;
 		panel.classList.add('is-open');
 		menuBtn.setAttribute('aria-expanded', 'true');
 	}
+
 	function closeLangMenu(): void {
 		if (!langMenuPanel || !langMenuBtn) return;
 		langMenuPanel.hidden = true;
 		langMenuPanel.classList.remove('is-open');
 		langMenuBtn.setAttribute('aria-expanded', 'false');
 	}
+
 	function openLangMenu(): void {
 		if (!langMenuPanel || !langMenuBtn) return;
 		langMenuPanel.hidden = false;
 		langMenuPanel.classList.add('is-open');
 		langMenuBtn.setAttribute('aria-expanded', 'true');
 	}
+
 	if (menuBtn && panel) {
 		menuBtn.addEventListener('click', (e) => {
 			e.stopPropagation();
@@ -270,34 +251,27 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 		closeCopyMenu();
 		closeLangMenu();
 	});
-	if (copyPageMenuMd) {
-		copyPageMenuMd.addEventListener('click', () => {
-			triggerCopyPageMdWithFeedback();
-			closeCopyMenu();
-		});
-	}
-	if (viewPageMd) {
-		viewPageMd.addEventListener('click', () => {
-			closeCopyMenu();
-		});
-	}
+	copyPageMenuMd?.addEventListener('click', () => {
+		triggerCopyPageMdWithFeedback();
+		closeCopyMenu();
+	});
+	viewPageMd?.addEventListener('click', () => {
+		closeCopyMenu();
+	});
+
 	const railToggle = document.getElementById('rail-menu-toggle');
 	const railBackdrop = document.getElementById('rail-backdrop');
 	const railAside = document.getElementById('doc-left-rail');
-	function syncDocOverlayTop(): void {
-		syncDocOverlayLayoutMetrics();
-	}
+
 	function setDocRailOpen(open: boolean): void {
 		document.body.classList.toggle('doc-rail-open', open);
 		if (railToggle) {
 			railToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-			const whenOpen = railToggle.getAttribute('data-aria-when-open') || '';
-			const whenClosed = railToggle.getAttribute('data-aria-when-closed') || '';
+			const whenOpen = railToggle.getAttribute('data-aria-when-open') ?? '';
+			const whenClosed = railToggle.getAttribute('data-aria-when-closed') ?? '';
 			railToggle.setAttribute('aria-label', open ? whenOpen : whenClosed);
 		}
-		if (railBackdrop) {
-			railBackdrop.setAttribute('aria-hidden', open ? 'false' : 'true');
-		}
+		railBackdrop?.setAttribute('aria-hidden', open ? 'false' : 'true');
 		if (railAside) {
 			if (open) {
 				railAside.setAttribute('aria-modal', 'true');
@@ -305,22 +279,20 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 				railAside.removeAttribute('aria-modal');
 			}
 		}
-		try {
-			document.body.style.overflow = open ? 'hidden' : '';
-		} catch {
-			/* ignore */
-		}
+		document.body.style.overflow = open ? 'hidden' : '';
 		if (open) {
-			syncDocOverlayTop();
+			syncDocOverlayLayoutMetrics();
 			window.requestAnimationFrame(() => {
 				scrollActiveRailNavIntoView();
 				syncRailScrollEdges();
 			});
 		}
 	}
+
 	function closeDocRail(): void {
 		setDocRailOpen(false);
 	}
+
 	if (railToggle && railBackdrop && railAside) {
 		railToggle.addEventListener('click', () => {
 			setDocRailOpen(!document.body.classList.contains('doc-rail-open'));
@@ -339,21 +311,14 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 		});
 		/* 自 851px 起为固定侧栏档，离开 0–850px 抽屉档时关闭抽屉 */
 		const mqDocMid = window.matchMedia('(width >= 851px)');
-		function onDocMidTier(e: MediaQueryListEvent): void {
-			if (e.matches) {
-				closeDocRail();
-			}
-		}
-		if (mqDocMid.addEventListener) {
-			mqDocMid.addEventListener('change', onDocMidTier);
-		} else if (mqDocMid.addListener) {
-			mqDocMid.addListener(onDocMidTier);
-		}
+		onMediaQueryChange(mqDocMid, (e) => {
+			if (e.matches) closeDocRail();
+		});
 		window.addEventListener(
 			'resize',
 			() => {
 				if (document.body.classList.contains('doc-rail-open')) {
-					syncDocOverlayTop();
+					syncDocOverlayLayoutMetrics();
 				}
 			},
 			{ passive: true },
@@ -363,6 +328,7 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 	const railScrollEl = document.querySelector('.rail-scroll');
 	const railScrollClip = document.querySelector('[data-rail-scroll-clip]');
 	const railScrollbarHideMs = 1000;
+
 	function wireRailScrollbarOnScroll(el: Element | null): void {
 		if (!el) return;
 		const scrollEl = el;
@@ -378,13 +344,12 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 		}
 		scrollEl.addEventListener('scroll', showRailScrollbarTransient, { passive: true });
 	}
+
 	if (railScrollEl && railScrollClip) {
 		railScrollEl.addEventListener('scroll', () => syncRailScrollEdges(), { passive: true });
 		window.addEventListener('resize', () => syncRailScrollEdges(), { passive: true });
-		if (typeof ResizeObserver !== 'undefined') {
-			const roRailScroll = new ResizeObserver(() => syncRailScrollEdges());
-			roRailScroll.observe(railScrollEl);
-		}
+		const roRailScroll = new ResizeObserver(() => syncRailScrollEdges());
+		roRailScroll.observe(railScrollEl);
 		syncRailScrollEdges();
 	}
 	wireRailScrollbarOnScroll(railScrollEl);
@@ -394,23 +359,18 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 	}
 
 	if (document.body.classList.contains('doc-layout')) {
-		syncDocOverlayTop();
+		syncDocOverlayLayoutMetrics();
 		requestAnimationFrame(() => {
-			syncDocOverlayTop();
+			syncDocOverlayLayoutMetrics();
 		});
-		window.addEventListener('resize', syncDocOverlayTop, { passive: true });
+		window.addEventListener('resize', syncDocOverlayLayoutMetrics, { passive: true });
 		const mqTocTier = window.matchMedia('(min-width: 1000px)');
-		function onTocTierChange(): void {
-			syncDocOverlayTop();
-		}
-		if (mqTocTier.addEventListener) {
-			mqTocTier.addEventListener('change', onTocTierChange);
-		} else if (mqTocTier.addListener) {
-			mqTocTier.addListener(onTocTierChange);
-		}
+		onMediaQueryChange(mqTocTier, () => {
+			syncDocOverlayLayoutMetrics();
+		});
 		const docCenterRo = document.querySelector('.doc-center');
-		if (docCenterRo && typeof ResizeObserver !== 'undefined') {
-			const roDocCenter = new ResizeObserver(() => syncDocOverlayTop());
+		if (docCenterRo) {
+			const roDocCenter = new ResizeObserver(() => syncDocOverlayLayoutMetrics());
 			roDocCenter.observe(docCenterRo);
 		}
 		/* 点击面包屑当前页标题（.breadcrumbs__current）：回文档开头，与同页 href 刷新区分 */
@@ -429,7 +389,7 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 					let sameDoc = hit instanceof HTMLSpanElement;
 					if (hit instanceof HTMLAnchorElement) {
 						try {
-							const u = new URL(hit.getAttribute('href') || '', location.href);
+							const u = new URL(hit.getAttribute('href') ?? '', location.href);
 							sameDoc = u.pathname === location.pathname && u.search === location.search;
 						} catch {
 							sameDoc = false;
@@ -446,14 +406,7 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 					} catch {
 						/* ignore */
 					}
-					try {
-						sessionStorage.setItem(
-							DOC_SCROLL_SESSION_PREFIX + location.pathname + location.search,
-							'0',
-						);
-					} catch {
-						/* ignore */
-					}
+					safeSessionSet(DOC_SCROLL_SESSION_PREFIX + location.pathname + location.search, '0');
 					window.scrollTo({ top: 0, behavior: 'smooth' });
 					tocSync();
 					requestAnimationFrame(() => {
@@ -474,7 +427,7 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 			const finish = (): void => {
 				if (ended) return;
 				ended = true;
-				syncDocOverlayTop();
+				syncDocOverlayLayoutMetrics();
 				requestAnimationFrame(() => {
 					requestAnimationFrame(() => {
 						document.documentElement.classList.remove('doc-rail-scroll-boot');
@@ -487,11 +440,7 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 					: new Promise<void>((resolve) => {
 							window.addEventListener('load', () => resolve(), { once: true });
 						});
-			const fontsPromise =
-				document.fonts && typeof document.fonts.ready !== 'undefined'
-					? document.fonts.ready
-					: Promise.resolve();
-			void Promise.all([loadPromise, fontsPromise]).then(finish).catch(finish);
+			void Promise.all([loadPromise, document.fonts.ready]).then(finish).catch(finish);
 			window.setTimeout(finish, 2500);
 		})();
 	}
@@ -518,6 +467,7 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 	const tocList = document.getElementById('doc-toc-list');
 	const docMainEl = document.getElementById('main-content');
 	if (tocList && docMainEl && docMainEl.classList.contains('doc-main')) {
+		const mainContent = docMainEl;
 		let tocRaf: number | null = null;
 		function tocSchedule(): void {
 			if (tocRaf != null) return;
@@ -535,17 +485,9 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 			setTimeout(tocSchedule, 64);
 		}
 		function tocBindScrollTargets(fn: () => void): void {
-			if (!docMainEl) return;
-			/* 文档区为 document 滚动时由 window 触发；保留 .doc-reading 监听以兼容未来改回内层滚动 */
-			const docScrollRoot = docMainEl.closest('.doc-reading');
-			if (docScrollRoot) {
-				docScrollRoot.addEventListener('scroll', fn, { passive: true });
-				try {
-					docScrollRoot.addEventListener('scrollend', fn, { passive: true });
-				} catch {
-					/* Safari 旧版无 scrollend */
-				}
-			}
+			const docScrollRoot = mainContent.closest('.doc-reading');
+			docScrollRoot?.addEventListener('scroll', fn, { passive: true });
+			docScrollRoot?.addEventListener('scrollend', fn, { passive: true });
 			window.addEventListener('scroll', fn, { passive: true });
 		}
 		tocBindScrollTargets(tocSchedule);
@@ -557,8 +499,7 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 			if (!a || !tocList.contains(a)) return;
 			tocScheduleSoon();
 		});
-		const tocBoot = typeof window !== 'undefined' && window.__siyuanDocsTocBootstrapped;
-		if (tocBoot) {
+		if (window.__siyuanDocsTocBootstrapped) {
 			delete window.__siyuanDocsTocBootstrapped;
 		} else {
 			tocSchedule();
@@ -574,7 +515,6 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 		);
 	}
 
-	/* 正文代码块（Shiki pre）右上角复制 */
 	(function initCodeBlockCopy(): void {
 		const { copyAria, copiedAria, failedAria } = readCodeCopyI18n();
 		const copySvg =
@@ -585,55 +525,54 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 			'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
 		function getCodePlainText(pre: HTMLElement): string {
 			const c = pre.querySelector('code');
-			if (c) return c.innerText || '';
+			if (c) return c.innerText;
 			const clone = pre.cloneNode(true) as HTMLElement;
-			const rm = clone.querySelector('.code-block-copy');
-			if (rm) rm.remove();
-			return (clone.textContent || '').replace(/\s+$/, '');
+			clone.querySelector('.code-block-copy')?.remove();
+			return (clone.textContent ?? '').replace(/\s+$/, '');
 		}
 		function wireCopyButton(btn: HTMLButtonElement, pre: HTMLElement): void {
 			const idleEl = btn.querySelector('.code-block-copy__state--idle');
 			const doneEl = btn.querySelector('.code-block-copy__state--done');
 			const errEl = btn.querySelector('.code-block-copy__state--error');
-			let feedbackTimer: number;
+			let feedbackTimer: number | undefined;
 			function resetIdle(): void {
 				btn.classList.remove('code-block-copy--success', 'code-block-copy--error');
 				btn.setAttribute('aria-label', copyAria);
-				if (idleEl) idleEl.removeAttribute('hidden');
-				if (doneEl) doneEl.setAttribute('hidden', '');
-				if (errEl) errEl.setAttribute('hidden', '');
+				idleEl?.removeAttribute('hidden');
+				doneEl?.setAttribute('hidden', '');
+				errEl?.setAttribute('hidden', '');
 			}
 			function flashSuccess(): void {
 				window.clearTimeout(feedbackTimer);
 				btn.classList.remove('code-block-copy--error');
-				if (errEl) errEl.setAttribute('hidden', '');
+				errEl?.setAttribute('hidden', '');
 				btn.classList.add('code-block-copy--success');
 				btn.setAttribute('aria-label', copiedAria);
-				if (idleEl) idleEl.setAttribute('hidden', '');
-				if (doneEl) doneEl.removeAttribute('hidden');
+				idleEl?.setAttribute('hidden', '');
+				doneEl?.removeAttribute('hidden');
 				feedbackTimer = window.setTimeout(resetIdle, 1600);
 			}
 			function flashError(): void {
 				window.clearTimeout(feedbackTimer);
 				btn.classList.remove('code-block-copy--success');
-				if (doneEl) doneEl.setAttribute('hidden', '');
+				doneEl?.setAttribute('hidden', '');
 				btn.classList.add('code-block-copy--error');
 				btn.setAttribute('aria-label', failedAria);
-				if (idleEl) idleEl.setAttribute('hidden', '');
-				if (errEl) errEl.removeAttribute('hidden');
+				idleEl?.setAttribute('hidden', '');
+				errEl?.removeAttribute('hidden');
 				feedbackTimer = window.setTimeout(resetIdle, 1600);
 			}
 			btn.addEventListener('click', () => {
 				const text = getCodePlainText(pre);
-				if (!text || !navigator.clipboard?.writeText) {
+				if (!text) {
 					flashError();
 					return;
 				}
 				void navigator.clipboard.writeText(text).then(flashSuccess).catch(flashError);
 			});
 		}
-		document.querySelectorAll<HTMLElement>('.prose pre').forEach((pre) => {
-			if (pre.querySelector('.code-block-copy')) return;
+		for (const pre of document.querySelectorAll<HTMLElement>('.prose pre')) {
+			if (pre.querySelector('.code-block-copy')) continue;
 			const btn = document.createElement('button');
 			btn.type = 'button';
 			btn.className = 'icon-btn code-block-copy';
@@ -644,6 +583,6 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 				`<span class="code-block-copy__state code-block-copy__state--error" hidden>${xSvg}</span>`;
 			wireCopyButton(btn, pre);
 			pre.appendChild(btn);
-		});
+		}
 	})();
 })();

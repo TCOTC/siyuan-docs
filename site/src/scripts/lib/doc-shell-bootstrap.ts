@@ -16,19 +16,11 @@ export function runDocShellBootstrap(): void {
 	syncRailScrollEdges();
 	const tocListBoot = document.getElementById('doc-toc-list');
 	const docMainBoot = document.getElementById('main-content');
-	if (
-		tocListBoot &&
-		docMainBoot &&
-		docMainBoot.classList.contains('doc-main')
-	) {
+	if (tocListBoot && docMainBoot?.classList.contains('doc-main')) {
 		tocSync();
 		window.__siyuanDocsTocBootstrapped = true;
 	}
-	if (typeof window.requestAnimationFrame === 'function') {
-		window.requestAnimationFrame(() => {
-			syncRailScrollEdges();
-		});
-	} else {
+	requestAnimationFrame(() => {
 		syncRailScrollEdges();
-	}
+	});
 }

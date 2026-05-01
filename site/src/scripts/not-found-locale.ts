@@ -8,7 +8,7 @@ declare global {
 }
 
 (function initNotFoundLocale(): void {
-	const cfg = typeof window !== 'undefined' ? window.__NF_LOCALE__ : null;
+	const cfg = window.__NF_LOCALE__;
 	if (!cfg) return;
 	const { base, patchZh } = cfg;
 
@@ -121,7 +121,7 @@ declare global {
 		});
 	}
 
-	const loc = detectLocale(typeof location !== 'undefined' ? location.pathname : '/', base);
+	const loc = detectLocale(location.pathname, base);
 	document.documentElement.setAttribute('data-doc-locale', loc);
 	document.documentElement.setAttribute('lang', loc === 'en' ? 'en' : 'zh-CN');
 

@@ -73,7 +73,14 @@ const { mdViewHref, markdownCopyFetchHref, t } = Astro.props;
 				</button>
 			</li>
 			<li role="presentation">
-				<a role="menuitem" class="copy-split__panel-item" id="copy-page-view-md" href={mdViewHref}>
+				<a
+					role="menuitem"
+					class="copy-split__panel-item"
+					id="copy-page-view-md"
+					href={mdViewHref}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
 					<span class="copy-split__panel-item__title">{t.copyMenuViewTitle}</span>
 					<span class="copy-split__panel-item__desc">{t.copyMenuViewDesc}</span>
 				</a>

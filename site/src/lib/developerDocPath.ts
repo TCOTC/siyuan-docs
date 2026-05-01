@@ -1,6 +1,8 @@
-const LOCALE_PREFIXES = ['zh/', 'en/'] as const;
+import { appI18nLocales } from './appLocale';
 
-/** 去掉集合 id 前的 `zh/`、`en/` 等语言前缀 */
+const LOCALE_PREFIXES = appI18nLocales.map((locale) => `${locale}/`);
+
+/** 去掉集合 id 前的 `zh/`、`en/` 等语言前缀（与 `appI18nLocales` 一致） */
 export function stripLocalePrefixFromDocId(id: string): string {
 	for (const p of LOCALE_PREFIXES) {
 		if (id.startsWith(p)) return id.slice(p.length);

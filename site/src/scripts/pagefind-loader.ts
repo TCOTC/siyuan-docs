@@ -19,8 +19,8 @@
 	}
 
 	function mountModalTriggers(): void {
-		document.querySelectorAll('[data-pf-trigger-mount]').forEach((wrap) => {
-			if (wrap.querySelector('pagefind-modal-trigger')) return;
+		for (const wrap of document.querySelectorAll('[data-pf-trigger-mount]')) {
+			if (wrap.querySelector('pagefind-modal-trigger')) continue;
 			const ph = wrap.querySelector('.pf-search-placeholder');
 			const el = document.createElement('pagefind-modal-trigger');
 			el.className = 'pf-trigger-wrap';
@@ -29,8 +29,8 @@
 			el.setAttribute('shortcut', 'mod+k');
 			el.setAttribute('hide-shortcut', '');
 			wrap.appendChild(el);
-			if (ph?.parentNode) ph.parentNode.removeChild(ph);
-		});
+			ph?.parentNode?.removeChild(ph);
+		}
 		markPagefindUiReady();
 	}
 
@@ -45,33 +45,17 @@
 		script.type = 'module';
 		script.src = jsSrc;
 		script.onload = (): void => {
-			if (typeof customElements !== 'undefined' && customElements.whenDefined) {
-				customElements
-					.whenDefined('pagefind-modal-trigger')
-					.then(mountModalTriggers)
-					.catch(mountModalTriggers);
-			} else {
-				mountModalTriggers();
-			}
+			void customElements.whenDefined('pagefind-modal-trigger').then(mountModalTriggers).catch(mountModalTriggers);
 		};
 		document.head.appendChild(script);
 	}
 
-	function scheduleIdle(): void {
-		const ric = window.requestIdleCallback;
-		if (typeof ric === 'function') {
-			ric(
-				() => {
-					loadPagefind();
-				},
-				{ timeout: 2000 },
-			);
-		} else {
-			window.setTimeout(loadPagefind, 300);
-		}
-	}
-
-	scheduleIdle();
+	requestIdleCallback(
+		() => {
+			loadPagefind();
+		},
+		{ timeout: 2000 },
+	);
 
 	document.addEventListener(
 		'keydown',

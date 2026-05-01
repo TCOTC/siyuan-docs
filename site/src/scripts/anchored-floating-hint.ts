@@ -11,6 +11,8 @@
  * 可见性仅由本脚本控制（不用 CSS :hover 显示提示层）：Pagefind 真实按钮出现与 bind 完成
  * 之间若用 CSS 显示，提示会仍留在工具栏内被裁切；悬停后经 SHOW_DELAY_MS 再 portal，与原先 transition-delay 相当。
  */
+import { isApplePlatform } from './lib/device-platform';
+
 const GAP = 5;
 const Z = 20000;
 /** 与 .u-floating-hint__layer 的 max-width: calc(100vw - 24px) 左右留白一致 */
@@ -105,11 +107,7 @@ function placeToButton(btn: Element, layer: HTMLElement): void {
 }
 
 function labelSearchHintModKeys(): void {
-	const nav = typeof navigator !== 'undefined' ? navigator : null;
-	const apple =
-		(nav as Navigator & { userAgentData?: { platform: string } }).userAgentData?.platform ===
-			'macOS' || (nav != null && /iPhone|iPad|iPod|Macintosh/.test(nav.userAgent));
-	const label = apple ? '⌘' : 'Ctrl';
+	const label = isApplePlatform() ? '⌘' : 'Ctrl';
 	for (const el of document.querySelectorAll('[data-search-hint-mod]')) {
 		el.textContent = label;
 	}
@@ -180,12 +178,19 @@ function run(): void {
 function init(): void {
 	requestAnimationFrame(run);
 
-	let tries = 0;
-	const id = setInterval(() => {
-		run();
-		tries += 1;
-		if (tries > 30) clearInterval(id);
-	}, 150);
+	let coalesced = false;
+	const scheduleRun = (): void => {
+		if (coalesced) return;
+		coalesced = true;
+		requestAnimationFrame(() => {
+			coalesced = false;
+			run();
+		});
+	};
+
+	const mo = new MutationObserver(scheduleRun);
+	mo.observe(document.body, { childList: true, subtree: true });
+	window.setTimeout(() => mo.disconnect(), 8000);
 }
 
 init();

@@ -3,7 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
-import rehypeDeveloperInternalLinks from './src/markdown/rehype-developer-internal-links.ts';
+import { appI18nLocales, defaultLocale } from './src/lib/appLocale.ts';
+import remarkDeveloperInternalLinks from './src/markdown/remark-developer-internal-links.ts';
 import rehypeStripInterElementWhitespace from './src/markdown/rehype-strip-inter-element-whitespace.ts';
 import { inlineBundleScript } from './vite-plugins/inline-bundle-script.ts';
 import { rewriteBundledScripts } from './vite-plugins/post-bundle-script-entries.ts';
@@ -100,8 +101,8 @@ export default defineConfig({
 	compressHTML: true,
 	base,
 	i18n: {
-		defaultLocale: 'zh',
-		locales: ['zh', 'en'],
+		defaultLocale,
+		locales: [...appI18nLocales],
 		routing: {
 			prefixDefaultLocale: true,
 		},
@@ -139,7 +140,8 @@ export default defineConfig({
 		plugins: [inlineBundleScript(__dirname), pagefindDevAssets()],
 	},
 	markdown: {
-		rehypePlugins: [rehypeStripInterElementWhitespace, [rehypeDeveloperInternalLinks, base]],
+		remarkPlugins: [[remarkDeveloperInternalLinks, base]],
+		rehypePlugins: [rehypeStripInterElementWhitespace],
 		shikiConfig: {
 			// 双主题 + defaultColor: false → 仅输出 --shiki-light* / --shiki-dark*，由 global.scss 按 data-theme 选用，避免与内联 color 冲突导致无高亮
 			themes: {
