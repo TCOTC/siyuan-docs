@@ -74,6 +74,20 @@
 	--doc-content-max-width: 1200px;
 	--font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 	--font-mono: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+
+	/* 字号刻度（rem，相对 html；随浏览器默认缩放） */
+	--text-2xs: 0.6875rem;
+	--text-xs: 0.75rem;
+	--text-sm: 0.8125rem;
+	--text-md: 0.875rem;
+	--text-body: 0.9375rem;
+	--text-base: 1rem;
+	--text-prose-h1: 2rem;
+	--text-prose-h2: 1.125rem;
+	--text-prose-h3: var(--text-base);
+	--text-home-lede: 1.875rem;
+	--text-home-hero: clamp(2.75rem, 8vw, 3.75rem);
+
 	color-scheme: light;
 	--pf-text: #111111;
 	--pf-text-secondary: #52525b;

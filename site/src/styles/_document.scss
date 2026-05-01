@@ -5,6 +5,7 @@
 	box-sizing: border-box;
 }
 
+/* rem 相对根字号（100% = 用户 / 浏览器默认），正文与 UI 文本着陆一致缩放 */
 html {
 	font-size: 100%;
 }
@@ -13,13 +14,23 @@ body {
 	margin: 0;
 	min-height: 100vh;
 	font-family: var(--font);
-	font-size: 15px;
+	font-size: var(--text-body);
 	line-height: 1.55;
 	font-weight: 400;
 	font-feature-settings: 'cv01', 'ss03';
 	color: var(--text);
 	background: var(--bg-page);
 	-webkit-font-smoothing: antialiased;
+	/* 移动端点击链接 / 按钮时去掉 WebKit 默认蓝色高亮闪烁 */
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* 触摸 / 鼠标点击后不保留浏览器默认蓝色 focus 框；键盘 Tab 仍通过各组件的 :focus-visible 显示轮廓 */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+[role='button']:focus:not(:focus-visible),
+summary:focus:not(:focus-visible) {
+	outline: none;
 }
 
 /* 全站滚动条：透明底轨 + 细滑块（Firefox scrollbar-* / WebKit） */
@@ -70,7 +81,7 @@ a {
 	top: var(--space-12);
 	z-index: 100;
 	padding: var(--space-8) var(--space-14);
-	font-size: 13px;
+	font-size: var(--text-sm);
 	font-weight: 600;
 	color: var(--text);
 	background: var(--bg-elevated);
@@ -121,7 +132,7 @@ a {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-10);
-	font-size: 14px;
+	font-size: var(--text-md);
 	font-weight: 600;
 	letter-spacing: -0.02em;
 	color: var(--text);
@@ -167,7 +178,7 @@ a {
 	min-width: 0;
 	margin-bottom: 0;
 	padding: 0;
-	font-size: 16px;
+	font-size: var(--text-base);
 }
 
 .topbar__nav {
@@ -175,7 +186,7 @@ a {
 	align-items: center;
 	gap: var(--space-22);
 	margin-left: auto;
-	font-size: 13px;
+	font-size: var(--text-sm);
 	font-weight: 510;
 	color: var(--text-secondary);
 }
@@ -645,7 +656,7 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon,
 }
 
 .u-floating-hint__text {
-	font-size: 12px !important;
+	font-size: var(--text-xs) !important;
 	font-weight: 500 !important;
 	line-height: 1.35 !important;
 	color: var(--text) !important;
@@ -658,7 +669,7 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon,
 	min-width: 20px;
 	height: 18px;
 	padding: 0 5px;
-	font-size: 11px;
+	font-size: var(--text-2xs);
 	font-weight: 500;
 	font-family: var(--font) !important;
 	color: var(--text) !important;
@@ -698,7 +709,7 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon,
 .pagefind-dev-hint {
 	margin: 0;
 	padding: var(--space-6) var(--space-8);
-	font-size: 11px;
+	font-size: var(--text-2xs);
 	line-height: 1.45;
 	color: var(--text-tertiary);
 	background: var(--bg-subtle);
@@ -729,7 +740,7 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon,
 	margin: 0;
 	padding: var(--space-6) var(--space-4) var(--space-6) var(--space-2);
 	font: inherit;
-	font-size: 12px;
+	font-size: var(--text-body);
 	font-weight: 500;
 	letter-spacing: 0.01em;
 	color: var(--text-tertiary);
@@ -790,7 +801,7 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon,
 	display: block;
 	padding: var(--space-6) var(--space-6) var(--space-6) var(--space-2);
 	margin: 0;
-	font-size: 13px;
+	font-size: var(--text-sm);
 	/* 与 .is-active 统一字重，避免切换当前文档时字宽变化导致列表微抖 */
 	font-weight: 500;
 	color: var(--text-secondary);
@@ -835,7 +846,7 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon,
 }
 
 .rail-footer__links a {
-	font-size: 13px;
+	font-size: var(--text-sm);
 	font-weight: 510;
 	color: var(--text-secondary);
 }
@@ -936,7 +947,7 @@ body.doc-layout .content-head {
 	flex-shrink: 0;
 	margin: 0 var(--space-8);
 	font-weight: 400;
-	font-size: 13px;
+	font-size: var(--text-sm);
 	line-height: 1;
 	color: var(--text-tertiary);
 	opacity: 0.45;
@@ -946,7 +957,7 @@ body.doc-layout .content-head {
 .breadcrumbs__link,
 .breadcrumbs__text,
 .breadcrumbs__current {
-	font-size: 13px;
+	font-size: var(--text-sm);
 	line-height: 1.5;
 	letter-spacing: -0.13px;
 }
@@ -1185,7 +1196,7 @@ html[data-theme='dark'] .copy-split {
 	min-height: 100%;
 	padding: 0 var(--space-10);
 	font-family: inherit;
-	font-size: 13px;
+	font-size: var(--text-sm);
 	font-weight: 510;
 	line-height: 1;
 	color: var(--text-secondary);
@@ -1332,7 +1343,7 @@ html[data-theme='dark'] .copy-split__chev:hover {
 	width: 100%;
 	padding: var(--space-8) var(--space-10);
 	font-family: inherit;
-	font-size: 13px;
+	font-size: var(--text-sm);
 	font-weight: 510;
 	text-align: left;
 	color: var(--copy-menu-text);
@@ -1349,7 +1360,7 @@ html[data-theme='dark'] .copy-split__chev:hover {
 }
 
 .copy-split__panel .copy-split__panel-item__desc {
-	font-size: 12px;
+	font-size: var(--text-xs);
 	font-weight: 400;
 	line-height: 1.35;
 	color: var(--copy-menu-text-muted);
@@ -1450,7 +1461,7 @@ html[data-theme='dark'] .copy-split__chev:hover {
 .toc-rail__list a {
 	display: block;
 	padding: var(--space-6) 0 var(--space-6) var(--space-10);
-	font-size: 12px;
+	font-size: var(--text-xs);
 	font-weight: 600;
 	line-height: 1.5;
 	color: var(--text-secondary);
@@ -1475,7 +1486,7 @@ html[data-theme='dark'] .copy-split__chev:hover {
 .toc-rail__list li.toc-depth-3 a,
 .toc-rail__list li.toc-depth-4 a {
 	padding-left: var(--space-18);
-	font-size: 12px;
+	font-size: var(--text-xs);
 }
 
 /* 正文：Linear 文档式层级与链接下划线 */
@@ -1485,7 +1496,7 @@ html[data-theme='dark'] .copy-split__chev:hover {
 
 .prose h1 {
 	margin: 0 0 0.5em;
-	font-size: 2rem;
+	font-size: var(--text-prose-h1);
 	font-weight: 600;
 	letter-spacing: -0.045em;
 	line-height: 1.15;
@@ -1495,7 +1506,7 @@ html[data-theme='dark'] .copy-split__chev:hover {
 .prose h2 {
 	margin: 2em 0 0.55em;
 	padding-top: 0.25em;
-	font-size: 1.125rem;
+	font-size: var(--text-prose-h2);
 	font-weight: 600;
 	letter-spacing: -0.03em;
 	line-height: 1.35;
@@ -1505,7 +1516,7 @@ html[data-theme='dark'] .copy-split__chev:hover {
 
 .prose h3 {
 	margin: 1.5em 0 0.45em;
-	font-size: 1rem;
+	font-size: var(--text-prose-h3);
 	font-weight: 600;
 	letter-spacing: -0.02em;
 	color: var(--text);
@@ -1556,7 +1567,7 @@ html[data-theme='dark'] .prose a:not([class]) {
 	margin: 1.15em 0;
 	padding: var(--space-16) var(--space-18);
 	font-family: var(--font-mono);
-	font-size: 13px;
+	font-size: var(--text-sm);
 	line-height: 1.55;
 	font-weight: 400;
 	border: var(--space-hairline) solid var(--border-strong);
@@ -1712,7 +1723,7 @@ html[data-theme='dark'] .prose pre .code-block-copy--error {
 
 .hero h1 {
 	margin: 0 0 var(--space-14);
-	font-size: 1.875rem;
+	font-size: var(--text-home-lede);
 	font-weight: 600;
 	letter-spacing: -0.04em;
 	line-height: 1.2;
@@ -1721,7 +1732,7 @@ html[data-theme='dark'] .prose pre .code-block-copy--error {
 
 .hero p {
 	margin: 0 0 var(--space-22);
-	font-size: 14px;
+	font-size: var(--text-md);
 	font-weight: 400;
 	color: var(--text-secondary);
 	line-height: 1.65;
@@ -1738,7 +1749,7 @@ html[data-theme='dark'] .prose pre .code-block-copy--error {
 	height: var(--toolbar-control-h);
 	min-height: var(--toolbar-control-h);
 	padding: 0 var(--space-16);
-	font-size: 13px;
+	font-size: var(--text-sm);
 	font-weight: 600;
 	font-family: inherit;
 	border: var(--space-hairline) solid var(--border);
@@ -1764,7 +1775,7 @@ html[data-theme='dark'] .btn:hover {
 /* 404：正文区内大号状态码与操作（文档布局内左对齐） */
 .not-found__code {
 	margin: 0 0 var(--space-8);
-	font-size: clamp(2.75rem, 8vw, 3.75rem);
+	font-size: var(--text-home-hero);
 	font-weight: 600;
 	letter-spacing: -0.06em;
 	line-height: 1;
@@ -1955,23 +1966,22 @@ html[data-doc-locale='zh'] .doc-i18n--en {
 	/* 与 .content-head 左内边距一致，使面包屑与抽屉内目录文字同列左对齐 */
 	body.doc-layout .rail-scroll {
 		padding-left: var(--space-36);
+		padding-right: var(--space-36);
 	}
 
 	body.doc-layout .rail-nav__trigger {
 		padding-left: 0;
 	}
 
+	/* 与宽屏一致：分组下的文档相对分组标题缩进；外层已由 .rail-scroll 与面包屑对齐 */
 	body.doc-layout .rail-nav__panel .rail-nav__list {
-		padding-left: 0;
-	}
-
-	body.doc-layout .rail-nav__link {
-		padding-left: 0;
+		padding-left: var(--space-10);
 	}
 
 	/* 底部外链区与面包屑、目录同列左对齐（原 20px + 8px 列表 padding ≈ 28px） */
 	body.doc-layout .rail-footer {
 		padding-left: var(--space-36);
+		padding-right: var(--space-36);
 	}
 
 	body.doc-layout .rail-footer__links {
