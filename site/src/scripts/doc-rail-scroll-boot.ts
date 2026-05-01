@@ -1,6 +1,11 @@
 /**
- * 与 doc-reading-sync.applyRailActiveNavScroll 同算法；window.__siyuanRailScrollProg 与 TS 共用，避免自动滚动触发 rail-scrollbar--visible
+ * 与 `doc-reading-sync.applyRailActiveNavScroll` 同算法；经 `doc-window-runtime` 与主包共用计数，避免自动滚动触发 `rail-scrollbar--visible`。
  */
+import {
+	bumpProgrammaticRailScrollDepth,
+	scheduleReleaseProgrammaticRailScrollDepth,
+} from './lib/doc-window-runtime';
+
 (function docRailScrollBoot(): void {
 	document.documentElement.classList.add('doc-rail-scroll-boot');
 	const railMaybe = document.querySelector('.rail-scroll');
@@ -28,23 +33,6 @@
 		clipEl.setAttribute('data-edge-bottom', canScroll && !atBottom ? '1' : '0');
 	}
 
-	function bumpProgRailScroll(): void {
-		window.__siyuanRailScrollProg = (window.__siyuanRailScrollProg ?? 0) + 1;
-	}
-
-	function releaseProgRailScroll(): void {
-		queueMicrotask(() => {
-			requestAnimationFrame(() => {
-				requestAnimationFrame(() => {
-					window.__siyuanRailScrollProg = Math.max(
-						0,
-						(window.__siyuanRailScrollProg ?? 0) - 1,
-					);
-				});
-			});
-		});
-	}
-
 	function applyScroll(): void {
 		if (!target || railEl.clientHeight <= 1) {
 			syncEdges();
@@ -55,7 +43,7 @@
 			syncEdges();
 			return;
 		}
-		bumpProgRailScroll();
+		bumpProgrammaticRailScrollDepth();
 		try {
 			const rr = railEl.getBoundingClientRect();
 			const tr = target.getBoundingClientRect();
@@ -65,7 +53,7 @@
 			railEl.scrollTop = nextTop;
 			syncEdges();
 		} finally {
-			releaseProgRailScroll();
+			scheduleReleaseProgrammaticRailScrollDepth();
 		}
 	}
 

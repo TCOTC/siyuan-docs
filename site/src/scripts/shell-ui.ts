@@ -9,6 +9,7 @@ import {
 	tocSync,
 } from './lib/doc-reading-sync';
 import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
+import { consumeShellBootstrapRanTocSync } from './lib/doc-shell-toc-handshake';
 import { safeLocalGet, safeLocalSet, safeSessionSet } from './lib/safe-storage';
 
 (function initShellUi(): void {
@@ -481,9 +482,7 @@ import { safeLocalGet, safeLocalSet, safeSessionSet } from './lib/safe-storage';
 			if (!a || !tocList.contains(a)) return;
 			tocScheduleSoon();
 		});
-		if (window.__siyuanDocsTocBootstrapped) {
-			delete window.__siyuanDocsTocBootstrapped;
-		} else {
+		if (!consumeShellBootstrapRanTocSync()) {
 			tocSchedule();
 		}
 		window.addEventListener(

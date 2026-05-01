@@ -2,6 +2,12 @@
  * 侧栏滚动边缘与本页目录同步（与首帧 bootstrap 共用，避免与 shell-ui 重复实现分叉）。
  */
 
+import {
+	bumpProgrammaticRailScrollDepth,
+	isProgrammaticRailScroll,
+	scheduleReleaseProgrammaticRailScrollDepth,
+} from './doc-window-runtime';
+
 /** 避免正文滚动时每个 rAF 都重算大纲 scrollTop；仅在高亮集合变化时自动滚大纲 */
 let tocActiveHeadSig = '';
 let tocSyncLastViewportH = 0;
@@ -222,29 +228,6 @@ export function syncRailScrollEdges(): void {
 	const atBottom = st >= maxScroll - 1;
 	railScrollClip.setAttribute('data-edge-top', canScroll && !atTop ? '1' : '0');
 	railScrollClip.setAttribute('data-edge-bottom', canScroll && !atBottom ? '1' : '0');
-}
-
-function bumpProgrammaticRailScrollDepth(): void {
-	window.__siyuanRailScrollProg = (window.__siyuanRailScrollProg ?? 0) + 1;
-}
-
-function releaseProgrammaticRailScrollDepth(): void {
-	window.__siyuanRailScrollProg = Math.max(0, (window.__siyuanRailScrollProg ?? 0) - 1);
-}
-
-function scheduleReleaseProgrammaticRailScrollDepth(): void {
-	queueMicrotask(() => {
-		requestAnimationFrame(() => {
-			requestAnimationFrame(() => {
-				releaseProgrammaticRailScrollDepth();
-			});
-		});
-	});
-}
-
-/** 自动定位侧栏滚动时为 true；供 shell-ui 抑制滚动条短暂显隐 */
-export function isProgrammaticRailScroll(): boolean {
-	return (window.__siyuanRailScrollProg ?? 0) > 0;
 }
 
 /** 程序化滚动或首屏 boot（见 `doc-rail-scroll-boot`）期间不点亮侧栏滚动条 */
