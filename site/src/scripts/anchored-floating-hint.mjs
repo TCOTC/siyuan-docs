@@ -1,21 +1,42 @@
 /**
  * 将 [data-anchored-floating-hint] 内提示层在鼠标悬停时改为 position: fixed，
- * 相对锚点（[data-floating-hint-anchor] 或 .pf-trigger-btn）用 getBoundingClientRect
+ * 相对锚点（pagefind-modal-trigger 内 .pf-trigger-btn、[data-floating-hint-anchor] 或占位以外的 .pf-trigger-btn）
+ * 用 getBoundingClientRect
  * 置于正下方，避免被 overflow 裁切；再根据 getBoundingClientRect 将水平位置钳制在视口内，
  * 底部空间不足且上方放得下时改为显示在按钮上方。
  *
  * 显示时把提示层挂到 document.body：.doc-center 带 z-index 会形成堆叠上下文，
  * 否则即使用很高的 z-index，提示仍会绘在侧栏抽屉（如 z-index: 200）之下。
+ *
+ * 可见性仅由本脚本控制（不用 CSS :hover 显示提示层）：Pagefind 真实按钮出现与 bind 完成
+ * 之间若用 CSS 显示，提示会仍留在工具栏内被裁切；悬停后经 SHOW_DELAY_MS 再 portal，与原先 transition-delay 相当。
  */
 const GAP = 5;
 const Z = 20000;
 /** 与 .u-floating-hint__layer 的 max-width: calc(100vw - 24px) 左右留白一致 */
 const VIEWPORT_MARGIN = 12;
+/** 悬停后延迟再显示，与原先 .u-floating-hint__layer 上 transition-delay 一致（毫秒） */
+const SHOW_DELAY_MS = 300;
 /** 挂到 body 后不再处于「锚点控件 :hover」子树内，用此类保持与 CSS 悬停时相同的可见样式 */
 const PLACED_OPEN_CLASS = 'js-floating-hint--anchored-open';
 
 /** @type {WeakMap<Element, { parent: Node; next: ChildNode | null }>} */
 const portalAnchor = new WeakMap();
+
+/** @type {WeakMap<Element, { btn: Element; sync: () => void; clearPending: () => void }>} */
+const rootBindings = new WeakMap();
+
+/**
+ * Pagefind 挂载后占位按钮会被移除；若只 bind 一次，mouseenter 永远不会触发。
+ * 优先使用已插入的 pagefind-modal-trigger 内按钮；占位 .pf-search-placeholder 不绑提示。
+ */
+function resolveHintAnchor(root) {
+	return (
+		root.querySelector('pagefind-modal-trigger .pf-trigger-btn') ||
+		root.querySelector('[data-floating-hint-anchor]') ||
+		root.querySelector('.pf-trigger-btn:not(.pf-search-placeholder)')
+	);
+}
 
 function portalLayerToBody(layer) {
 	if (layer.parentNode === document.body) return;
@@ -96,20 +117,50 @@ function labelSearchHintModKeys() {
 }
 
 function bindRoot(root) {
-	if (root.hasAttribute('data-anchored-bound')) return;
-	const btn =
-		root.querySelector('[data-floating-hint-anchor]') || root.querySelector('.pf-trigger-btn');
+	const btn = resolveHintAnchor(root);
 	const layer =
 		root.querySelector('[data-floating-hint-layer]') || root.querySelector('.pf-trigger-shortcut');
 	if (!btn || !layer) return;
-	root.setAttribute('data-anchored-bound', '1');
+
+	const prev = rootBindings.get(root);
+	if (prev && prev.btn === btn) return;
+
+	if (prev) {
+		prev.clearPending();
+		prev.btn.removeEventListener('mouseenter', prev.sync);
+		prev.btn.removeEventListener('mouseleave', prev.sync);
+		window.removeEventListener('scroll', prev.sync, true);
+		window.removeEventListener('resize', prev.sync);
+		/* 占位被 Pagefind 替换时若提示曾挂到 body，需收回，否则会残留在最上层 */
+		clearPlacedStyles(layer);
+	}
+
+	/** @type {ReturnType<typeof setTimeout> | null} */
+	let showTimer = null;
+
+	const clearPending = () => {
+		if (showTimer != null) {
+			clearTimeout(showTimer);
+			showTimer = null;
+		}
+	};
 
 	const sync = () => {
 		/* 仅用 :hover，避免点击后 :focus-visible 残留导致提示不随鼠标离开而收起 */
 		if (btn.matches && btn.matches(':hover')) {
-			setLayerPlacedStyles(layer);
-			placeToButton(btn, layer);
+			if (layer.classList.contains(PLACED_OPEN_CLASS)) {
+				placeToButton(btn, layer);
+			} else if (showTimer == null) {
+				showTimer = setTimeout(() => {
+					showTimer = null;
+					if (btn.matches(':hover')) {
+						setLayerPlacedStyles(layer);
+						placeToButton(btn, layer);
+					}
+				}, SHOW_DELAY_MS);
+			}
 		} else {
+			clearPending();
 			clearPlacedStyles(layer);
 		}
 	};
@@ -118,6 +169,7 @@ function bindRoot(root) {
 	btn.addEventListener('mouseleave', sync);
 	window.addEventListener('scroll', sync, true);
 	window.addEventListener('resize', sync);
+	rootBindings.set(root, { btn, sync, clearPending });
 }
 
 function run() {

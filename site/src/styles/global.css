@@ -701,7 +701,8 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon,
 /*
  * 搜索触发器：与主题 / 复制一致，由外层 .u-floating-hint + [data-floating-hint-layer] 显示提示；
  * Pagefind 使用 hide-shortcut，不再渲染 .pf-trigger-shortcut。
- * [data-anchored-floating-hint] 由 anchored-floating-hint.mjs 在悬停时把提示层挂到 body 并 position:fixed。
+ * [data-anchored-floating-hint] 由 anchored-floating-hint.mjs 在悬停延迟后把提示层挂到 body 并 position:fixed；
+ * 不再用 CSS :hover 显示提示层，避免 Pagefind 绑定前提示留在工具栏内被裁切。
  */
 .u-floating-hint {
 	position: relative;
@@ -777,27 +778,16 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon,
 	border-radius: 4px;
 }
 
-/* 仅悬停锚点或 Pagefind 圆形按钮时显示（避免 .u-floating-hint--split 整块 flex 误触） */
-.u-floating-hint:has([data-floating-hint-anchor]:hover) .u-floating-hint__layer,
-.u-floating-hint:has(pagefind-modal-trigger .pf-trigger-btn:hover) .u-floating-hint__layer,
-.u-floating-hint:has(.pf-search-placeholder:hover) .u-floating-hint__layer {
-	opacity: 1 !important;
-	visibility: visible !important;
-	transform: translateX(-50%) translateY(0) !important;
-	transition:
-		opacity 0.12s ease 300ms,
-		transform 0.12s ease 300ms,
-		visibility 0s !important;
-}
+/* 可见性由 anchored-floating-hint.mjs 在延迟后添加 .js-floating-hint--anchored-open，不用 :hover 显示（见上文注释） */
 
-/* 由 anchored-floating-hint.mjs 挂到 body 时，不再处于锚点 :hover 子树内 */
+/* 由 anchored-floating-hint.mjs 挂到 body 时，不再处于锚点 :hover 子树内；延迟在脚本内完成，此处仅短过渡 */
 .u-floating-hint__layer.js-floating-hint--anchored-open {
 	opacity: 1 !important;
 	visibility: visible !important;
 	transform: translateX(-50%) translateY(0) !important;
 	transition:
-		opacity 0.12s ease 300ms,
-		transform 0.12s ease 300ms,
+		opacity 0.12s ease,
+		transform 0.12s ease,
 		visibility 0s !important;
 }
 
