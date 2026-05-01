@@ -374,8 +374,8 @@ body.doc-rail-open .rail-menu-trigger__bar:nth-child(3) {
 	flex-shrink: 0;
 }
 
-/* <450px：主栏顶栏仅面包屑与汉堡；搜索 / 主题 / 复制 经 #doc-toolbar-floater 移入侧栏抽屉顶栏（无 LOGO） */
-@media (width < 450px) {
+/* <750px：主栏顶栏仅面包屑与汉堡；搜索 / 主题 / 复制 经 #doc-toolbar-floater 移入侧栏抽屉顶栏（无 LOGO） */
+@media (width < 750px) {
 	body.doc-layout .doc-toolbar-slot--in-head {
 		display: none !important;
 	}
@@ -985,6 +985,53 @@ body.doc-layout .content-head {
 	white-space: nowrap;
 	color: var(--text);
 	font-weight: 590;
+}
+
+/* 文档顶栏：单行 + 末段优先省略（wrap 会折行导致看不到 ellipsis） */
+body.doc-layout .content-head .breadcrumbs {
+	overflow-x: clip;
+	max-width: 100%;
+}
+
+/*
+ * ol 是 nav 的唯一 flex 子项；默认 min-width:auto 会等于全文 min-content，整列无法窄于文字 → 与右侧重叠。
+ */
+body.doc-layout .content-head .breadcrumbs__list {
+	flex-wrap: nowrap;
+	flex: 1 1 0;
+	min-width: 0;
+	max-width: 100%;
+	overflow: hidden;
+}
+
+body.doc-layout .content-head .breadcrumbs__item:not(:last-child) {
+	flex-shrink: 0;
+}
+
+body.doc-layout .content-head .breadcrumbs__item:last-child {
+	flex: 1 1 0;
+	min-width: 0;
+	max-width: 100%;
+}
+
+body.doc-layout .content-head .breadcrumbs__item {
+	min-width: 0;
+	max-width: 100%;
+}
+
+body.doc-layout .content-head .breadcrumbs__link {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	min-width: 0;
+	max-width: 100%;
+	display: block;
+}
+
+body.doc-layout .content-head .breadcrumbs__current,
+body.doc-layout .content-head .breadcrumbs__text {
+	max-width: 100%;
+	display: block;
 }
 
 .content-head__actions {
@@ -1932,8 +1979,8 @@ html[data-doc-locale='zh'] .doc-i18n--en {
 	}
 }
 
-/* 450px–849px 抽屉档：侧栏与主栏顶栏功能重复，隐藏侧栏顶栏；<450px 主栏顶栏仅面包屑与汉堡，抽屉顶栏为共享工具条（无 LOGO） */
-@media (width < 850px) and (min-width: 450px) {
+/* 750px–849px 抽屉档：侧栏与主栏顶栏功能重复，隐藏侧栏顶栏 */
+@media (width < 850px) and (min-width: 750px) {
 	body.doc-layout .left-rail .rail-header {
 		display: none;
 	}
