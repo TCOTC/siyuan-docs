@@ -4,7 +4,7 @@
  * 构建期 URL 已通过 `?url` 导入确定，此处用 `set:html` 输出最终标签。
  *
  * 默认 `type="module"`：`pnpm dev` 时 Vite 产出为 ESM，经典脚本会报 `import` 语法错误。
- * 生产构建由 `post-bundle-script-entries` 打成 IIFE 后，`type="module"` 包裹 IIFE 仍合法。
+ * 生产构建由 `rewrite-url-script-outputs-to-iife`（与 `?inline-bundle` 共用 `bundle-site-browser-iife`）打成 IIFE 后，`type="module"` 包裹 IIFE 仍合法。
  * 使用 `kind="classic"` 的入口须无顶层 `import`（开发环境会按经典脚本执行源文件）。
  * 例如 `theme-boot`；本页大纲首屏见 `doc-toc-first-boot.ts`（由 Shell 内联），主栏 inset 与滚动恢复见 `doc-layout-first-paint.ts`。
  */

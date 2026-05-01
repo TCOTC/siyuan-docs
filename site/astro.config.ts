@@ -8,7 +8,8 @@ import { appI18nLocales, defaultLocale } from './src/lib/appLocale.ts';
 import remarkDeveloperInternalLinks from './src/markdown/remark-developer-internal-links.ts';
 import rehypeStripInterElementWhitespace from './src/markdown/rehype-strip-inter-element-whitespace.ts';
 import { inlineBundleScript } from './vite-plugins/inline-bundle-script.ts';
-import { rewriteBundledScripts } from './vite-plugins/post-bundle-script-entries.ts';
+import { publishedSiteBaseUrlFromEnv } from './vite-plugins/lib/publishedSiteBaseUrl.ts';
+import { rewriteUrlScriptOutputsToIife } from './vite-plugins/rewrite-url-script-outputs-to-iife.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -23,13 +24,8 @@ function readPagefindLibVersion(): string {
 
 const PAGE_FIND_LIB_VERSION = readPagefindLibVersion();
 
-/** GitHub Pages 项目站时可在 CI 设置 `ASTRO_BASE_PATH=/仓库名`（无前导或带 / 均可） */
-let base = '/';
-const envBase = process.env.ASTRO_BASE_PATH?.trim();
-if (envBase) {
-	const withSlash = envBase.startsWith('/') ? envBase : `/${envBase}`;
-	base = withSlash.endsWith('/') ? withSlash : `${withSlash}/`;
-}
+/** GitHub Pages 项目站时可在 CI 设置 `ASTRO_BASE_PATH=/仓库名`（无前导或带 / 均可）；与 `vite-plugins/lib/publishedSiteBaseUrl` 同源 */
+const base = publishedSiteBaseUrlFromEnv();
 
 /**
  * 开发模式下从最近一次 `pnpm build` 产出的 `dist/pagefind/<版本>/` 提供 Pagefind 静态资源，
@@ -86,13 +82,13 @@ export default defineConfig({
 	trailingSlash: 'ignore',
 	integrations: [
 		{
-			name: 'post-bundle-script-entries',
+			name: 'rewrite-url-script-outputs-to-iife',
 			hooks: {
 				'astro:build:done': async ({ dir }) => {
 					const distPath =
 						typeof dir === 'string' ? dir : fileURLToPath(dir);
 					const siteRoot = path.dirname(distPath);
-					await rewriteBundledScripts(siteRoot);
+					await rewriteUrlScriptOutputsToIife(siteRoot);
 				},
 			},
 		},

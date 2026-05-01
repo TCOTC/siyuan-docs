@@ -1,12 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import * as esbuild from 'esbuild';
 import type { Plugin, ResolvedConfig } from 'vite';
+import { bundleSiteBrowserEntryToIife } from './bundle-site-browser-iife.ts';
 
 const VIRTUAL_PREFIX = '\0inline-bundle:';
 const QUERY = '?inline-bundle';
 
-/** `Shell` 等处的首屏内联脚本：从 TS 维护，构建期压缩后以字符串导入，最终仍以 `<script is:inline>` 写入 HTML */
+/**
+ * `Shell` 等处的首屏内联脚本：从 TS 维护，构建期打成 IIFE 字符串导入，最终写入 `<script is:inline>`。
+ * 与 `_astro` 收尾覆盖共用 {@link bundleSiteBrowserEntryToIife}，见 `vite-plugins/README.md`。
+ */
 export function inlineBundleScript(siteRoot: string): Plugin {
 	let minify = false;
 
@@ -37,37 +40,13 @@ export function inlineBundleScript(siteRoot: string): Plugin {
 			}
 			this.addWatchFile(file);
 
-			const baseDefine = publishedBaseUrlFromEnv();
-			const result = await esbuild.build({
-				absWorkingDir: siteRoot,
-				entryPoints: [file],
-				bundle: true,
-				write: false,
-				format: 'iife',
-				platform: 'browser',
-				target: 'es2022',
-				minify,
-				legalComments: 'none',
-				tsconfig: path.join(siteRoot, 'tsconfig.json'),
-				define: {
-					'import.meta.env.BASE_URL': JSON.stringify(baseDefine),
-				},
-			});
-			const code = result.outputFiles[0]?.text;
-			if (!code) {
-				this.error(`inline-bundle-script: esbuild produced no output for ${file}`);
+			try {
+				const code = await bundleSiteBrowserEntryToIife(siteRoot, file, { minify });
+				return `export default ${JSON.stringify(code)};`;
+			} catch (e) {
+				const msg = e instanceof Error ? e.message : String(e);
+				this.error(`inline-bundle-script: ${msg}`);
 			}
-			return `export default ${JSON.stringify(code)};`;
 		},
 	};
-}
-
-function publishedBaseUrlFromEnv(): string {
-	let base = '/';
-	const envBase = process.env.ASTRO_BASE_PATH?.trim();
-	if (envBase) {
-		const withSlash = envBase.startsWith('/') ? envBase : `/${envBase}`;
-		base = withSlash.endsWith('/') ? withSlash : `${withSlash}/`;
-	}
-	return base;
 }

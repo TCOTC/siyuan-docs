@@ -6,7 +6,7 @@ const DOCS_ROOT = 'developers';
 
 /**
  * 与 `docRoutes.developerPageRelativePath` 在「前缀语言 + base」规则上对齐，供浏览器入口打包；
- * 不依赖 `astro:i18n`，避免 post-bundle 的 esbuild 无法解析虚拟模块。
+ * 不依赖 `astro:i18n`，避免站点 IIFE 打包（`bundle-site-browser-iife`）无法解析虚拟模块。
  */
 export function developerPagePathForStaticSite(locale: AppLocale, docRelPath: string): string {
 	const clean = docRelPath.replace(/^\/+/, '').replace(/\/+$/, '');
