@@ -253,6 +253,79 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 										)
 									}
 								</div>
+								<script is:inline>
+									(function () {
+										document.documentElement.classList.add('doc-rail-scroll-boot');
+										/* 与 doc-reading-sync.applyRailActiveNavScroll 同算法；window.__siyuanRailScrollProg 与 TS 共用，避免自动滚动触发 rail-scrollbar--visible */
+										var rail = document.querySelector('.rail-scroll');
+										var clip = document.querySelector('[data-rail-scroll-clip]');
+										if (!rail || !clip) return;
+										var links = rail.querySelectorAll('.rail-nav__link.is-active');
+										var target = null;
+										for (var i = 0; i < links.length; i++) {
+											var el = links[i];
+											var r = el.getBoundingClientRect();
+											if (r.width > 0 && r.height > 0) {
+												target = el;
+												break;
+											}
+										}
+										function syncEdges() {
+											var maxScroll = Math.max(0, rail.scrollHeight - rail.clientHeight);
+											var canScroll = maxScroll > 2;
+											var st = rail.scrollTop;
+											var atTop = st <= 1;
+											var atBottom = st >= maxScroll - 1;
+											clip.setAttribute('data-edge-top', canScroll && !atTop ? '1' : '0');
+											clip.setAttribute('data-edge-bottom', canScroll && !atBottom ? '1' : '0');
+										}
+										function bumpProgRailScroll() {
+											window.__siyuanRailScrollProg =
+												(window.__siyuanRailScrollProg || 0) + 1;
+										}
+										function releaseProgRailScroll() {
+											queueMicrotask(function () {
+												requestAnimationFrame(function () {
+													requestAnimationFrame(function () {
+														window.__siyuanRailScrollProg = Math.max(
+															0,
+															(window.__siyuanRailScrollProg || 0) - 1,
+														);
+													});
+												});
+											});
+										}
+										function applyScroll() {
+											if (!target || rail.clientHeight <= 1) {
+												syncEdges();
+												return;
+											}
+											var maxScroll = Math.max(0, rail.scrollHeight - rail.clientHeight);
+											if (maxScroll <= 0) {
+												syncEdges();
+												return;
+											}
+											bumpProgRailScroll();
+											try {
+												var rr = rail.getBoundingClientRect();
+												var tr = target.getBoundingClientRect();
+												var yCenterInContent =
+													rail.scrollTop + (tr.top - rr.top) + tr.height / 2;
+												var nextTop = yCenterInContent - rail.clientHeight / 2;
+												if (nextTop < 0) nextTop = 0;
+												else if (nextTop > maxScroll) nextTop = maxScroll;
+												rail.scrollTop = nextTop;
+												syncEdges();
+											} finally {
+												releaseProgRailScroll();
+											}
+										}
+										applyScroll();
+										if (typeof requestAnimationFrame === 'function') {
+											requestAnimationFrame(applyScroll);
+										}
+									})();
+								</script>
 								<div class="rail-scroll__edge rail-scroll__edge--top" aria-hidden="true" />
 								<div class="rail-scroll__edge rail-scroll__edge--bottom" aria-hidden="true" />
 							</div>
@@ -449,6 +522,6 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 
 		<pagefind-modal reset-on-close></pagefind-modal>
 
-		<script src={shellAfterLoadUrl}></script>
+		<script type="module" src={shellAfterLoadUrl}></script>
 	</body>
 </html>

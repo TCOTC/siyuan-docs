@@ -17,10 +17,12 @@ export function runDocShellBootstrap(): void {
 	if (typeof window.requestAnimationFrame === 'function') {
 		window.requestAnimationFrame(() => {
 			window.requestAnimationFrame(() => {
+				syncRailScrollEdges();
 				document.documentElement.classList.add('toc-indicator-motion');
 			});
 		});
 	} else {
+		syncRailScrollEdges();
 		document.documentElement.classList.add('toc-indicator-motion');
 	}
 }

@@ -1,4 +1,9 @@
-import { syncRailScrollEdges, tocSync } from './lib/doc-reading-sync';
+import {
+	scrollActiveRailNavIntoView,
+	shouldSuppressRailScrollbarTransient,
+	syncRailScrollEdges,
+	tocSync,
+} from './lib/doc-reading-sync';
 import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 
 (function initShellUi(): void {
@@ -312,6 +317,10 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 		}
 		if (open) {
 			syncDocOverlayTop();
+			window.requestAnimationFrame(() => {
+				scrollActiveRailNavIntoView();
+				syncRailScrollEdges();
+			});
 		}
 	}
 	function closeDocRail(): void {
@@ -364,6 +373,7 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 		const scrollEl = el;
 		let hideTimer: number | null = null;
 		function showRailScrollbarTransient(): void {
+			if (shouldSuppressRailScrollbarTransient()) return;
 			scrollEl.classList.add('rail-scrollbar--visible');
 			if (hideTimer) window.clearTimeout(hideTimer);
 			hideTimer = window.setTimeout(() => {
@@ -386,6 +396,33 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 	const railScrollAside = document.getElementById('doc-left-rail');
 	if (railScrollAside && railScrollAside !== railScrollEl) {
 		wireRailScrollbarOnScroll(railScrollAside);
+	}
+
+	if (document.body.classList.contains('doc-layout')) {
+		(function scheduleEndDocRailScrollBoot(): void {
+			let ended = false;
+			const finish = (): void => {
+				if (ended) return;
+				ended = true;
+				requestAnimationFrame(() => {
+					requestAnimationFrame(() => {
+						document.documentElement.classList.remove('doc-rail-scroll-boot');
+					});
+				});
+			};
+			const loadPromise =
+				document.readyState === 'complete'
+					? Promise.resolve()
+					: new Promise<void>((resolve) => {
+							window.addEventListener('load', () => resolve(), { once: true });
+						});
+			const fontsPromise =
+				document.fonts && typeof document.fonts.ready !== 'undefined'
+					? document.fonts.ready
+					: Promise.resolve();
+			void Promise.all([loadPromise, fontsPromise]).then(finish).catch(finish);
+			window.setTimeout(finish, 2500);
+		})();
 	}
 
 	const docRailNav = document.querySelector('.rail-nav');

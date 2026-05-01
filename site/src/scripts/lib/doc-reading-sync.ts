@@ -16,6 +16,88 @@ export function syncRailScrollEdges(): void {
 	railScrollClip.setAttribute('data-edge-bottom', canScroll && !atBottom ? '1' : '0');
 }
 
+function bumpProgrammaticRailScrollDepth(): void {
+	window.__siyuanRailScrollProg = (window.__siyuanRailScrollProg ?? 0) + 1;
+}
+
+function releaseProgrammaticRailScrollDepth(): void {
+	window.__siyuanRailScrollProg = Math.max(0, (window.__siyuanRailScrollProg ?? 0) - 1);
+}
+
+function scheduleReleaseProgrammaticRailScrollDepth(): void {
+	queueMicrotask(() => {
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => {
+				releaseProgrammaticRailScrollDepth();
+			});
+		});
+	});
+}
+
+/** 自动定位侧栏滚动时为 true；供 shell-ui 抑制滚动条短暂显隐 */
+export function isProgrammaticRailScroll(): boolean {
+	return (window.__siyuanRailScrollProg ?? 0) > 0;
+}
+
+/** 程序化滚动或首屏 boot（见 `doc-rail-scroll-boot`）期间不点亮侧栏滚动条 */
+export function shouldSuppressRailScrollbarTransient(): boolean {
+	return (
+		isProgrammaticRailScroll() ||
+		document.documentElement.classList.contains('doc-rail-scroll-boot')
+	);
+}
+
+/**
+ * 仅操作 `.rail-scroll` 的 scrollTop，避免 `scrollIntoView` 连带滚动页面主栏或其它祖先。
+ * 目录末尾项会钳制到 maxScroll，保证当前链接落在可视区内。
+ */
+export function applyRailActiveNavScroll(rail: HTMLElement, target: HTMLElement): void {
+	const maxScroll = Math.max(0, rail.scrollHeight - rail.clientHeight);
+	if (maxScroll <= 0 || rail.clientHeight <= 0) return;
+	bumpProgrammaticRailScrollDepth();
+	try {
+		const rr = rail.getBoundingClientRect();
+		const tr = target.getBoundingClientRect();
+		const yCenterInContent =
+			rail.scrollTop + (tr.top - rr.top) + tr.height / 2;
+		let nextTop = yCenterInContent - rail.clientHeight / 2;
+		nextTop = Math.min(Math.max(0, nextTop), maxScroll);
+		rail.scrollTop = nextTop;
+	} finally {
+		scheduleReleaseProgrammaticRailScrollDepth();
+	}
+}
+
+/**
+ * 将侧栏文档目录中当前页链接滚入 `.rail-scroll` 可视区域（尽量居中；双语文档栈仅处理可见的一项）。
+ * 进入文档时的初定位由 `Shell.astro` 内联脚本尽早执行；此处供窄屏打开抽屉等后续场景。
+ */
+export function scrollActiveRailNavIntoView(): void {
+	const railScroll = document.querySelector('.rail-scroll');
+	if (!(railScroll instanceof HTMLElement)) return;
+	const actives = railScroll.querySelectorAll('.rail-nav__link.is-active');
+	let target: HTMLElement | null = null;
+	for (let i = 0; i < actives.length; i++) {
+		const el = actives[i];
+		if (!(el instanceof HTMLElement)) continue;
+		const r = el.getBoundingClientRect();
+		if (r.width > 0 && r.height > 0) {
+			target = el;
+			break;
+		}
+	}
+	if (!target) return;
+	const railEl = railScroll;
+	const targetEl = target;
+	const run = (): void => {
+		applyRailActiveNavScroll(railEl, targetEl);
+	};
+	run();
+	if (typeof requestAnimationFrame === 'function') {
+		requestAnimationFrame(run);
+	}
+}
+
 /** 与文档视口相交的标题对应 TOC 高亮与指示条位置（--top / --height） */
 export function tocSync(): void {
 	const tocList = document.getElementById('doc-toc-list');
