@@ -61,8 +61,11 @@
 	--toc-aside-width: clamp(180px, 24vw, var(--layout-toc-column-max-width));
 	/* 侧栏顶栏与文档顶栏同高，与侧栏竖线形成「┼」形边框交接（对齐 Linear 固定顶栏） */
 	--doc-header-row-h: var(--space-64);
-	/* 窄屏全幅导航层顶部（与 .content-head 底边对齐，由脚本同步为实际像素） */
+	/* 窄屏全幅导航层顶部（与 content-head 底边对齐，由脚本同步为实际像素） */
 	--doc-overlay-top: var(--doc-header-row-h);
+	/* 固定主栏顶栏时相对视口的水平 inset（与可变宽侧栏对齐，由脚本同步） */
+	--doc-content-head-inset-left: 0px;
+	--doc-content-head-inset-right: 0px;
 	/* 顶栏与侧栏工具区：主题 / 搜索 / 复制 / 主 CTA 等统一高度 */
 	--toolbar-control-h: var(--space-32);
 	/* Lucide（@lucide/astro）图标外框边长，全站一处配置 */

@@ -1,6 +1,7 @@
 import {
 	scrollActiveRailNavIntoView,
 	shouldSuppressRailScrollbarTransient,
+	syncDocOverlayLayoutMetrics,
 	syncRailScrollEdges,
 	tocSync,
 } from './lib/doc-reading-sync';
@@ -282,15 +283,8 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 	const railToggle = document.getElementById('rail-menu-toggle');
 	const railBackdrop = document.getElementById('rail-backdrop');
 	const railAside = document.getElementById('doc-left-rail');
-	const contentHeadEl = document.querySelector('.content-head');
 	function syncDocOverlayTop(): void {
-		if (!contentHeadEl) return;
-		try {
-			const h = Math.ceil(contentHeadEl.getBoundingClientRect().height);
-			document.documentElement.style.setProperty('--doc-overlay-top', `${h}px`);
-		} catch {
-			/* ignore */
-		}
+		syncDocOverlayLayoutMetrics();
 	}
 	function setDocRailOpen(open: boolean): void {
 		document.body.classList.toggle('doc-rail-open', open);
@@ -399,11 +393,31 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 	}
 
 	if (document.body.classList.contains('doc-layout')) {
+		syncDocOverlayTop();
+		requestAnimationFrame(() => {
+			syncDocOverlayTop();
+		});
+		window.addEventListener('resize', syncDocOverlayTop, { passive: true });
+		const mqTocTier = window.matchMedia('(min-width: 1000px)');
+		function onTocTierChange(): void {
+			syncDocOverlayTop();
+		}
+		if (mqTocTier.addEventListener) {
+			mqTocTier.addEventListener('change', onTocTierChange);
+		} else if (mqTocTier.addListener) {
+			mqTocTier.addListener(onTocTierChange);
+		}
+		const docCenterRo = document.querySelector('.doc-center');
+		if (docCenterRo && typeof ResizeObserver !== 'undefined') {
+			const roDocCenter = new ResizeObserver(() => syncDocOverlayTop());
+			roDocCenter.observe(docCenterRo);
+		}
 		(function scheduleEndDocRailScrollBoot(): void {
 			let ended = false;
 			const finish = (): void => {
 				if (ended) return;
 				ended = true;
+				syncDocOverlayTop();
 				requestAnimationFrame(() => {
 					requestAnimationFrame(() => {
 						document.documentElement.classList.remove('doc-rail-scroll-boot');
@@ -463,8 +477,10 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 			setTimeout(tocSchedule, 0);
 			setTimeout(tocSchedule, 64);
 		}
-		const docScrollRoot = docMainEl.closest('.doc-reading');
 		function tocBindScrollTargets(fn: () => void): void {
+			if (!docMainEl) return;
+			/* 文档区为 document 滚动时由 window 触发；保留 .doc-reading 监听以兼容未来改回内层滚动 */
+			const docScrollRoot = docMainEl.closest('.doc-reading');
 			if (docScrollRoot) {
 				docScrollRoot.addEventListener('scroll', fn, { passive: true });
 				try {
@@ -473,7 +489,6 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 					/* Safari 旧版无 scrollend */
 				}
 			}
-			/* 窄屏下由 body / document 滚动，与 .doc-reading 内滚动二选一 */
 			window.addEventListener('scroll', fn, { passive: true });
 		}
 		tocBindScrollTargets(tocSchedule);
@@ -491,7 +506,15 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 		} else {
 			tocSchedule();
 		}
-		window.addEventListener('load', tocScheduleSoon, { once: true });
+		window.addEventListener(
+			'load',
+			() => {
+				requestAnimationFrame(() => {
+					tocSync();
+				});
+			},
+			{ once: true },
+		);
 	}
 
 	/* 正文代码块（Shiki pre）右上角复制 */

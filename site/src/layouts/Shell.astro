@@ -89,6 +89,8 @@ const enDocHref = developerPageRelativePath('en', pathForLangSwitch);
 const mdViewHref = `${Astro.url.pathname.replace(/\/+$/, '')}.md`;
 /** 仅开发者内容页带 `currentPath`，用于在点击复制时请求 `.md`，避免把正文塞进 HTML */
 const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
+/** F5 整页刷新：`history.scrollRestoration` 不负责恢复滚动；用 sessionStorage 在首帧同步 scrollTo（无 # 时）。后退/前进仍走浏览器，勿设 scrollRestoration=manual */
+const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
 ---
 
 <!doctype html>
@@ -123,6 +125,24 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 		}
 	</head>
 	<body class:list={[{ 'doc-layout': !noSidebar }]}>
+		{
+			!noSidebar ? (
+				<script is:inline define:vars={{ docScrollSessionPrefix }}>
+					(function () {
+						window.addEventListener('pagehide', function () {
+							try {
+								sessionStorage.setItem(
+									docScrollSessionPrefix + location.pathname + location.search,
+									String(window.scrollY || 0),
+								);
+							} catch (e) {
+								/* ignore */
+							}
+						});
+					})();
+				</script>
+			) : null
+		}
 		<script src={pagefindLoaderUrl}></script>
 		<a class="skip-link" href="#main-content">{t.skipToContent}</a>
 		<pagefind-config bundle-path={pagefindBundle} lang={pagefindUiLang} />
@@ -497,10 +517,62 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 								</button>
 							</div>
 						</div>
-						<div class="doc-reading">
+						<div
+							class:list={['doc-reading', { 'doc-reading--with-toc': tocItems.length > 0 }]}
+						>
 							<main id="main-content" class="doc-main" tabindex="-1" data-pagefind-body>
 								<slot />
 							</main>
+							<script is:inline define:vars={{ docScrollSessionPrefix }}>
+								(function () {
+									var root = document.documentElement;
+									var ch = document.querySelector('.content-head');
+									if (ch) {
+										try {
+											root.style.setProperty(
+												'--doc-overlay-top',
+												Math.ceil(ch.getBoundingClientRect().height) + 'px',
+											);
+										} catch (e) {
+											/* ignore */
+										}
+									}
+									var dc = document.querySelector('.doc-center');
+									if (dc) {
+										try {
+											var r = dc.getBoundingClientRect();
+											var vw = window.innerWidth || document.documentElement.clientWidth || 0;
+											root.style.setProperty('--doc-content-head-inset-left', r.left + 'px');
+											root.style.setProperty(
+												'--doc-content-head-inset-right',
+												Math.max(0, vw - r.right) + 'px',
+											);
+										} catch (e) {
+											/* ignore */
+										}
+									}
+									try {
+										root.style.removeProperty('--doc-toc-fixed-left');
+									} catch (e) {
+										/* ignore */
+									}
+									var h = window.location.hash;
+									var hasHash = h && h.length >= 2;
+									if (!hasHash) {
+										try {
+											var rawY = sessionStorage.getItem(
+												docScrollSessionPrefix + location.pathname + location.search,
+											);
+											if (rawY != null) {
+												var y = parseInt(rawY, 10);
+												if (!isNaN(y) && y >= 0) window.scrollTo(0, y);
+											}
+										} catch (e) {
+											/* ignore */
+										}
+									}
+								})();
+							</script>
 							{tocItems.length > 0 && (
 								<aside class="toc-rail" aria-label={t.tocAsideAria} data-pagefind-ignore>
 									<div class="toc-rail__container">
@@ -512,6 +584,85 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 											))}
 										</ul>
 									</div>
+									<script is:inline>
+										(function () {
+											var root = document.documentElement;
+											var dc = document.querySelector('.doc-center');
+											var toc = document.querySelector('.toc-rail');
+											try {
+												if (
+													dc &&
+													toc &&
+													window.matchMedia &&
+													window.matchMedia('(min-width: 1000px)').matches &&
+													toc.offsetWidth > 0
+												) {
+													var dcr = dc.getBoundingClientRect();
+													root.style.setProperty(
+														'--doc-toc-fixed-left',
+														Math.round(dcr.right - toc.offsetWidth) + 'px',
+													);
+												} else {
+													root.style.removeProperty('--doc-toc-fixed-left');
+												}
+											} catch (e) {
+												/* ignore */
+											}
+											var h = window.location.hash;
+											if (!h || h.length < 2) return;
+											var enc = h.slice(1);
+											var id;
+											try {
+												id = decodeURIComponent(enc);
+											} catch (e) {
+												id = enc;
+											}
+											if (
+												!window.matchMedia ||
+												!window.matchMedia('(min-width: 1000px)').matches
+											) {
+												return;
+											}
+											var tocList = document.getElementById('doc-toc-list');
+											if (!toc || !tocList) return;
+											if (toc.getBoundingClientRect().height < 1) return;
+											var links = tocList.querySelectorAll('a[href^="#"]');
+											var target = null;
+											for (var i = 0; i < links.length; i++) {
+												var raw = (links[i].getAttribute('href') || '').replace(/^#/, '');
+												if (raw === id) {
+													target = links[i];
+													break;
+												}
+											}
+											if (!target) return;
+											var maxScroll = Math.max(0, toc.scrollHeight - toc.clientHeight);
+											var tr = target.getBoundingClientRect();
+											var windowMid =
+												(window.innerHeight || document.documentElement.clientHeight || 0) / 2;
+											var linkMidViewport = tr.top + tr.height / 2;
+											var nextTop = toc.scrollTop + (linkMidViewport - windowMid);
+											if (nextTop < 0) nextTop = 0;
+											else if (nextTop > maxScroll) nextTop = maxScroll;
+											toc.scrollTop = nextTop;
+											for (var j = 0; j < links.length; j++) {
+												links[j].classList.remove('is-active');
+												links[j].removeAttribute('aria-current');
+											}
+											target.classList.add('is-active');
+											target.setAttribute('aria-current', 'location');
+											var liNode = target.closest('li');
+											if (liNode) {
+												var listR = tocList.getBoundingClientRect();
+												var liR = liNode.getBoundingClientRect();
+												var topPx = Math.round(liR.top - listR.top);
+												var botPx = Math.round(liR.bottom - listR.top);
+												var hPx = Math.max(0, botPx - topPx);
+												tocList.style.setProperty('--top', topPx + 'px');
+												tocList.style.setProperty('--height', hPx + 'px');
+											}
+										})();
+									</script>
 								</aside>
 							)}
 						</div>

@@ -191,22 +191,20 @@ a {
 	padding: var(--space-56) var(--space-24) var(--space-80);
 }
 
-/* 文档页：视口内布局，仅 .doc-reading 纵向滚动（滚动条在阅读区右缘），侧栏与顶栏不随页面滚动 */
+/* 文档页：整页（document）纵向滚动，#fragment 由浏览器对齐文档滚动容器；侧栏 sticky、主栏顶栏 sticky */
 body.doc-layout {
-	height: 100dvh;
-	max-height: 100dvh;
-	overflow: hidden;
+	min-height: 100dvh;
+	overflow-x: hidden;
 }
 
 /* —— 文档：左侧导航 + 阅读区（正文与本页大纲同列内并排） —— */
 .doc-app {
 	display: grid;
 	grid-template-columns: var(--rail-width) minmax(0, 1fr);
-	grid-template-rows: minmax(0, 1fr);
-	height: 100dvh;
-	max-height: 100dvh;
-	min-height: 0;
-	overflow: hidden;
+	grid-template-rows: auto;
+	align-items: start;
+	min-height: 100dvh;
+	overflow: visible;
 	background: var(--bg-page);
 }
 
@@ -214,13 +212,17 @@ body.doc-layout {
 	display: flex;
 	flex-direction: column;
 	min-height: 0;
-	height: 100%;
+	/* 相对视口固定，避免 sticky 在页面末尾随包含块回弹；宽度与主栏左缘对齐（见 --doc-content-head-inset-left） */
+	position: fixed;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: max(var(--doc-content-head-inset-left, 0px), clamp(200px, 22vw, 248px));
 	padding: 0;
 	border-right: var(--space-hairline) solid var(--border);
 	background: var(--bg-rail);
 	overflow: hidden;
 	/* 高于 .doc-center，使侧栏内 position: fixed 的浮层（如搜索快捷键提示）能叠在 content-head 之上，避免被主栏后绘遮挡 */
-	position: relative;
 	z-index: 2;
 }
 
@@ -842,31 +844,46 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon,
 	font-weight: 600;
 }
 
-/* 中间栏：占满视口高度；顶栏固定，下方阅读区整体纵向滚动 */
+/* 中间栏：顶栏 fixed，预留 --doc-overlay-top；正文与本页目录随文档滚动 */
+body.doc-layout .doc-center {
+	padding-top: var(--doc-overlay-top, var(--doc-header-row-h));
+	/* fixed 侧栏不参与栅格占位时，auto 会把主栏塞进第一列，与侧栏叠在同一竖带并被 z-index 压住 */
+	grid-column: 2;
+}
+
 .doc-center {
 	display: flex;
 	flex-direction: column;
 	min-width: 0;
 	min-height: 0;
-	height: 100%;
-	overflow: hidden;
+	flex: 1 1 auto;
+	overflow-x: hidden;
+	overflow-y: visible;
 	background: var(--bg-page);
 	position: relative;
 	z-index: 1;
 }
 
-/* 正文与本页目录横向排列；纵向滚动统一在本容器右侧显示滚动条 */
+/* 正文与本页目录横向排列；纵向由 document 滚动（避免嵌套 overflow 与 fragment 对齐的亚像素抖动） */
 .doc-reading {
 	display: flex;
-	flex: 1 1 0;
+	flex: 1 1 auto;
 	flex-direction: row;
 	align-items: flex-start;
 	min-width: 0;
 	min-height: 0;
 	overflow-x: hidden;
-	overflow-y: auto;
+	overflow-y: visible;
 	-webkit-overflow-scrolling: touch;
-	scrollbar-gutter: stable;
+}
+
+body.doc-layout .content-head {
+	position: fixed;
+	top: 0;
+	left: var(--doc-content-head-inset-left, 0px);
+	right: var(--doc-content-head-inset-right, 0px);
+	width: auto;
+	z-index: 10;
 }
 
 .content-head {
@@ -882,8 +899,6 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon,
 	border-bottom: var(--space-hairline) solid var(--border);
 	background: var(--bg-page);
 	flex-shrink: 0;
-	position: relative;
-	z-index: 10;
 }
 
 /* 面包屑：对齐 Linear Developers（顶栏内 caption、列表语义、斜杠分隔） */
@@ -1312,27 +1327,32 @@ html[data-theme='dark'] .copy-split__chev:hover {
 	outline: none;
 }
 
-/* 本页大纲：同步脚本结束前隐藏，避免指示条与激活样式先后两套状态（doc-shell-ready 由 shell-ui 内联 bootstrap 设置） */
+/* 本页大纲：与正文并排；宽屏下 fixed，left 由 syncDocOverlayLayoutMetrics 写入 --doc-toc-fixed-left */
 .toc-rail {
 	flex: 0 0 var(--toc-aside-width);
 	min-height: 0;
 	width: var(--toc-aside-width);
 	max-width: var(--layout-toc-column-max-width);
 	position: sticky;
-	top: 0;
+	/* 与固定主栏顶栏底边对齐（--doc-overlay-top 由脚本同步实际高度） */
+	top: var(--doc-overlay-top, var(--doc-header-row-h));
 	align-self: flex-start;
-	max-height: calc(100dvh - var(--doc-header-row-h));
+	max-height: calc(100dvh - var(--doc-overlay-top, var(--doc-header-row-h)));
 	overflow-x: hidden;
 	overflow-y: auto;
 	-webkit-overflow-scrolling: touch;
 	padding: var(--space-40) 0 var(--space-96) var(--space-8);
 	background: var(--bg-page);
 	box-sizing: border-box;
-	visibility: hidden;
+	/* 不显示滚动条，仍可滚动（覆盖全站 * 滚动条样式） */
+	scrollbar-width: none;
+	-ms-overflow-style: none;
 }
 
-html.doc-shell-ready .toc-rail {
-	visibility: visible;
+.toc-rail::-webkit-scrollbar {
+	display: none;
+	width: 0;
+	height: 0;
 }
 
 .toc-rail__container {
@@ -1369,14 +1389,6 @@ html.doc-shell-ready .toc-rail {
 	background: var(--text);
 	border-radius: var(--space-hairline);
 	pointer-events: none;
-	transition: none;
-}
-
-/* 由 shell-ui 内 bootstrap 在首屏同步后延迟两帧再挂上，此前竖线瞬时到位；之后随滚动平滑变化 */
-html.toc-indicator-motion .toc-rail__list::before {
-	transition:
-		top 0.14s ease,
-		height 0.14s ease;
 }
 
 .toc-rail__list li {
@@ -1750,6 +1762,35 @@ html[data-doc-locale='zh'] .doc-i18n--en {
 	display: none !important;
 }
 
+/* ≥1000px：本页大纲固定视口（top/bottom 夹住），纵向不随正文滚动；left 由 shell-ui syncDocOverlayTop 写入 */
+@media (width >= 1000px) {
+	body.doc-layout .doc-reading--with-toc {
+		padding-right: var(--toc-aside-width);
+		box-sizing: border-box;
+	}
+
+	body.doc-layout .toc-rail {
+		position: fixed;
+		top: var(--doc-overlay-top, var(--doc-header-row-h));
+		left: var(--doc-toc-fixed-left);
+		right: auto;
+		width: var(--toc-aside-width);
+		max-width: var(--layout-toc-column-max-width);
+		flex: none;
+		/* 勿用 height:auto + max-height:none，否则固定栏会按内容无限增高超出视口 */
+		bottom: auto;
+		max-height: calc(
+			100dvh - var(--doc-overlay-top, var(--doc-header-row-h)) - env(safe-area-inset-bottom, 0px)
+		);
+		height: auto;
+		align-self: flex-start;
+		z-index: 4;
+		overflow-x: hidden;
+		overflow-y: auto;
+		overscroll-behavior-y: contain;
+	}
+}
+
 /* 宽屏文档三级版面（仅随视口宽度；分界用 width 范围语法，避免 max 与 min 在亚像素下留缝）：
  * 0–850px：仅正文 + 抽屉文档列表，无本页大纲
  * 851px–1000px：固定文档列表 + 正文，无本页大纲
@@ -1765,6 +1806,10 @@ html[data-doc-locale='zh'] .doc-i18n--en {
 @media (width <= 850px) {
 	body.doc-layout .doc-app {
 		grid-template-columns: 1fr;
+	}
+
+	body.doc-layout .doc-center {
+		grid-column: 1;
 	}
 
 	body.doc-layout .rail-menu-trigger {
