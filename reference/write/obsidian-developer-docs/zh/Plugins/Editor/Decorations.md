@@ -1,4 +1,4 @@
-装饰可让您控制如何在 [[Editor extensions|editor extensions]] 中绘制内容或设置内容样式。如果您打算通过在编辑器中添加、替换元素或设置元素样式来更改外观，则很可能需要使用装饰。
+装饰可让您控制如何在 [editor extensions](./Editor%20extensions.md) 中绘制内容或设置内容样式。如果您打算通过在编辑器中添加、替换元素或设置元素样式来更改外观，则很可能需要使用装饰。
 
 读完本页后，您将能够：
 
@@ -10,8 +10,8 @@
 
 ## 先决条件
 
-- 对[[State fields]]的基本了解。
-- 对[[View plugins]]的基本了解。
+- 对 [State fields](./State%20fields.md) 的基本了解。
+- 对 [View plugins](./View%20plugins.md) 的基本了解。
 
 ## 概述
 
@@ -24,13 +24,13 @@
 - [替换装饰](https://codemirror.net/docs/ref/#view.Decoration%5Ereplace) 隐藏文档的一部分或将其替换为其他元素。
 - [线条装饰](https://codemirror.net/docs/ref/#view.Decoration%5Eline) 向线条而不是文档本身添加样式。
 
-要使用装饰，您需要在编辑器扩展内创建它们，并让扩展将它们提供给编辑器。您可以通过两种方式向编辑器提供修饰，即_直接_使用[[State fields|state fields]]或_间接_使用[[View plugins|view plugins]]。
+要使用装饰，您需要在编辑器扩展内创建它们，并让扩展将它们提供给编辑器。您可以通过两种方式向编辑器提供修饰，即_直接_使用 [state fields](./State%20fields.md) 或_间接_使用 [view plugins](./View%20plugins.md)。
 
 ## 我应该使用视图插件还是状态字段？
 
 视图插件和状态字段都可以为编辑器提供装饰，但它们有一些区别。
 
-- 如果您可以根据 [[Viewport]] 内部的内容确定装饰，请使用视图插件。
+- 如果您可以根据 [Viewport](./Viewport.md) 内部的内容确定装饰，请使用视图插件。
 - 如果您需要管理视口之外的装饰，请使用状态字段。
 - 如果您想要进行可能更改视口内容的更改（例如通过添加换行符），请使用状态字段。
 
@@ -83,7 +83,7 @@ const decoration = Decoration.replace({
 
 提供来自州场的装饰品：
 
-1. [[State fields#Defining a state field|Define a state field]] 具有 `DecorationSet` 类型。
+1. [Define a state field](./State%20fields.md#定义状态字段) 具有 `DecorationSet` 类型。
 2. 将 `provide` 属性添加到 state 字段。
 
    ```ts
@@ -144,7 +144,7 @@ export const emojiListField = StateField.define<DecorationSet>({
 
 要使用视图插件管理您的装饰：
 
-1. [[View plugins#Creating a view plugin|Create a view plugin]]。
+1. [Create a view plugin](./View%20plugins.md#创建视图插件)。
 2. 将 `DecorationSet` 成员属性添加到您的插件中。
 3. 在`constructor()`中初始化装饰。
 4. 在`update()`中重建装饰。

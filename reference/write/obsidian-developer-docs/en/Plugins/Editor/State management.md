@@ -1,4 +1,4 @@
-This page aims to give an introduction to state management for [[Editor extensions|editor extensions]].
+This page aims to give an introduction to state management for [editor extensions](./Editor%20extensions.md).
 
 > [!note]
 > This page aims to distill the official CodeMirror 6 documentation for Obsidian plugin developers. For more detailed information on state management, refer to [State and Updates](https://codemirror.net/docs/guide/#state-and-updates).
@@ -61,4 +61,4 @@ view.dispatch({
 
 On this page, you've learned about modeling state as a series of state changes, and how to group them into transactions.
 
-To learn how to manage custom state in your editor, refer to [[State fields]].
+To learn how to manage custom state in your editor, refer to [State fields](./State%20fields.md).

@@ -1,4 +1,4 @@
-本页旨在介绍 [[Editor extensions|editor extensions]] 的状态管理。
+本页旨在介绍 [editor extensions](./Editor%20extensions.md) 的状态管理。
 
 > [!note]
 > 本页面旨在为 Obsidian 插件开发人员提炼官方 CodeMirror 6 文档。有关状态管理的更多详细信息，请参阅[状态和更新](https://codemirror.net/docs/guide/#state-and-updates)。
@@ -61,4 +61,4 @@ view.dispatch({
 
 在此页面上，您了解了如何将状态建模为一系列状态更改，以及如何将它们分组为事务。
 
-要了解如何在编辑器中管理自定义状态，请参阅[[State fields]]。
+要了解如何在编辑器中管理自定义状态，请参阅 [State fields](./State%20fields.md)。

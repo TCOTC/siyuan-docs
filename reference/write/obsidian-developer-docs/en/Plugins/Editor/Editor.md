@@ -1,6 +1,6 @@
-The [[Reference/TypeScript API/Editor|Editor]] class exposes operations for reading and manipulating an active Markdown document in edit mode.
+The [Editor](../../Reference/TypeScript%20API/Editor.md) class exposes operations for reading and manipulating an active Markdown document in edit mode.
 
-If you want to access the editor in a command, use the [[Commands#Editor commands|editorCallback]].
+If you want to access the editor in a command, use the [editorCallback](../User%20interface/Commands.md#editor-commands).
 
 If you want to use the editor elsewhere, you can access it from the active view:
 
@@ -20,7 +20,7 @@ if (view) {
 
 ## Insert text at cursor position
 
-The [[replaceRange|replaceRange()]] method replaces the text between two cursor positions. If you only give it one position, it inserts the new text between that position and the next.
+The [replaceRange()](../../Reference/TypeScript%20API/Editor/replaceRange.md) method replaces the text between two cursor positions. If you only give it one position, it inserts the new text between that position and the next.
 
 The following command inserts today's date at the cursor position:
 
@@ -43,11 +43,11 @@ export default class ExamplePlugin extends Plugin {
 }
 ```
 
-![[editor-todays-date.gif]]
+![](editor-todays-date.gif)
 
 ## Replace current selection
 
-If you want to modify the selected text, use [[replaceSelection|replaceSelection()]] to replace the current selection with a new text.
+If you want to modify the selected text, use [replaceSelection()](../../Reference/TypeScript%20API/Editor/replaceSelection.md) to replace the current selection with a new text.
 
 The following command reads the current selection and converts it to uppercase:
 
@@ -68,4 +68,4 @@ export default class ExamplePlugin extends Plugin {
 }
 ```
 
-![[editor-uppercase.gif]]
+![](editor-uppercase.gif)

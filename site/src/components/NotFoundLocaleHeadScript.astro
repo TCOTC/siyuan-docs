@@ -1,11 +1,14 @@
 ---
+import type { NotFoundLocalePatch } from '../lib/notFoundLocale';
+import notFoundLocaleUrl from '../scripts/not-found-locale.ts?url';
+
 interface Props {
 	base: string;
-	patchZh: Record<string, string>;
+	patchZh: NotFoundLocalePatch;
 }
 
 const { base, patchZh } = Astro.props;
 ---
 
 <script is:inline set:html={`window.__NF_LOCALE__=${JSON.stringify({ base, patchZh })};`}></script>
-<script src="../scripts/not-found-locale.js"></script>
+<script src={notFoundLocaleUrl}></script>

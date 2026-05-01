@@ -1,6 +1,6 @@
-Once you've built your editor extension, you might want to communicate with it from outside the editor. For example, through a [[Commands|command]], or a [[Ribbon actions|ribbon action]].
+Once you've built your editor extension, you might want to communicate with it from outside the editor. For example, through a [command](../User%20interface/Commands.md), or a [ribbon action](../User%20interface/Ribbon%20actions.md).
 
-You can access the CodeMirror 6 editor from a [[MarkdownView|MarkdownView]]. However, since the Obsidian API doesn't actually expose the editor, you need to tell TypeScript to trust that it's there, using `@ts-expect-error`.
+You can access the CodeMirror 6 editor from a [MarkdownView](../../Reference/TypeScript%20API/MarkdownView.md). However, since the Obsidian API doesn't actually expose the editor, you need to tell TypeScript to trust that it's there, using `@ts-expect-error`.
 
 ```ts
 import { EditorView } from '@codemirror/view';
@@ -11,7 +11,7 @@ const editorView = view.editor.cm as EditorView;
 
 ## View plugin
 
-You can access the [[View plugins|view plugin]] instance from the `EditorView.plugin()` method.
+You can access the [view plugin](./View%20plugins.md) instance from the `EditorView.plugin()` method.
 
 ```ts
 this.addCommand({
@@ -32,7 +32,7 @@ this.addCommand({
 
 ## State field
 
-You can dispatch changes and [[State fields#Dispatching state effects|dispatch state effects]] directly on the editor view.
+You can dispatch changes and [dispatch state effects](./State%20fields.md#dispatching-state-effects) directly on the editor view.
 
 ```ts
 this.addCommand({

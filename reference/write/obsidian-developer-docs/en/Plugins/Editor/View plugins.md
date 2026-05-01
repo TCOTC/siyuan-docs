@@ -1,18 +1,18 @@
-A view plugin is an [[Editor extensions|editor extension]] that gives you access to the editor [[Viewport]].
+A view plugin is an [editor extension](./Editor%20extensions.md) that gives you access to the editor [Viewport](./Viewport.md).
 
 > [!note]
 > This page aims to distill the official CodeMirror 6 documentation for Obsidian plugin developers. For more information on state management, refer to [Affecting the View](https://codemirror.net/docs/guide/#affecting-the-view).
 
 ## Prerequisites
 
-- Basic understanding of the [[Viewport]].
+- Basic understanding of the [Viewport](./Viewport.md).
 
 ## Creating a view plugin
 
 View plugins are editor extensions that run _after_ the viewport has been recomputed. While this means that they can access the viewport, it also means that a view plugin can't make any changes that would impact the viewport. For example, by inserting blocks or line breaks into the document.
 
 > [!tip]
-> If you want to make changes that impact the vertical layout of the editor, by for example inserting blocks and line breaks, you need to use a [[State fields|state field]].
+> If you want to make changes that impact the vertical layout of the editor, by for example inserting blocks and line breaks, you need to use a [state field](./State%20fields.md).
 
 To create a view plugin, create a class that implements [PluginValue](https://codemirror.net/docs/ref/#view.PluginValue) and pass it to the [ViewPlugin.fromClass()](https://codemirror.net/docs/ref/#view.ViewPlugin^fromClass) function.
 
@@ -51,4 +51,4 @@ While the view plugin in the example works, it doesn't do much. If you want to b
 
 ## Next steps
 
-Provide [[Decorations]] from your view plugin to change how to display the document.
+Provide [Decorations](./Decorations.md) from your view plugin to change how to display the document.

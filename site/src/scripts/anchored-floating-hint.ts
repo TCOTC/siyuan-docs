@@ -20,17 +20,16 @@ const SHOW_DELAY_MS = 300;
 /** 挂到 body 后不再处于「锚点控件 :hover」子树内，用此类保持与 CSS 悬停时相同的可见样式 */
 const PLACED_OPEN_CLASS = 'js-floating-hint--anchored-open';
 
-/** @type {WeakMap<Element, { parent: Node; next: ChildNode | null }>} */
-const portalAnchor = new WeakMap();
+const portalAnchor = new WeakMap<Element, { parent: Node; next: ChildNode | null }>();
 
-/** @type {WeakMap<Element, { btn: Element; sync: () => void; clearPending: () => void }>} */
-const rootBindings = new WeakMap();
+type RootBinding = { btn: Element; sync: () => void; clearPending: () => void };
+const rootBindings = new WeakMap<Element, RootBinding>();
 
 /**
  * Pagefind 挂载后占位按钮会被移除；若只 bind 一次，mouseenter 永远不会触发。
  * 优先使用已插入的 pagefind-modal-trigger 内按钮；占位 .pf-search-placeholder 不绑提示。
  */
-function resolveHintAnchor(root) {
+function resolveHintAnchor(root: Element): Element | null {
 	return (
 		root.querySelector('pagefind-modal-trigger .pf-trigger-btn') ||
 		root.querySelector('[data-floating-hint-anchor]') ||
@@ -38,7 +37,7 @@ function resolveHintAnchor(root) {
 	);
 }
 
-function portalLayerToBody(layer) {
+function portalLayerToBody(layer: HTMLElement): void {
 	if (layer.parentNode === document.body) return;
 	const parent = layer.parentNode;
 	if (!parent) return;
@@ -46,7 +45,7 @@ function portalLayerToBody(layer) {
 	document.body.appendChild(layer);
 }
 
-function restoreLayerFromBody(layer) {
+function restoreLayerFromBody(layer: HTMLElement): void {
 	if (layer.parentNode !== document.body) return;
 	const rec = portalAnchor.get(layer);
 	portalAnchor.delete(layer);
@@ -55,7 +54,7 @@ function restoreLayerFromBody(layer) {
 	}
 }
 
-function setLayerPlacedStyles(layer) {
+function setLayerPlacedStyles(layer: HTMLElement): void {
 	portalLayerToBody(layer);
 	layer.style.setProperty('position', 'fixed', 'important');
 	layer.style.setProperty('right', 'auto', 'important');
@@ -64,7 +63,7 @@ function setLayerPlacedStyles(layer) {
 	layer.classList.add(PLACED_OPEN_CLASS);
 }
 
-function clearPlacedStyles(layer) {
+function clearPlacedStyles(layer: HTMLElement): void {
 	layer.classList.remove(PLACED_OPEN_CLASS);
 	layer.style.removeProperty('position');
 	layer.style.removeProperty('left');
@@ -76,7 +75,7 @@ function clearPlacedStyles(layer) {
 	restoreLayerFromBody(layer);
 }
 
-function placeToButton(btn, layer) {
+function placeToButton(btn: Element, layer: HTMLElement): void {
 	const r = btn.getBoundingClientRect();
 	let cx = r.left + r.width / 2;
 	let top = r.bottom + GAP;
@@ -105,21 +104,21 @@ function placeToButton(btn, layer) {
 	}
 }
 
-function labelSearchHintModKeys() {
+function labelSearchHintModKeys(): void {
 	const nav = typeof navigator !== 'undefined' ? navigator : null;
 	const apple =
-		nav?.userAgentData?.platform === 'macOS' ||
-		(nav != null && /iPhone|iPad|iPod|Macintosh/.test(nav.userAgent));
+		(nav as Navigator & { userAgentData?: { platform: string } }).userAgentData?.platform ===
+			'macOS' || (nav != null && /iPhone|iPad|iPod|Macintosh/.test(nav.userAgent));
 	const label = apple ? '⌘' : 'Ctrl';
 	for (const el of document.querySelectorAll('[data-search-hint-mod]')) {
 		el.textContent = label;
 	}
 }
 
-function bindRoot(root) {
+function bindRoot(root: Element): void {
 	const btn = resolveHintAnchor(root);
-	const layer =
-		root.querySelector('[data-floating-hint-layer]') || root.querySelector('.pf-trigger-shortcut');
+	const layer = (root.querySelector('[data-floating-hint-layer]') ||
+		root.querySelector('.pf-trigger-shortcut')) as HTMLElement | null;
 	if (!btn || !layer) return;
 
 	const prev = rootBindings.get(root);
@@ -135,25 +134,24 @@ function bindRoot(root) {
 		clearPlacedStyles(layer);
 	}
 
-	/** @type {ReturnType<typeof setTimeout> | null} */
-	let showTimer = null;
+	let showTimer: ReturnType<typeof setTimeout> | null = null;
 
-	const clearPending = () => {
+	const clearPending = (): void => {
 		if (showTimer != null) {
 			clearTimeout(showTimer);
 			showTimer = null;
 		}
 	};
 
-	const sync = () => {
+	const sync = (): void => {
 		/* 仅用 :hover，避免点击后 :focus-visible 残留导致提示不随鼠标离开而收起 */
-		if (btn.matches && btn.matches(':hover')) {
+		if (btn instanceof HTMLElement && btn.matches(':hover')) {
 			if (layer.classList.contains(PLACED_OPEN_CLASS)) {
 				placeToButton(btn, layer);
 			} else if (showTimer == null) {
 				showTimer = setTimeout(() => {
 					showTimer = null;
-					if (btn.matches(':hover')) {
+					if (btn instanceof HTMLElement && btn.matches(':hover')) {
 						setLayerPlacedStyles(layer);
 						placeToButton(btn, layer);
 					}
@@ -172,14 +170,14 @@ function bindRoot(root) {
 	rootBindings.set(root, { btn, sync, clearPending });
 }
 
-function run() {
+function run(): void {
 	labelSearchHintModKeys();
 	for (const root of document.querySelectorAll('[data-anchored-floating-hint]')) {
 		bindRoot(root);
 	}
 }
 
-function init() {
+function init(): void {
 	requestAnimationFrame(run);
 
 	let tries = 0;

@@ -1,5 +1,6 @@
 ---
 import { developerPageRelativePath } from '../lib/docRoutes';
+import indexRedirectUrl from '../scripts/index-redirect.ts?url';
 
 const zhWelcome = developerPageRelativePath('zh', 'welcome');
 const enWelcome = developerPageRelativePath('en', 'welcome');
@@ -15,7 +16,7 @@ const enWelcome = developerPageRelativePath('en', 'welcome');
 		<noscript>
 			<meta http-equiv="refresh" content={`0;url=${enWelcome}`} />
 		</noscript>
-		<script src="../scripts/index-redirect.js"></script>
+		<script src={indexRedirectUrl}></script>
 	</head>
 	<body>
 		<p>Redirecting to documentation…</p>

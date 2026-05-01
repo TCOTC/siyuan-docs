@@ -1,4 +1,4 @@
-状态字段是一个 [[Editor extensions|editor extension]]，可让您管理自定义编辑器状态。此页面将引导您通过实现计算器扩展来构建状态字段。
+状态字段是一个 [editor extension](./Editor%20extensions.md)，可让您管理自定义编辑器状态。此页面将引导您通过实现计算器扩展来构建状态字段。
 
 计算器应该能够在当前状态中添加和减去一个数字，并在您想要重新开始时重置状态。
 
@@ -9,7 +9,7 @@
 
 ## 先决条件
 
-- 对[[State management]]的基本了解。
+- 对 [State management](./State%20management.md) 的基本了解。
 
 ## 定义状态效果
 
@@ -92,4 +92,4 @@ export function reset(view: EditorView) {
 
 ## 后续步骤
 
-从您的状态字段中提供 [[Decorations]] 以更改文档的显示方式。
+从您的状态字段中提供 [Decorations](./Decorations.md) 以更改文档的显示方式。

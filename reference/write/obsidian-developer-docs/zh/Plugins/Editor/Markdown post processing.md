@@ -1,4 +1,4 @@
-如果您想更改 Markdown 文档在阅读视图中的呈现方式，您可以添加您自己的_Markdown 后处理器_。正如名称所示，后处理器在 Markdown 被处理为 HTML 之后运行。它允许您向呈现的文档添加、删除或替换 [[HTML elements]]。
+如果您想更改 Markdown 文档在阅读视图中的呈现方式，您可以添加您自己的_Markdown 后处理器_。正如名称所示，后处理器在 Markdown 被处理为 HTML 之后运行。它允许您向呈现的文档添加、删除或替换 [HTML elements](../User%20interface/HTML%20elements.md)。
 
 以下示例查找包含两个冒号“:”之间的文本的任何代码块，并将其替换为适当的表情符号：
 
@@ -48,7 +48,7 @@ flowchart LR
     Start --> Stop
 ```
 
-如果您想添加自己的自定义代码块（例如 Mermaid 代码块），可以使用 [[registerMarkdownCodeBlockProcessor|registerMarkdownCodeBlockProcessor()]]。以下示例将包含 CSV 数据的代码块呈现为表格：
+如果您想添加自己的自定义代码块（例如 Mermaid 代码块），可以使用 [registerMarkdownCodeBlockProcessor()](../../Reference/TypeScript%20API/Plugin/registerMarkdownCodeBlockProcessor.md)。以下示例将包含 CSV 数据的代码块呈现为表格：
 
 ```ts
 import { Plugin } from 'obsidian';

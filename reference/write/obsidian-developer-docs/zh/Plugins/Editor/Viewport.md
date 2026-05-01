@@ -6,7 +6,7 @@ Obsidian 编辑器支持包含数百万行的[巨大文档](https://codemirror.n
 
 每当用户滚动文档或文档本身发生更改时，视口就会过时并需要重新计算。
 
-如果您想构建依赖于视口的编辑器扩展，请参阅[[View plugins]]。
+如果您想构建依赖于视口的编辑器扩展，请参阅 [View plugins](./View%20plugins.md)。
 
 > [!note]
 > 本页面旨在为 Obsidian 插件开发人员提炼官方 CodeMirror 6 文档。有关状态管理的更多信息，请参阅 [Viewport](https://codemirror.net/docs/guide/#viewport)。

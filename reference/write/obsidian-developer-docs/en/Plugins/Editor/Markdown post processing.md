@@ -1,4 +1,4 @@
-If you want to change how a Markdown document is rendered in Reading view, you can add your own _Markdown post processor_. As indicated by the name, the post processor runs _after_ the Markdown has been processed into HTML. It lets you add, remove, or replace [[HTML elements]] to the rendered document.
+If you want to change how a Markdown document is rendered in Reading view, you can add your own _Markdown post processor_. As indicated by the name, the post processor runs _after_ the Markdown has been processed into HTML. It lets you add, remove, or replace [HTML elements](../User%20interface/HTML%20elements.md) to the rendered document.
 
 The following example looks for any code block that contains a text between two colons, `:`, and replaces it with an appropriate emoji:
 
@@ -48,7 +48,7 @@ flowchart LR
     Start --> Stop
 ```
 
-If you want to add your own custom code blocks like the Mermaid one, you can use [[registerMarkdownCodeBlockProcessor|registerMarkdownCodeBlockProcessor()]]. The following example renders a code block with CSV data, as a table:
+If you want to add your own custom code blocks like the Mermaid one, you can use [registerMarkdownCodeBlockProcessor()](../../Reference/TypeScript%20API/Plugin/registerMarkdownCodeBlockProcessor.md). The following example renders a code block with CSV data, as a table:
 
 ```ts
 import { Plugin } from 'obsidian';

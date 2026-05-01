@@ -1,4 +1,4 @@
-A state field is an [[Editor extensions|editor extension]] that lets you manage custom editor state. This page walks you through building a state field by implementing a calculator extension.
+A state field is an [editor extension](./Editor%20extensions.md) that lets you manage custom editor state. This page walks you through building a state field by implementing a calculator extension.
 
 The calculator should be able to add and subtract a number from the current state, and to reset the state when you want to start over.
 
@@ -9,7 +9,7 @@ By the end of this page, you'll understand the basic concepts of building a stat
 
 ## Prerequisites
 
-- Basic understanding of [[State management]].
+- Basic understanding of [State management](./State%20management.md).
 
 ## Defining state effects
 
@@ -92,4 +92,4 @@ export function reset(view: EditorView) {
 
 ## Next steps
 
-Provide [[Decorations]] from your state fields to change how to display the document.
+Provide [Decorations](./Decorations.md) from your state fields to change how to display the document.

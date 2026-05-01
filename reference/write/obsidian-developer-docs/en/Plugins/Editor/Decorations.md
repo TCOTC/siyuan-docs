@@ -1,4 +1,4 @@
-Decorations let you control how to draw or style content in [[Editor extensions|editor extensions]]. If you intend to change the look and feel by adding, replacing, or styling elements in the editor, you most likely need to use decorations.
+Decorations let you control how to draw or style content in [editor extensions](./Editor%20extensions.md). If you intend to change the look and feel by adding, replacing, or styling elements in the editor, you most likely need to use decorations.
 
 By the end of this page, you'll be able to:
 
@@ -10,8 +10,8 @@ By the end of this page, you'll be able to:
 
 ## Prerequisites
 
-- Basic understanding of [[State fields]].
-- Basic understanding of [[View plugins]].
+- Basic understanding of [State fields](./State%20fields.md).
+- Basic understanding of [View plugins](./View%20plugins.md).
 
 ## Overview
 
@@ -24,13 +24,13 @@ You can use the following types of decorations:
 - [Replace decorations](https://codemirror.net/docs/ref/#view.Decoration%5Ereplace) hide or replace part of the document with another element.
 - [Line decorations](https://codemirror.net/docs/ref/#view.Decoration%5Eline) add styling to the lines, rather than the document itself.
 
-To use decorations, you need to create them inside an editor extension and have the extension _provide_ them to the editor. You can provide decorations to the editor in two ways, either _directly_ using [[State fields|state fields]] or _indirectly_ using [[View plugins|view plugins]].
+To use decorations, you need to create them inside an editor extension and have the extension _provide_ them to the editor. You can provide decorations to the editor in two ways, either _directly_ using [state fields](./State%20fields.md) or _indirectly_ using [view plugins](./View%20plugins.md).
 
 ## Should I use a view plugin or a state field?
 
 Both view plugins and state fields can provide decorations to the editor, but they have some differences.
 
-- Use a view plugin if you can determine the decoration based on what's inside the [[Viewport]].
+- Use a view plugin if you can determine the decoration based on what's inside the [Viewport](./Viewport.md).
 - Use a state field if you need to manage decorations outside of the viewport.
 - Use a state field if you want to make changes that could change the content of the viewport, for example by adding line breaks.
 
@@ -83,7 +83,7 @@ const decoration = Decoration.replace({
 
 To provide decorations from a state field:
 
-1. [[State fields#Defining a state field|Define a state field]] with a `DecorationSet` type.
+1. [Define a state field](./State%20fields.md#defining-a-state-field) with a `DecorationSet` type.
 2. Add the `provide` property to the state field.
 
    ```ts
@@ -144,7 +144,7 @@ export const emojiListField = StateField.define<DecorationSet>({
 
 To manage your decorations using a view plugin:
 
-1. [[View plugins#Creating a view plugin|Create a view plugin]].
+1. [Create a view plugin](./View%20plugins.md#creating-a-view-plugin).
 2. Add a `DecorationSet` member property to your plugin.
 3. Initialize the decorations in the `constructor()`.
 4. Rebuild decorations in `update()`.

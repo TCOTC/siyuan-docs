@@ -1,6 +1,6 @@
-[[Reference/TypeScript API/Editor|Editor]] 类公开在编辑模式下读取和操作活动 Markdown 文档的操作。
+[Editor](../../Reference/TypeScript%20API/Editor.md) 类公开在编辑模式下读取和操作活动 Markdown 文档的操作。
 
-如果您想通过命令访问编辑器，请使用[[Commands#Editor commands|editorCallback]]。
+如果您想通过命令访问编辑器，请使用 [editorCallback](../User%20interface/Commands.md#编辑器命令)。
 
 如果您想在其他地方使用编辑器，可以从活动视图访问它：
 
@@ -20,7 +20,7 @@ if (view) {
 
 ## 在光标位置插入文本
 
-[[replaceRange|replaceRange()]] 方法替换两个光标位置之间的文本。如果您只给它一个位置，它会在该位置和下一个位置之间插入新文本。
+[replaceRange()](../../Reference/TypeScript%20API/Editor/replaceRange.md) 方法替换两个光标位置之间的文本。如果您只给它一个位置，它会在该位置和下一个位置之间插入新文本。
 
 以下命令在光标位置插入今天的日期：
 
@@ -43,11 +43,11 @@ export default class ExamplePlugin extends Plugin {
 }
 ```
 
-![[editor-todays-date.gif]]
+![](editor-todays-date.gif)
 
 ## 替换当前选择
 
-如果要修改所选文本，请使用[[replaceSelection|replaceSelection()]]将当前选择替换为新文本。
+如果要修改所选文本，请使用 [replaceSelection()](../../Reference/TypeScript%20API/Editor/replaceSelection.md) 将当前选择替换为新文本。
 
 以下命令读取当前选择并将其转换为大写：
 
@@ -68,4 +68,4 @@ export default class ExamplePlugin extends Plugin {
 }
 ```
 
-![[editor-uppercase.gif]]
+![](editor-uppercase.gif)

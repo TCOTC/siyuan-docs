@@ -1,13 +1,19 @@
 ---
-import '../styles/global.css';
+import '../styles/global.scss';
 import BrandLogo from '../components/BrandLogo.astro';
+import CopyPageMarkdownToolbar from '../components/CopyPageMarkdownToolbar.astro';
 import LangSwitcher from '../components/LangSwitcher.astro';
 import PagefindToolbarTrigger from '../components/PagefindToolbarTrigger.astro';
 import RailNavSections from '../components/RailNavSections.astro';
+import ThemeToggleHint from '../components/ThemeToggleHint.astro';
+import pagefindLoaderUrl from '../scripts/pagefind-loader.ts?url';
+import shellAfterLoadUrl from '../scripts/shell-after-load.ts?url';
+import themeBootUrl from '../scripts/theme-boot.ts?url';
 import { developerPageRelativePath } from '../lib/docRoutes';
+import { getPagefindLibVersion } from '../lib/pagefindBundlePath';
 import { pagefindToolbarUi, shellUi } from '../lib/uiStrings';
 import type { AppLocale } from '../lib/appLocale';
-import { Sun, Moon, ChevronDown, Copy, Check, X } from '@lucide/astro';
+import { ChevronDown } from '@lucide/astro';
 
 interface NavItem {
 	/** 相对 `developers/` 的路径，如 `welcome`、`plugin/plugin-overview` */
@@ -74,7 +80,7 @@ const railSiteLabel = t.railSiteLabel;
 const base = import.meta.env.BASE_URL;
 
 const tocItems = (headings ?? []).filter((h) => h.depth >= 2 && h.depth <= 4);
-const pagefindBundle = `${base}pagefind/`;
+const pagefindBundle = `${base}pagefind/${getPagefindLibVersion()}/`;
 const docHomeHref = developerPageRelativePath(locale, 'welcome');
 const pathForLangSwitch = currentPath ?? 'welcome';
 const zhDocHref = developerPageRelativePath('zh', pathForLangSwitch);
@@ -86,37 +92,22 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 ---
 
 <!doctype html>
-<html
-	lang={htmlLang}
-	data-pagefind-bundle={pagefindBundle}
-	data-doc-locale={notFoundDualSidebars ? 'en' : undefined}
-	data-code-copy-aria={t.copyCodeBlockAria}
-	data-code-copied-aria={t.copyCodeBlockCopiedAria}
-	data-code-copy-failed-aria={t.copyCodeBlockFailedAria}
->
+<html lang={htmlLang} data-doc-locale={notFoundDualSidebars ? 'en' : undefined}>
 	<head>
 		<meta charset="utf-8" />
-		<!-- 阻塞内联：须在首帧绘制前设置 data-theme（外部脚本会被打成 type=module 延后执行，导致图标闪动） -->
-		<script is:inline>
-			(function () {
-				function systemTheme() {
-					try {
-						return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-					} catch (e) {
-						return 'light';
-					}
-				}
-				try {
-					var t = localStorage.getItem('siyuan-docs-theme');
-					if (t !== 'light' && t !== 'dark') t = systemTheme();
-					document.documentElement.setAttribute('data-theme', t);
-				} catch (e) {
-					document.documentElement.setAttribute('data-theme', systemTheme());
-				}
-			})();
-		</script>
+		<script src={themeBootUrl}></script>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="generator" content={Astro.generator} />
+		<meta name="pagefind-bundle" content={pagefindBundle} />
+		<script
+			type="application/json"
+			id="siyuan-code-copy-i18n"
+			is:inline
+			set:html={JSON.stringify({
+				copyAria: t.copyCodeBlockAria,
+				copiedAria: t.copyCodeBlockCopiedAria,
+				failedAria: t.copyCodeBlockFailedAria,
+			})}
+		/>
 		{description ? <meta name="description" content={description} /> : null}
 		<link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
 		<link rel="icon" href={`${base}favicon.ico`} sizes="any" />
@@ -132,7 +123,7 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 		}
 	</head>
 	<body class:list={[{ 'doc-layout': !noSidebar }]}>
-		<script src={`${base}pagefind-loader.js`}></script>
+		<script src={pagefindLoaderUrl}></script>
 		<a class="skip-link" href="#main-content">{t.skipToContent}</a>
 		<pagefind-config bundle-path={pagefindBundle} lang={pagefindUiLang} />
 		{
@@ -147,23 +138,11 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 							<div class="topbar__search-slot" data-pagefind-ignore>
 								<PagefindToolbarTrigger searchHint={pfToolbar.searchHint} searchOpenAria={pfToolbar.searchOpenAria} />
 							</div>
-							<div class="u-floating-hint" data-anchored-floating-hint>
-								<button
-									type="button"
-									class="icon-btn"
-									id="theme-toggle"
-									data-theme-toggle
-									data-floating-hint-anchor
-									aria-label={t.themeToggleAria}
-								>
-									<Sun class="theme-icon theme-icon--sun" />
-									<Moon class="theme-icon theme-icon--moon" />
-								</button>
-								<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
-									<span class="u-floating-hint__text">{t.themeToggleHint}</span>
-									<kbd class="u-floating-hint__key">{t.themeKeyT}</kbd>
-								</div>
-							</div>
+							<ThemeToggleHint
+								themeToggleAria={t.themeToggleAria}
+								themeToggleHint={t.themeToggleHint}
+								themeKeyT={t.themeKeyT}
+							/>
 							<nav class="topbar__nav" aria-label={t.topNavAria}>
 								<a href={docHomeHref}>{t.topNavDocs}</a>
 								<LangSwitcher locale={locale} zhHref={zhDocHref} enHref={enDocHref} t={t} />
@@ -414,88 +393,16 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 										</div>
 										<LangSwitcher locale={locale} zhHref={zhDocHref} enHref={enDocHref} t={t} />
 										<div class="content-head__desktop-only">
-											<div class="u-floating-hint" data-anchored-floating-hint>
-												<button
-													type="button"
-													class="icon-btn"
-													id="theme-toggle"
-													data-theme-toggle
-													data-floating-hint-anchor
-													aria-label={t.themeToggleAria}
-												>
-													<Sun class="theme-icon theme-icon--sun" />
-													<Moon class="theme-icon theme-icon--moon" />
-												</button>
-												<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
-													<span class="u-floating-hint__text">{t.themeToggleHint}</span>
-													<kbd class="u-floating-hint__key">{t.themeKeyT}</kbd>
-												</div>
-											</div>
-											<div class="copy-split">
-												<div class="u-floating-hint u-floating-hint--split" data-anchored-floating-hint>
-													<button
-														type="button"
-														class="copy-split__main js-copy-page-md"
-														id="copy-page-md"
-														data-floating-hint-anchor
-														aria-label={t.copyPageMdAria}
-														data-copy-md-src={markdownCopyFetchHref}
-													>
-														<span class="copy-split__main-icons" aria-hidden="true">
-															<span class="copy-split__main-icon copy-split__main-icon--copy">
-																<Copy />
-															</span>
-															<span class="copy-split__main-icon copy-split__main-icon--check">
-																<Check />
-															</span>
-															<span class="copy-split__main-icon copy-split__main-icon--fail">
-																<X />
-															</span>
-														</span>
-													</button>
-													<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
-														<span class="u-floating-hint__text">{t.copyPageHint}</span>
-													</div>
-												</div>
-												<span class="copy-split__divider" aria-hidden="true" />
-												<div class="copy-split__menu">
-													<button
-														type="button"
-														class="copy-split__chev"
-														id="copy-page-menu-btn"
-														aria-expanded="false"
-														aria-haspopup="true"
-														aria-controls="copy-page-menu"
-														aria-label={t.copyMenuMoreTitle}
-													>
-														<ChevronDown />
-													</button>
-													<ul class="copy-split__panel" id="copy-page-menu" role="menu" hidden>
-														<li role="presentation">
-															<button
-																type="button"
-																role="menuitem"
-																class="copy-split__panel-item"
-																id="copy-page-menu-md"
-															>
-																<span class="copy-split__panel-item__title">{t.copyMenuMdTitle}</span>
-																<span class="copy-split__panel-item__desc">{t.copyMenuMdDesc}</span>
-															</button>
-														</li>
-														<li role="presentation">
-															<a
-																role="menuitem"
-																class="copy-split__panel-item"
-																id="copy-page-view-md"
-																href={mdViewHref}
-															>
-																<span class="copy-split__panel-item__title">{t.copyMenuViewTitle}</span>
-																<span class="copy-split__panel-item__desc">{t.copyMenuViewDesc}</span>
-															</a>
-														</li>
-													</ul>
-												</div>
-											</div>
+											<ThemeToggleHint
+												themeToggleAria={t.themeToggleAria}
+												themeToggleHint={t.themeToggleHint}
+												themeKeyT={t.themeKeyT}
+											/>
+											<CopyPageMarkdownToolbar
+												mdViewHref={mdViewHref}
+												markdownCopyFetchHref={markdownCopyFetchHref}
+												t={t}
+											/>
 										</div>
 									</div>
 								</div>
@@ -535,11 +442,6 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 								</aside>
 							)}
 						</div>
-						{
-							!noSidebar ? (
-								<script src={`${base}doc-layout-bootstrap.js`}></script>
-							) : null
-						}
 					</div>
 				</div>
 			)
@@ -547,8 +449,6 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 
 		<pagefind-modal reset-on-close></pagefind-modal>
 
-		<script src="../scripts/anchored-floating-hint.mjs"></script>
-
-		<script src="../scripts/shell-ui.js"></script>
+		<script src={shellAfterLoadUrl}></script>
 	</body>
 </html>

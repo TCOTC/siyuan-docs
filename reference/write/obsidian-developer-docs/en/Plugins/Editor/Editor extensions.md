@@ -12,14 +12,14 @@ The API for building editor extensions is a bit unconventional and requires that
 
 Building editor extensions can be challenging, so before you start building one, consider whether you really need it.
 
-- If you want to change how to convert Markdown to HTML in the Reading view, consider building a [[Markdown post processing|Markdown post processor]].
+- If you want to change how to convert Markdown to HTML in the Reading view, consider building a [Markdown post processor](./Markdown%20post%20processing.md).
 - If you want to change how the document looks and feels in Live Preview, you need to build an editor extension.
 
 ## Registering editor extensions
 
 CodeMirror 6 (CM6) is a powerful engine for editing code using web technologies. At its core, the editor itself has a minimal set of features. Any features you'd expect from a modern editor are available as _extensions_ that you can pick and choose. While Obsidian comes with many of these extensions out-of-the-box, you can also register your own.
 
-To register an editor extension, use [[registerEditorExtension|registerEditorExtension()]] in the `onload` method of your Obsidian plugin:
+To register an editor extension, use [registerEditorExtension()](../../Reference/TypeScript%20API/Plugin/registerEditorExtension.md) in the `onload` method of your Obsidian plugin:
 
 ```ts
 onload() {
@@ -27,6 +27,6 @@ onload() {
 }
 ```
 
-While CM6 supports several types of extensions, two of the most common ones are [[View plugins]] and [[State fields]].
+While CM6 supports several types of extensions, two of the most common ones are [View plugins](./View%20plugins.md) and [State fields](./State%20fields.md).
 <DocCardList items={useCurrentSidebarCategory().items}/>
 

@@ -18,7 +18,7 @@ pnpm build
 pnpm preview
 ```
 
-`pnpm build` 会在 `astro build` 之后自动执行 `pagefind`，在 `dist/pagefind/` 生成索引与 **Component UI**（模态搜索：`pagefind-modal-trigger` + `pagefind-modal`）。`pnpm preview` 打开生产构建后，点击侧栏或顶栏的**放大镜**、或按 **⌘K / Ctrl+K** 打开搜索层。
+`pnpm build` 会在 `astro build` 之后自动执行 `pagefind`，在 `dist/pagefind/<pagefind npm 版本>/` 生成索引与 **Component UI**（模态搜索：`pagefind-modal-trigger` + `pagefind-modal`）；版本号随依赖升级变化，避免浏览器沿用旧版 WASM/JS 缓存。`pnpm preview` 打开生产构建后，点击侧栏或顶栏的**放大镜**、或按 **⌘K / Ctrl+K** 打开搜索层。
 
 ## 生产构建
 
