@@ -18,7 +18,7 @@
 - **Markdown 输出**：`rehype-strip-inter-element-whitespace` 去掉「元素—元素」之间仅含空白的文本节点，收紧正文标签间换行（见 `src/markdown/rehype-strip-inter-element-whitespace.ts`）。
 - **明暗主题**：`html[data-theme='light'|'dark']`，首屏内联脚本写入，避免主题图标闪烁。
 - **自定义滚动条**：细轨道、主题色滑块。
-- **响应式文档布局**：宽屏固定侧栏、窄屏抽屉侧栏、多档断点（含约 450px / 851px 等）。
+- **响应式文档布局**：宽屏固定侧栏、窄屏抽屉侧栏、多档断点（含约 450px / 850px 等）。
 - **首页与 404 专用样式**：如 `.home-wrap`、`.not-found-doc` 等。
 
 ## 国际化（i18n）
