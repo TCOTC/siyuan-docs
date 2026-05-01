@@ -136,12 +136,14 @@ export function navUi(locale: AppLocale): NavUi {
 
 export type PagefindToolbarUi = {
 	searchHint: string;
+	/** 搜索圆形按钮的可访问名称（占位与 Pagefind 正式按钮共用） */
+	searchOpenAria: string;
 };
 
 export function pagefindToolbarUi(locale: AppLocale): PagefindToolbarUi {
 	return locale === 'en'
-		? { searchHint: 'Search' }
-		: { searchHint: '搜索' };
+		? { searchHint: 'Search', searchOpenAria: 'Open search' }
+		: { searchHint: '搜索', searchOpenAria: '打开搜索' };
 }
 
 export type NotFoundUi = {

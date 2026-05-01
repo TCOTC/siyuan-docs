@@ -1,14 +1,26 @@
 ---
-/* 与主题、复制共用 u-floating-hint；hide-shortcut 仅隐藏内置徽章，⌘K / Ctrl+K 仍由 shortcut 绑定 */
+/* 与主题、复制共用 u-floating-hint；hide-shortcut 仅隐藏内置徽章，⌘K / Ctrl+K 仍由 shortcut 绑定。
+ * Pagefind 的 pagefind-modal-trigger 由 public/pagefind-loader.js 在包加载后插入，并移除占位按钮，避免双按钮。 */
 interface Props {
 	/** 搜索按钮旁气泡提示文案 */
 	searchHint: string;
+	/** 圆形搜索按钮的无障碍标签（占位与真实按钮一致） */
+	searchOpenAria: string;
 }
-const { searchHint } = Astro.props;
+const { searchHint, searchOpenAria } = Astro.props;
 ---
 
 <div class="u-floating-hint u-floating-hint--pagefind" data-anchored-floating-hint>
-	<pagefind-modal-trigger class="pf-trigger-wrap" compact placeholder="" shortcut="mod+k" hide-shortcut />
+	<div class="pf-trigger-stack" data-pf-trigger-mount>
+		<button
+			type="button"
+			class="pf-trigger-btn pf-search-placeholder"
+			data-floating-hint-anchor
+			aria-label={searchOpenAria}
+		>
+			<span class="pf-trigger-icon" aria-hidden="true"></span>
+		</button>
+	</div>
 	<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
 		<span class="u-floating-hint__text">{searchHint}</span>
 		<kbd class="u-floating-hint__key" data-search-hint-mod>Ctrl</kbd>

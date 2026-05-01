@@ -1,4 +1,4 @@
-/* Linear Developers 式文档站：明亮优先，可选深色；字体与 OpenType 参考 linear.app.md */
+/* Linear Developers 式文档站：明亮优先，可选深色；正文使用系统字体栈以避免 Web 字体加载导致的排版抖动 */
 
 :root {
 	/* 明亮（默认） */
@@ -69,7 +69,7 @@
 	--lucide-icon-box: 16px;
 	/* 正文主栏最大宽度（大屏可铺较宽；右侧本页目录并排时仍留白） */
 	--doc-content-max-width: 1200px;
-	--font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	--font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 	--font-mono: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
 	color-scheme: light;
 	--pf-text: #111111;
@@ -79,6 +79,8 @@
 	--pf-border: #e6e6e6;
 	--pf-hover: #f7f8f8;
 	--pf-shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.12);
+	/* 与 pagefind-component-ui.css 中 --pf-icon-search 一致，占位搜索按钮在 UI 包加载前即可同形 */
+	--pf-icon-search: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.7549 11.255H11.9649L11.6849 10.985C12.6649 9.845 13.2549 8.365 13.2549 6.755C13.2549 3.165 10.3449 0.255005 6.75488 0.255005C3.16488 0.255005 0.254883 3.165 0.254883 6.755C0.254883 10.345 3.16488 13.255 6.75488 13.255C8.36488 13.255 9.84488 12.665 10.9849 11.685L11.2549 11.965V12.755L16.2549 17.745L17.7449 16.255L12.7549 11.255ZM6.75488 11.255C4.26488 11.255 2.25488 9.245 2.25488 6.755C2.25488 4.26501 4.26488 2.255 6.75488 2.255C9.24488 2.255 11.2549 4.26501 11.2549 6.755C11.2549 9.245 9.24488 11.255 6.75488 11.255Z' fill='%23000000'/%3E%3C/svg%3E%0A");
 	/* 顶栏 / 侧栏品牌 SVG：与 favicon 同形，折叠块随主题变色 */
 	--brand-logo-mark: #d23f31;
 	--brand-logo-fold: #3b3e43;
@@ -575,7 +577,6 @@ body.doc-rail-open .rail-menu-trigger__bar:nth-child(3) {
 	pointer-events: none;
 	z-index: 2;
 	opacity: 0;
-	transition: opacity 0.16s ease;
 }
 
 .rail-scroll__edge--top {
@@ -601,16 +602,45 @@ body.doc-rail-open .rail-menu-trigger__bar:nth-child(3) {
 	text-align: right;
 }
 
-pagefind-modal-trigger.pf-trigger-wrap {
+/* 固定槽位 + 绝对叠放：避免 inline-grid 与自定义元素 display 组合在部分浏览器里落成两列并排 */
+.pf-trigger-stack {
 	display: inline-block;
 	position: relative;
-	overflow: visible;
+	width: var(--toolbar-control-h);
+	height: var(--toolbar-control-h);
 	vertical-align: middle;
+	box-sizing: border-box;
+}
+
+.pf-trigger-stack > * {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+	margin: 0;
+}
+
+.pf-search-placeholder.pf-trigger-btn {
+	cursor: pointer;
+	font: inherit;
+	color: inherit;
+}
+
+pagefind-modal-trigger.pf-trigger-wrap {
+	display: block !important;
+	position: relative;
+	overflow: visible;
+	width: 100%;
+	height: 100%;
 	max-width: 100%;
 }
 
-pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-btn {
+pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-btn,
+.pf-trigger-stack .pf-search-placeholder.pf-trigger-btn {
 	position: relative !important;
+	display: inline-flex !important;
 	width: var(--toolbar-control-h) !important;
 	height: var(--toolbar-control-h) !important;
 	min-width: var(--toolbar-control-h) !important;
@@ -627,13 +657,15 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-btn {
 	transition: none !important;
 }
 
-pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-btn:hover {
+pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-btn:hover,
+.pf-trigger-stack .pf-search-placeholder.pf-trigger-btn:hover {
 	color: var(--text) !important;
 	background: var(--bg-subtle) !important;
 	border-color: var(--border-strong) !important;
 }
 
-html[data-theme='dark'] pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-btn:hover {
+html[data-theme='dark'] pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-btn:hover,
+html[data-theme='dark'] .pf-trigger-stack .pf-search-placeholder.pf-trigger-btn:hover {
 	background: rgba(255, 255, 255, 0.05) !important;
 }
 
@@ -649,9 +681,21 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-text {
 	border: 0 !important;
 }
 
-pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon {
+pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon,
+.pf-trigger-stack .pf-search-placeholder .pf-trigger-icon {
 	width: var(--space-16) !important;
 	height: var(--space-16) !important;
+}
+
+/* 占位按钮：与 Pagefind .pf-trigger-icon 同款 mask，避免 Lucide 与 UI 包矢量不一致 */
+.pf-trigger-stack .pf-search-placeholder .pf-trigger-icon {
+	display: inline-block;
+	background: var(--pf-text-muted);
+	-webkit-mask-image: var(--pf-icon-search);
+	mask-image: var(--pf-icon-search);
+	-webkit-mask-size: 100%;
+	mask-size: 100%;
+	flex-shrink: 0;
 }
 
 /*
@@ -735,7 +779,8 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon {
 
 /* 仅悬停锚点或 Pagefind 圆形按钮时显示（避免 .u-floating-hint--split 整块 flex 误触） */
 .u-floating-hint:has([data-floating-hint-anchor]:hover) .u-floating-hint__layer,
-.u-floating-hint:has(pagefind-modal-trigger .pf-trigger-btn:hover) .u-floating-hint__layer {
+.u-floating-hint:has(pagefind-modal-trigger .pf-trigger-btn:hover) .u-floating-hint__layer,
+.u-floating-hint:has(.pf-search-placeholder:hover) .u-floating-hint__layer {
 	opacity: 1 !important;
 	visibility: visible !important;
 	transform: translateX(-50%) translateY(0) !important;
@@ -1135,6 +1180,17 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-icon {
 	flex-shrink: 0;
 }
 
+/* 主题切换：仅随 html[data-theme] 显示对应图标，避免首屏脚本执行顺序导致的太阳 / 月亮闪变 */
+.theme-icon--sun,
+.theme-icon--moon {
+	display: none;
+}
+
+html[data-theme='light'] .theme-icon--sun,
+html[data-theme='dark'] .theme-icon--moon {
+	display: block;
+}
+
 /*
  * 全站 Lucide（@lucide/astro）：外框由 --lucide-icon-box 控制。
  * 路径坐标仍在 24×24 viewBox 内（库约定），勿改成 0 0 16 16，否则图形会错位。
@@ -1384,7 +1440,7 @@ html[data-theme='dark'] .copy-split__chev:hover {
 	outline: none;
 }
 
-/* 本页大纲：随阅读区滚动；sticky 以便长文时仍停留在视口内（过长时自身可滚） */
+/* 本页大纲：同步脚本结束前隐藏，避免指示条与激活样式先后两套状态（doc-shell-ready 由 doc-layout-bootstrap.js 设置） */
 .toc-rail {
 	flex: 0 0 var(--toc-aside-width);
 	min-height: 0;
@@ -1400,6 +1456,11 @@ html[data-theme='dark'] .copy-split__chev:hover {
 	padding: var(--space-40) 0 var(--space-96) var(--space-8);
 	background: var(--bg-page);
 	box-sizing: border-box;
+	visibility: hidden;
+}
+
+html.doc-shell-ready .toc-rail {
+	visibility: visible;
 }
 
 .toc-rail__container {
@@ -1436,6 +1497,11 @@ html[data-theme='dark'] .copy-split__chev:hover {
 	background: var(--text);
 	border-radius: var(--space-hairline);
 	pointer-events: none;
+	transition: none;
+}
+
+/* 由 doc-layout-bootstrap.js 在首屏同步后延迟两帧再挂上，此前竖线瞬时到位；之后随滚动平滑变化 */
+html.toc-indicator-motion .toc-rail__list::before {
 	transition:
 		top 0.14s ease,
 		height 0.14s ease;

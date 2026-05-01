@@ -12,22 +12,12 @@
 					var t = document.documentElement.getAttribute('data-theme');
 					return t === 'dark' ? 'dark' : 'light';
 				}
-				function syncThemeIcons() {
-					var dark = getTheme() === 'dark';
-					document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
-						var sun = btn.querySelector('.theme-icon--sun');
-						var moon = btn.querySelector('.theme-icon--moon');
-						if (sun) sun.style.display = dark ? 'block' : 'none';
-						if (moon) moon.style.display = dark ? 'none' : 'block';
-					});
-				}
 				/** 手动选择主题并写入 localStorage（清除该键后恢复按系统 prefers-color-scheme） */
 				function setTheme(next) {
 					document.documentElement.setAttribute('data-theme', next);
 					try {
 						localStorage.setItem(themeKey, next);
 					} catch (e) {}
-					syncThemeIcons();
 				}
 				function applySystemThemeIfUnpinned() {
 					try {
@@ -35,7 +25,6 @@
 						if (t === 'light' || t === 'dark') return;
 					} catch (e) {}
 					document.documentElement.setAttribute('data-theme', getSystemTheme());
-					syncThemeIcons();
 				}
 
 				var mqColorScheme = window.matchMedia('(prefers-color-scheme: dark)');
@@ -56,7 +45,6 @@
 					} else {
 						document.documentElement.setAttribute('data-theme', getSystemTheme());
 					}
-					syncThemeIcons();
 				});
 
 				document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
@@ -64,7 +52,6 @@
 						setTheme(getTheme() === 'dark' ? 'light' : 'dark');
 					});
 				});
-				syncThemeIcons();
 
 				document.querySelectorAll('a[data-lang-locale]').forEach(function (a) {
 					a.addEventListener('click', function () {
@@ -512,7 +499,14 @@
 						if (!a || !tocList.contains(a)) return;
 						tocScheduleSoon();
 					});
-					tocSchedule();
+					var tocBoot =
+						typeof window !== 'undefined' && window.__siyuanDocsTocBootstrapped;
+					if (tocBoot) {
+						delete window.__siyuanDocsTocBootstrapped;
+					} else {
+						tocSchedule();
+					}
+					window.addEventListener('load', tocScheduleSoon, { once: true });
 				}
 
 				/* 正文代码块（Shiki pre）右上角复制 */

@@ -88,25 +88,38 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 <!doctype html>
 <html
 	lang={htmlLang}
+	data-pagefind-bundle={pagefindBundle}
 	data-doc-locale={notFoundDualSidebars ? 'en' : undefined}
 	data-code-copy-aria={t.copyCodeBlockAria}
 	data-code-copied-aria={t.copyCodeBlockCopiedAria}
 	data-code-copy-failed-aria={t.copyCodeBlockFailedAria}
 >
 	<head>
-		<script src="../scripts/shell-theme-head.js"></script>
 		<meta charset="utf-8" />
+		<!-- 阻塞内联：须在首帧绘制前设置 data-theme（外部脚本会被打成 type=module 延后执行，导致图标闪动） -->
+		<script is:inline>
+			(function () {
+				function systemTheme() {
+					try {
+						return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+					} catch (e) {
+						return 'light';
+					}
+				}
+				try {
+					var t = localStorage.getItem('siyuan-docs-theme');
+					if (t !== 'light' && t !== 'dark') t = systemTheme();
+					document.documentElement.setAttribute('data-theme', t);
+				} catch (e) {
+					document.documentElement.setAttribute('data-theme', systemTheme());
+				}
+			})();
+		</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="generator" content={Astro.generator} />
 		{description ? <meta name="description" content={description} /> : null}
 		<link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
 		<link rel="icon" href={`${base}favicon.ico`} sizes="any" />
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..600;1,14..32,400..600&display=optional"
-			rel="stylesheet"
-		/>
 		<title>{title === siteName ? title : `${title} – ${siteName}`}</title>
 		<slot name="head-after-title" />
 		{
@@ -117,10 +130,9 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 				</>
 			) : null
 		}
-		<link rel="stylesheet" href={`${pagefindBundle}pagefind-component-ui.css`} />
-		<script type="module" src={`${pagefindBundle}pagefind-component-ui.js`}></script>
 	</head>
 	<body class:list={[{ 'doc-layout': !noSidebar }]}>
+		<script src={`${base}pagefind-loader.js`}></script>
 		<a class="skip-link" href="#main-content">{t.skipToContent}</a>
 		<pagefind-config bundle-path={pagefindBundle} lang={pagefindUiLang} />
 		{
@@ -133,7 +145,7 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 								<span class="brand-lockup__text">{siteName}</span>
 							</a>
 							<div class="topbar__search-slot" data-pagefind-ignore>
-								<PagefindToolbarTrigger searchHint={pfToolbar.searchHint} />
+								<PagefindToolbarTrigger searchHint={pfToolbar.searchHint} searchOpenAria={pfToolbar.searchOpenAria} />
 							</div>
 							<div class="u-floating-hint" data-anchored-floating-hint>
 								<button
@@ -145,7 +157,7 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 									aria-label={t.themeToggleAria}
 								>
 									<Sun class="theme-icon theme-icon--sun" />
-									<Moon class="theme-icon theme-icon--moon" style="display:none" />
+									<Moon class="theme-icon theme-icon--moon" />
 								</button>
 								<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
 									<span class="u-floating-hint__text">{t.themeToggleHint}</span>
@@ -178,12 +190,17 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 							<div id="doc-toolbar-slot-rail" class="doc-toolbar-slot doc-toolbar-slot--in-rail"></div>
 							<div class="rail-header__actions">
 								<div class="rail-header__search-slot">
-									<PagefindToolbarTrigger searchHint={pfToolbar.searchHint} />
+									<PagefindToolbarTrigger searchHint={pfToolbar.searchHint} searchOpenAria={pfToolbar.searchOpenAria} />
 								</div>
 							</div>
 						</header>
 						<div class="rail-body">
-							<div class="rail-scroll-clip" data-rail-scroll-clip>
+							<div
+								class="rail-scroll-clip"
+								data-rail-scroll-clip
+								data-edge-top="0"
+								data-edge-bottom="1"
+							>
 								<div class="rail-scroll">
 									{
 										notFoundDualSidebars ? (
@@ -393,7 +410,7 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 								<div id="doc-toolbar-slot-content-head" class="doc-toolbar-slot doc-toolbar-slot--in-head">
 									<div id="doc-toolbar-floater" class="doc-toolbar-floater">
 										<div class="content-head__search-slot content-head__search--when-rail-drawer" data-pagefind-ignore>
-											<PagefindToolbarTrigger searchHint={pfToolbar.searchHint} />
+											<PagefindToolbarTrigger searchHint={pfToolbar.searchHint} searchOpenAria={pfToolbar.searchOpenAria} />
 										</div>
 										<LangSwitcher locale={locale} zhHref={zhDocHref} enHref={enDocHref} t={t} />
 										<div class="content-head__desktop-only">
@@ -407,7 +424,7 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 													aria-label={t.themeToggleAria}
 												>
 													<Sun class="theme-icon theme-icon--sun" />
-													<Moon class="theme-icon theme-icon--moon" style="display:none" />
+													<Moon class="theme-icon theme-icon--moon" />
 												</button>
 												<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
 													<span class="u-floating-hint__text">{t.themeToggleHint}</span>
@@ -518,6 +535,11 @@ const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 								</aside>
 							)}
 						</div>
+						{
+							!noSidebar ? (
+								<script src={`${base}doc-layout-bootstrap.js`}></script>
+							) : null
+						}
 					</div>
 				</div>
 			)

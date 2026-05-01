@@ -92,6 +92,10 @@
 				el.textContent = p.searchHint;
 			});
 
+			document.querySelectorAll('.pf-search-placeholder').forEach(function (btn) {
+				btn.setAttribute('aria-label', p.searchOpenAria);
+			});
+
 			var floater = document.getElementById('doc-toolbar-floater');
 			if (floater) {
 				var hint = floater.querySelector('.u-floating-hint--pagefind .u-floating-hint__text');
