@@ -6,21 +6,121 @@
 let tocActiveHeadSig = '';
 let tocSyncLastViewportH = 0;
 
-function animateTocRailScrollTo(tocRail: HTMLElement, nextTop: number): void {
-	const maxScroll = Math.max(0, tocRail.scrollHeight - tocRail.clientHeight);
-	const target = Math.min(Math.max(0, nextTop), maxScroll);
-	tocRail.scrollTop = target;
+function tocRailScrollShouldBeInstant(): boolean {
+	if (typeof window === 'undefined') return true;
+	try {
+		return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	} catch {
+		return true;
+	}
 }
 
-function scrollTocRailCenterOnActiveChange(
+type TocListIndicatorPx = { top: number; height: number };
+
+let tocRailMotionRaf = 0;
+let tocRailMotionToken = 0;
+let tocRailMotionBusy = false;
+
+function stopTocRailMotionRaf(): void {
+	if (tocRailMotionRaf !== 0) {
+		cancelAnimationFrame(tocRailMotionRaf);
+		tocRailMotionRaf = 0;
+	}
+	tocRailMotionBusy = false;
+}
+
+function easeOutCubic(t: number): number {
+	const u = 1 - t;
+	return 1 - u * u * u;
+}
+
+/** 与 `scrollTop` 插值同一时长、同一缓出曲线，避免指示条与侧栏滚动速度不一致 */
+const TOC_RAIL_SYNC_MS_MIN = 200;
+const TOC_RAIL_SYNC_MS_MAX = 480;
+const TOC_RAIL_SYNC_MS_PER_PX = 0.42;
+
+function startTocRailScrollAndIndicatorSync(
+	tocRail: HTMLElement,
+	tocList: HTMLElement,
+	fromScroll: number,
+	toScroll: number,
+	fromInd: TocListIndicatorPx,
+	toInd: TocListIndicatorPx,
+	liNodesForIndicatorFinish: HTMLElement[],
+): void {
+	stopTocRailMotionRaf();
+	tocRailMotionToken++;
+	const tk = tocRailMotionToken;
+
+	const maxScroll = Math.max(0, tocRail.scrollHeight - tocRail.clientHeight);
+	const toS = Math.min(Math.max(0, toScroll), maxScroll);
+	const fromS = fromScroll;
+
+	const finish = (): void => {
+		tocRail.scrollTop = toS;
+		setTocListIndicatorFromLiNodes(tocList, liNodesForIndicatorFinish);
+		tocRailMotionBusy = false;
+	};
+
+	if (tocRailScrollShouldBeInstant()) {
+		finish();
+		return;
+	}
+
+	const dScroll = Math.abs(toS - fromS);
+	const dTop = Math.abs(toInd.top - fromInd.top);
+	const dH = Math.abs(toInd.height - fromInd.height);
+	const pixelDrive = Math.max(dScroll, dTop * 0.9, dH * 0.9);
+	const duration = Math.min(
+		TOC_RAIL_SYNC_MS_MAX,
+		Math.max(TOC_RAIL_SYNC_MS_MIN, pixelDrive * TOC_RAIL_SYNC_MS_PER_PX),
+	);
+
+	if (duration < 1 || (dScroll < 0.5 && dTop < 0.5 && dH < 0.5)) {
+		finish();
+		return;
+	}
+
+	tocRailMotionBusy = true;
+	const t0 = performance.now();
+	const step = (now: number): void => {
+		if (tk !== tocRailMotionToken) return;
+		const u = Math.min(1, (now - t0) / duration);
+		const e = easeOutCubic(u);
+		tocRail.scrollTop = fromS + (toS - fromS) * e;
+		applyTocListIndicatorPx(tocList, {
+			top: fromInd.top + (toInd.top - fromInd.top) * e,
+			height: fromInd.height + (toInd.height - fromInd.height) * e,
+		});
+		if (u < 1) {
+			tocRailMotionRaf = requestAnimationFrame(step);
+		} else {
+			tocRailMotionRaf = 0;
+			finish();
+		}
+	};
+	tocRailMotionRaf = requestAnimationFrame(step);
+}
+
+function collectTocActiveLiNodes(tocList: HTMLElement): HTMLElement[] {
+	const out: HTMLElement[] = [];
+	const actives = tocList.querySelectorAll('a.is-active');
+	for (let i = 0; i < actives.length; i++) {
+		const li = actives[i].closest('li');
+		if (li instanceof HTMLElement && !out.includes(li)) out.push(li);
+	}
+	return out;
+}
+
+function computeTocRailTargetScrollTopForCenteredHeads(
 	tocList: HTMLElement,
 	activeHeadEls: HTMLElement[],
-): void {
-	if (typeof window === 'undefined' || activeHeadEls.length === 0) return;
-	if (!window.matchMedia('(min-width: 1000px)').matches) return;
+): number | null {
+	if (typeof window === 'undefined' || activeHeadEls.length === 0) return null;
+	if (!window.matchMedia('(min-width: 1000px)').matches) return null;
 	const tocRail = document.querySelector('.toc-rail');
-	if (!(tocRail instanceof HTMLElement)) return;
-	if (tocRail.getBoundingClientRect().height < 1) return;
+	if (!(tocRail instanceof HTMLElement)) return null;
+	if (tocRail.getBoundingClientRect().height < 1) return null;
 
 	const midIdx = Math.floor((activeHeadEls.length - 1) / 2);
 	const midId = activeHeadEls[midIdx].id;
@@ -34,10 +134,10 @@ function scrollTocRailCenterOnActiveChange(
 			break;
 		}
 	}
-	if (!target) return;
+	if (!target) return null;
 
 	const maxScroll = Math.max(0, tocRail.scrollHeight - tocRail.clientHeight);
-	if (maxScroll <= 0) return;
+	if (maxScroll <= 0) return null;
 
 	const tr = target.getBoundingClientRect();
 	const windowMid =
@@ -46,18 +146,19 @@ function scrollTocRailCenterOnActiveChange(
 	/* 使该项垂直中心尽量落在视口垂直中线（阅读区意义上的「文档中部」） */
 	let nextTop = tocRail.scrollTop + (linkMidViewport - windowMid);
 	nextTop = Math.min(Math.max(0, nextTop), maxScroll);
-	animateTocRailScrollTo(tocRail, nextTop);
+	return nextTop;
 }
 
-/**
- * 指示条画在 `tocList`（`position: relative`）上；用相对列表的视口坐标，避免 `li.offsetTop` 在侧栏 `fixed` 等情况下 offsetParent 非 `ul` 导致 `--top` / `--height` 大幅错位。
- */
-function setTocListIndicatorFromLiNodes(tocList: HTMLElement, liNodes: HTMLElement[]): void {
-	if (liNodes.length === 0) {
-		tocList.style.setProperty('--top', '0px');
-		tocList.style.setProperty('--height', '0px');
-		return;
-	}
+function applyTocListIndicatorPx(tocList: HTMLElement, ind: TocListIndicatorPx): void {
+	tocList.style.setProperty('--top', `${Math.round(ind.top)}px`);
+	tocList.style.setProperty('--height', `${Math.round(Math.max(0, ind.height))}px`);
+}
+
+function measureTocListIndicatorFromLiNodes(
+	tocList: HTMLElement,
+	liNodes: HTMLElement[],
+): TocListIndicatorPx {
+	if (liNodes.length === 0) return { top: 0, height: 0 };
 	const listR = tocList.getBoundingClientRect();
 	let minTop = Infinity;
 	let maxBottom = -Infinity;
@@ -68,10 +169,17 @@ function setTocListIndicatorFromLiNodes(tocList: HTMLElement, liNodes: HTMLEleme
 		if (t < minTop) minTop = t;
 		if (b > maxBottom) maxBottom = b;
 	}
-	const topPx = Math.round(minTop);
-	const hPx = Math.round(Math.max(0, maxBottom - minTop));
-	tocList.style.setProperty('--top', `${topPx}px`);
-	tocList.style.setProperty('--height', `${hPx}px`);
+	return {
+		top: minTop,
+		height: Math.max(0, maxBottom - minTop),
+	};
+}
+
+/**
+ * 指示条画在 `tocList`（`position: relative`）上；用相对列表的视口坐标，避免 `li.offsetTop` 在侧栏 `fixed` 等情况下 offsetParent 非 `ul` 导致 `--top` / `--height` 大幅错位。
+ */
+function setTocListIndicatorFromLiNodes(tocList: HTMLElement, liNodes: HTMLElement[]): void {
+	applyTocListIndicatorPx(tocList, measureTocListIndicatorFromLiNodes(tocList, liNodes));
 }
 
 /**
@@ -112,14 +220,9 @@ export function applyTocRailPinnedLayoutForHeadingId(headingId: string): boolean
 	}
 	if (!target) return false;
 
-	const maxScroll = Math.max(0, tocRail.scrollHeight - tocRail.clientHeight);
-	const tr = target.getBoundingClientRect();
-	const windowMid =
-		(window.innerHeight || document.documentElement.clientHeight || 0) / 2;
-	const linkMidViewport = tr.top + tr.height / 2;
-	let nextTop = tocRail.scrollTop + (linkMidViewport - windowMid);
-	nextTop = Math.min(Math.max(0, nextTop), maxScroll);
-	tocRail.scrollTop = nextTop;
+	const prevLis = collectTocActiveLiNodes(tocList);
+	const prevInd = measureTocListIndicatorFromLiNodes(tocList, prevLis);
+	const fromScroll = tocRail.scrollTop;
 
 	for (let li = 0; li < links.length; li++) {
 		links[li].classList.remove('is-active');
@@ -129,9 +232,27 @@ export function applyTocRailPinnedLayoutForHeadingId(headingId: string): boolean
 	target.setAttribute('aria-current', 'location');
 
 	const liNode = target.closest('li');
-	if (liNode instanceof HTMLElement) {
-		setTocListIndicatorFromLiNodes(tocList, [liNode]);
-	}
+	if (!(liNode instanceof HTMLElement)) return false;
+
+	const toInd = measureTocListIndicatorFromLiNodes(tocList, [liNode]);
+
+	const maxScroll = Math.max(0, tocRail.scrollHeight - tocRail.clientHeight);
+	const tr = target.getBoundingClientRect();
+	const windowMid =
+		(window.innerHeight || document.documentElement.clientHeight || 0) / 2;
+	const linkMidViewport = tr.top + tr.height / 2;
+	let toScroll = tocRail.scrollTop + (linkMidViewport - windowMid);
+	toScroll = Math.min(Math.max(0, toScroll), maxScroll);
+
+	startTocRailScrollAndIndicatorSync(
+		tocRail,
+		tocList,
+		fromScroll,
+		toScroll,
+		prevInd,
+		toInd,
+		[liNode],
+	);
 	return true;
 }
 
@@ -337,6 +458,9 @@ export function tocSync(): void {
 	else if (ordered.length > 0) activeHeadEls = [ordered[0]];
 	else activeHeadEls = [];
 
+	const prevLis = collectTocActiveLiNodes(tocList);
+	const prevInd = measureTocListIndicatorFromLiNodes(tocList, prevLis);
+
 	for (let li = 0; li < tocLinks.length; li++) {
 		tocLinks[li].classList.remove('is-active');
 		tocLinks[li].removeAttribute('aria-current');
@@ -360,7 +484,7 @@ export function tocSync(): void {
 			break;
 		}
 	}
-	setTocListIndicatorFromLiNodes(tocList, liNodesForIndicator);
+	const toInd = measureTocListIndicatorFromLiNodes(tocList, liNodesForIndicator);
 
 	const sig =
 		activeHeadEls.length > 0 ? activeHeadEls.map((h) => h.id).join('\u0001') : '';
@@ -372,13 +496,54 @@ export function tocSync(): void {
 	const sigChanged = sig !== tocActiveHeadSig;
 	if (sigChanged) tocActiveHeadSig = sig;
 
-	if (activeHeadEls.length > 0 && (sigChanged || viewportChanged)) {
-		const heads = activeHeadEls.slice();
-		scrollTocRailCenterOnActiveChange(tocList, heads);
-	} else if (sigChanged && activeHeadEls.length === 0) {
-		if (typeof window !== 'undefined' && window.matchMedia('(min-width: 1000px)').matches) {
-			const tocRailClear = document.querySelector('.toc-rail');
-			if (tocRailClear instanceof HTMLElement) animateTocRailScrollTo(tocRailClear, 0);
+	const tocRailEl = document.querySelector('.toc-rail');
+	const wide =
+		typeof window !== 'undefined' && window.matchMedia('(min-width: 1000px)').matches;
+	const tocRail = tocRailEl instanceof HTMLElement ? tocRailEl : null;
+
+	let shouldSeekRail = false;
+	let toScroll = tocRail != null ? tocRail.scrollTop : 0;
+	if (tocRail != null && wide) {
+		if (activeHeadEls.length > 0 && (sigChanged || viewportChanged)) {
+			shouldSeekRail = true;
+			const c = computeTocRailTargetScrollTopForCenteredHeads(tocList, activeHeadEls);
+			toScroll = c ?? tocRail.scrollTop;
+		} else if (sigChanged && activeHeadEls.length === 0) {
+			shouldSeekRail = true;
+			toScroll = 0;
+		}
+	}
+
+	const fromScroll = tocRail != null ? tocRail.scrollTop : 0;
+	const geomDelta =
+		Math.abs(toInd.top - prevInd.top) > 0.5 ||
+		Math.abs(toInd.height - prevInd.height) > 0.5;
+	const scrollDelta = tocRail != null && Math.abs(toScroll - fromScroll) > 0.5;
+
+	const runSyncAnim =
+		tocRail != null &&
+		wide &&
+		shouldSeekRail &&
+		(sigChanged || viewportChanged) &&
+		(geomDelta || scrollDelta) &&
+		!tocRailScrollShouldBeInstant();
+
+	if (runSyncAnim) {
+		startTocRailScrollAndIndicatorSync(
+			tocRail,
+			tocList,
+			fromScroll,
+			toScroll,
+			prevInd,
+			toInd,
+			liNodesForIndicator,
+		);
+	} else {
+		if (!tocRailMotionBusy) {
+			setTocListIndicatorFromLiNodes(tocList, liNodesForIndicator);
+		}
+		if (tocRail != null && wide && shouldSeekRail) {
+			tocRail.scrollTop = toScroll;
 		}
 	}
 }

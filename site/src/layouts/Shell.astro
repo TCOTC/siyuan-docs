@@ -636,15 +636,6 @@ const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
 												}
 											}
 											if (!target) return;
-											var maxScroll = Math.max(0, toc.scrollHeight - toc.clientHeight);
-											var tr = target.getBoundingClientRect();
-											var windowMid =
-												(window.innerHeight || document.documentElement.clientHeight || 0) / 2;
-											var linkMidViewport = tr.top + tr.height / 2;
-											var nextTop = toc.scrollTop + (linkMidViewport - windowMid);
-											if (nextTop < 0) nextTop = 0;
-											else if (nextTop > maxScroll) nextTop = maxScroll;
-											toc.scrollTop = nextTop;
 											for (var j = 0; j < links.length; j++) {
 												links[j].classList.remove('is-active');
 												links[j].removeAttribute('aria-current');
@@ -661,6 +652,15 @@ const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
 												tocList.style.setProperty('--top', topPx + 'px');
 												tocList.style.setProperty('--height', hPx + 'px');
 											}
+											var maxScroll = Math.max(0, toc.scrollHeight - toc.clientHeight);
+											var tr = target.getBoundingClientRect();
+											var windowMid =
+												(window.innerHeight || document.documentElement.clientHeight || 0) / 2;
+											var linkMidViewport = tr.top + tr.height / 2;
+											var nextTop = toc.scrollTop + (linkMidViewport - windowMid);
+											if (nextTop < 0) nextTop = 0;
+											else if (nextTop > maxScroll) nextTop = maxScroll;
+											toc.scrollTop = nextTop;
 										})();
 									</script>
 								</aside>
