@@ -5,6 +5,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import rehypeDeveloperInternalLinks from './src/markdown/rehype-developer-internal-links.ts';
 import rehypeStripInterElementWhitespace from './src/markdown/rehype-strip-inter-element-whitespace.ts';
+import { inlineBundleScript } from './vite-plugins/inline-bundle-script.ts';
 import { rewriteBundledScripts } from './vite-plugins/post-bundle-script-entries.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -135,7 +136,7 @@ export default defineConfig({
 				},
 			},
 		},
-		plugins: [pagefindDevAssets()],
+		plugins: [inlineBundleScript(__dirname), pagefindDevAssets()],
 	},
 	markdown: {
 		rehypePlugins: [rehypeStripInterElementWhitespace, [rehypeDeveloperInternalLinks, base]],

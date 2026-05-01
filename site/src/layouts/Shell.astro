@@ -2,12 +2,15 @@
 import '../styles/global.scss';
 import BrandLogo from '../components/BrandLogo.astro';
 import CopyPageMarkdownToolbar from '../components/CopyPageMarkdownToolbar.astro';
-import DocTocFirstBootScript from '../components/DocTocFirstBootScript.astro';
 import ExternalScript from '../components/ExternalScript.astro';
 import LangSwitcher from '../components/LangSwitcher.astro';
 import PagefindToolbarTrigger from '../components/PagefindToolbarTrigger.astro';
 import RailNavSections from '../components/RailNavSections.astro';
 import ThemeToggleHint from '../components/ThemeToggleHint.astro';
+import docLayoutFirstPaintInline from '../scripts/doc-layout-first-paint.ts?inline-bundle';
+// 首屏布局变量：内联同步执行，避免外链阻塞 `<main>` 与首帧变量空窗（源码见 doc-layout-first-paint.ts）
+import docTocFirstBootInline from '../scripts/doc-toc-first-boot.ts?inline-bundle';
+// 大纲首屏脚本：紧接 `#doc-toc-list`，说明见 doc-toc-first-boot.ts
 import codeCopyI18nEnUrl from '../scripts/code-copy-i18n-en.ts?url';
 import codeCopyI18nZhUrl from '../scripts/code-copy-i18n-zh.ts?url';
 import docRailScrollBootUrl from '../scripts/doc-rail-scroll-boot.ts?url';
@@ -460,68 +463,14 @@ const scriptResourceHintsHtml = scriptResourceHintParts.join('');
 								</button>
 							</div>
 						</div>
-						<!-- 首屏布局变量：内联同步执行，避免外链阻塞 `<main>` 与首帧变量空窗 -->
 						<script
 							is:inline
 							define:vars={{
 								docScrollSessionPrefix: DOC_SCROLL_SESSION_PREFIX,
 								hasDocToc: tocItems.length > 0,
 							}}
-						>
-							(function () {
-								const root = document.documentElement;
-								try {
-									root.style.removeProperty('--doc-toc-fixed-left');
-								} catch (e) {}
-								const ch = document.querySelector('.content-head');
-								if (ch) {
-									try {
-										root.style.setProperty(
-											'--doc-overlay-top',
-											Math.ceil(ch.getBoundingClientRect().height) + 'px',
-										);
-									} catch (e) {}
-								}
-								const dc = document.querySelector('.doc-center');
-								if (dc) {
-									try {
-										const r = dc.getBoundingClientRect();
-										const vw = window.innerWidth || document.documentElement.clientWidth || 0;
-										root.style.setProperty('--doc-content-head-inset-left', r.left + 'px');
-										root.style.setProperty(
-											'--doc-content-head-inset-right',
-											Math.max(0, vw - r.right) + 'px',
-										);
-										if (
-											hasDocToc &&
-											window.matchMedia &&
-											window.matchMedia('(min-width: 1000px)').matches
-										) {
-											const twRaw = getComputedStyle(root).getPropertyValue('--toc-aside-width').trim();
-											const tw = parseFloat(twRaw);
-											if (!isNaN(tw) && tw > 0) {
-												root.style.setProperty(
-													'--doc-toc-fixed-left',
-													Math.round(r.right - tw) + 'px',
-												);
-											}
-										}
-									} catch (e) {}
-								}
-								const h = window.location.hash;
-								if (!h || h.length < 2) {
-									try {
-										const rawY = sessionStorage.getItem(
-											docScrollSessionPrefix + location.pathname + location.search,
-										);
-										if (rawY != null) {
-											const y = parseInt(rawY, 10);
-											if (!isNaN(y) && y >= 0) window.scrollTo(0, y);
-										}
-									} catch (e) {}
-								}
-							})();
-						</script>
+							set:html={docLayoutFirstPaintInline}
+						/>
 						<div
 							class:list={['doc-reading', { 'doc-reading--with-toc': tocItems.length > 0 }]}
 						>
@@ -539,7 +488,7 @@ const scriptResourceHintsHtml = scriptResourceHintParts.join('');
 											))}
 										</ul>
 									</div>
-									<DocTocFirstBootScript />
+									<script is:inline set:html={docTocFirstBootInline}></script>
 								</aside>
 							)}
 						</div>

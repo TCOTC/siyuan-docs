@@ -25,6 +25,7 @@
     "esbuild": "^0.28.0",
     "pagefind": "^1.5.2",
     "sass": "^1.99.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vite": "7.3.2"
   }
 }
