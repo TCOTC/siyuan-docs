@@ -5,7 +5,7 @@ import { tocSync } from '../doc-reading-sync';
 export function mountTocInPage(): void {
 	const tocList = document.getElementById('doc-toc-list');
 	const docMainEl = document.getElementById('main-content');
-	if (!tocList || !docMainEl || !docMainEl.classList.contains('doc-main')) return;
+	if (!tocList || !docMainEl || !docMainEl.classList.contains('read-main')) return;
 
 	const mainContent = docMainEl;
 	let tocRaf: number | null = null;
@@ -25,7 +25,7 @@ export function mountTocInPage(): void {
 		setTimeout(tocSchedule, 64);
 	}
 	function tocBindScrollTargets(fn: () => void): void {
-		const docScrollRoot = mainContent.closest('.doc-reading');
+		const docScrollRoot = mainContent.closest('.read');
 		docScrollRoot?.addEventListener('scroll', fn, { passive: true });
 		docScrollRoot?.addEventListener('scrollend', fn, { passive: true });
 		window.addEventListener('scroll', fn, { passive: true });

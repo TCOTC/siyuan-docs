@@ -1,94 +1,79 @@
-/* Linear Developers 式文档站：明亮优先，可选深色；正文使用系统字体栈以避免 Web 字体加载导致的排版抖动 */
+/* 设计令牌：明亮优先 + 可选深色；正文使用系统字体栈 */
 
 :root {
-	/* 明亮（默认） */
-	--bg-page: #f7f7f4;
-	--bg-rail: #f7f7f4;
-	--bg-subtle: #f7f8f8;
-	--bg-elevated: #f3f4f5;
-	--bg-code: #f7f7f7;
-	--text: #111111;
-	--text-secondary: #52525b;
-	--text-tertiary: #71717a;
-	--border: #e6e6e6;
-	--border-strong: #d0d6e0;
-	/* 版心宽度（非间距刻度，与 --space-* 分开命名） */
-	--layout-topbar-inner-max-width: 1120px;
-	--layout-home-content-max-width: 560px;
-	--layout-toc-column-max-width: 242px;
-	--radius: 6px;
-	--radius-card: 8px;
-	--radius-pill: 9999px;
+	/* 表面 */
+	--canvas: #f7f7f4;
+	--panel: #f7f7f4;
+	--muted: #f7f8f8;
+	--raised: #f3f4f5;
+	--code-bg: #f7f7f7;
+	/* 文本 */
+	--ink: #111111;
+	--ink-dim: #52525b;
+	--ink-faint: #71717a;
+	/* 线色 */
+	--line: #e6e6e6;
+	--line-strong: #d0d6e0;
+	/* 版式宽度 */
+	--w-topbar: 1120px;
+	--w-home: 560px;
+	--w-toc-max: 242px;
+	--w-read: 1200px;
+	/* 圆角 */
+	--r: 6px;
+	--r-card: 8px;
+	--r-pill: 9999px;
+	/* 强调 */
 	--accent: #5e6ad2;
 	--accent-hover: #4f59b8;
 
-	/* 间距刻度（px，均为 2 的整数倍；边框细线用 --space-hairline） */
-	--space-hairline: 1px;
-	--space-2: 2px;
-	--space-4: 4px;
-	--space-6: 6px;
-	--space-8: 8px;
-	--space-10: 10px;
-	--space-12: 12px;
-	--space-14: 14px;
-	--space-16: 16px;
-	--space-18: 18px;
-	--space-20: 20px;
-	--space-22: 22px;
-	--space-24: 24px;
-	--space-26: 26px;
-	--space-28: 28px;
-	--space-32: 32px;
-	--space-36: 36px;
-	--space-40: 40px;
-	--space-44: 44px;
-	--space-48: 48px;
-	--space-52: 52px;
-	--space-56: 56px;
-	--space-64: 64px;
-	--space-72: 72px;
-	--space-80: 80px;
-	--space-96: 96px;
-	--space-120: 120px;
-	--space-200: 200px;
+	/* 间距：4px 阶梯；需要「介于两档之间」时取更近的一档，避免再定义合成变量 */
+	--sp-line: 1px;
+	--sp-micro: 2px;
+	--sp-1: 4px;
+	--sp-2: 8px;
+	--sp-3: 12px;
+	--sp-4: 16px;
+	--sp-5: 24px;
+	--sp-6: 32px;
+	--sp-7: 48px;
+	--sp-8: 64px;
+	--sp-9: 80px;
+	--sp-10: 96px;
+	--sp-11: 120px;
+	--sp-12: 200px;
 
-	/* 正文锚点与目录滚动判定共用（与点击 # 跳转后的上边距一致） */
-	--doc-heading-scroll-margin: var(--space-80);
-	/* 目录左侧：灰色底轨 + 当前节用正文色条覆盖（对齐 Linear 灰轨 / 深色高亮） */
-	--doc-toc-track: rgba(0, 0, 0, 0.1);
-	--rail-width: minmax(200px, 248px);
-	/* 阅读区内大纲栏（与 Linear 文档 TOC 接近的宽度上限） */
-	--toc-aside-width: clamp(180px, 24vw, var(--layout-toc-column-max-width));
-	/* 侧栏顶栏与文档顶栏同高，与侧栏竖线形成「┼」形边框交接（对齐 Linear 固定顶栏） */
-	--doc-header-row-h: var(--space-64);
-	/* 窄屏全幅导航层顶部（与 content-head 底边对齐，由脚本同步为实际像素） */
-	--doc-overlay-top: var(--doc-header-row-h);
-	/* 固定主栏顶栏时相对视口的水平 inset（与可变宽侧栏对齐，由脚本同步） */
-	--doc-content-head-inset-left: 0px;
-	--doc-content-head-inset-right: 0px;
-	/* 顶栏与侧栏工具区：主题 / 搜索 / 复制 / 主 CTA 等统一高度 */
-	--toolbar-control-h: var(--space-32);
-	/* Lucide（@lucide/astro）图标外框边长，全站一处配置 */
-	--lucide-icon-box: 16px;
-	/* 正文主栏最大宽度（大屏可铺较宽；右侧本页目录并排时仍留白） */
-	--doc-content-max-width: 1200px;
+	/* 文档 chrome（脚本写入像素） */
+	--anchor-scroll: var(--sp-9);
+	--toc-track: rgba(0, 0, 0, 0.1);
+	--rail-grid: minmax(200px, 248px);
+	--toc-w: clamp(180px, 24vw, var(--w-toc-max));
+	--bar-h: var(--sp-8);
+	--overlay-top: var(--bar-h);
+	--sheet-pl: 0px;
+	--sheet-pr: 0px;
+	--tool-h: var(--sp-6);
+	--icon-lucide: 16px;
+
+	/* 字体栈 */
 	--font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 	--font-mono: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
 
-	/* 字号刻度（rem，相对 html；随浏览器默认缩放） */
-	--text-2xs: 0.6875rem;
-	--text-xs: 0.75rem;
-	--text-sm: 0.8125rem;
-	--text-md: 0.875rem;
-	--text-body: 0.9375rem;
-	--text-base: 1rem;
-	--text-prose-h1: 2rem;
-	--text-prose-h2: 1.125rem;
-	--text-prose-h3: var(--text-base);
-	--text-home-lede: 1.875rem;
-	--text-home-hero: clamp(2.75rem, 8vw, 3.75rem);
+	/* 字号（rem） */
+	--tp-2xs: 0.6875rem;
+	--tp-xs: 0.75rem;
+	--tp-sm: 0.8125rem;
+	--tp-md: 0.875rem;
+	--tp-body: 0.9375rem;
+	--tp-base: 1rem;
+	--tp-h1: 2rem;
+	--tp-h2: 1.125rem;
+	--tp-home-lede: 1.875rem;
+	--tp-home-hero: clamp(2.75rem, 8vw, 3.75rem);
 
 	color-scheme: light;
+
+	/* Pagefind UI（名称与 pagefind 包一致） */
 	--pf-text: #111111;
 	--pf-text-secondary: #52525b;
 	--pf-text-muted: #71717a;
@@ -96,28 +81,27 @@
 	--pf-border: #e6e6e6;
 	--pf-hover: #f7f8f8;
 	--pf-shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.12);
-	/* 与 pagefind-component-ui.css 中 --pf-icon-search 一致，占位搜索按钮在 UI 包加载前即可同形 */
 	--pf-icon-search: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.7549 11.255H11.9649L11.6849 10.985C12.6649 9.845 13.2549 8.365 13.2549 6.755C13.2549 3.165 10.3449 0.255005 6.75488 0.255005C3.16488 0.255005 0.254883 3.165 0.254883 6.755C0.254883 10.345 3.16488 13.255 6.75488 13.255C8.36488 13.255 9.84488 12.665 10.9849 11.685L11.2549 11.965V12.755L16.2549 17.745L17.7449 16.255L12.7549 11.255ZM6.75488 11.255C4.26488 11.255 2.25488 9.245 2.25488 6.755C2.25488 4.26501 4.26488 2.255 6.75488 2.255C9.24488 2.255 11.2549 4.26501 11.2549 6.755C11.2549 9.245 9.24488 11.255 6.75488 11.255Z' fill='%23000000'/%3E%3C/svg%3E%0A");
-	/* 顶栏 / 侧栏品牌 SVG：与 favicon 同形，折叠块随主题变色 */
-	--brand-logo-mark: #d23f31;
-	--brand-logo-fold: #3b3e43;
-	/* 滚动条：细条、透明轨道 */
-	--scrollbar-size: var(--space-10);
+
+	--logo-mark: #d23f31;
+	--logo-fold: #3b3e43;
+
+	--scrollbar-track: var(--sp-2);
 	--scrollbar-thumb: rgba(0, 0, 0, 0.22);
 	--scrollbar-thumb-hover: rgba(0, 0, 0, 0.36);
 }
 
 html[data-theme='dark'] {
-	--bg-page: #14120b;
-	--bg-rail: #14120b;
-	--bg-subtle: rgba(255, 255, 255, 0.03);
-	--bg-elevated: #242119;
-	--bg-code: #1c1910;
-	--text: #f7f8f8;
-	--text-secondary: #b8bcc8;
-	--text-tertiary: #8a8f98;
-	--border: rgba(255, 255, 255, 0.06);
-	--border-strong: rgba(255, 255, 255, 0.1);
+	--canvas: #14120b;
+	--panel: #14120b;
+	--muted: rgba(255, 255, 255, 0.03);
+	--raised: #242119;
+	--code-bg: #1c1910;
+	--ink: #f7f8f8;
+	--ink-dim: #b8bcc8;
+	--ink-faint: #8a8f98;
+	--line: rgba(255, 255, 255, 0.06);
+	--line-strong: rgba(255, 255, 255, 0.1);
 	--accent: #7170ff;
 	--accent-hover: #828fff;
 	color-scheme: dark;
@@ -128,8 +112,8 @@ html[data-theme='dark'] {
 	--pf-border: rgba(255, 255, 255, 0.1);
 	--pf-hover: rgba(255, 255, 255, 0.05);
 	--pf-shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.55);
-	--doc-toc-track: rgba(255, 255, 255, 0.12);
-	--brand-logo-fold: #d8dde4;
+	--toc-track: rgba(255, 255, 255, 0.12);
+	--logo-fold: #d8dde4;
 	--scrollbar-thumb: rgba(255, 255, 255, 0.22);
 	--scrollbar-thumb-hover: rgba(255, 255, 255, 0.38);
 }

@@ -2,6 +2,7 @@ import { DOC_SCROLL_SESSION_PREFIX } from '../../../lib/docScrollSession';
 import { onMediaQueryChange } from '../media-query';
 import { safeSessionSet } from '../safe-storage';
 import { syncDocOverlayLayoutMetrics, syncRailScrollEdges, tocSync } from '../doc-reading-sync';
+import { setRailScrollBootSuppress } from '../doc-window-runtime';
 
 function scheduleEndDocRailScrollBoot(): void {
 	let ended = false;
@@ -11,7 +12,7 @@ function scheduleEndDocRailScrollBoot(): void {
 		syncDocOverlayLayoutMetrics();
 		requestAnimationFrame(() => {
 			requestAnimationFrame(() => {
-				document.documentElement.classList.remove('doc-rail-scroll-boot');
+				setRailScrollBootSuppress(false);
 			});
 		});
 	};
@@ -36,13 +37,13 @@ export function mountDocLayoutChrome(): void {
 	onMediaQueryChange(mqTocTier, () => {
 		syncDocOverlayLayoutMetrics();
 	});
-	const docCenterRo = document.querySelector('.doc-center');
+	const docCenterRo = document.querySelector('.sheet');
 	if (docCenterRo) {
 		const roDocCenter = new ResizeObserver(() => syncDocOverlayLayoutMetrics());
 		roDocCenter.observe(docCenterRo);
 	}
 	/* 点击面包屑当前页标题（.breadcrumbs__current）：回文档开头，与同页 href 刷新区分 */
-	const contentHeadEl = document.querySelector('.content-head');
+	const contentHeadEl = document.querySelector('.bar');
 	if (contentHeadEl instanceof HTMLElement) {
 		contentHeadEl.addEventListener(
 			'click',

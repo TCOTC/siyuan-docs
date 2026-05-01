@@ -22,7 +22,7 @@ const { mdViewHref, markdownCopyFetchHref, t } = Astro.props;
 ---
 
 <div class="copy-split">
-	<div class="u-floating-hint u-floating-hint--split" data-anchored-floating-hint>
+	<div class="hint hint--grow" data-anchored-floating-hint>
 		<button
 			type="button"
 			class="copy-split__main js-copy-page-md"
@@ -43,8 +43,8 @@ const { mdViewHref, markdownCopyFetchHref, t } = Astro.props;
 				</span>
 			</span>
 		</button>
-		<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
-			<span class="u-floating-hint__text">{t.copyPageHint}</span>
+		<div class="hint__layer" data-floating-hint-layer role="tooltip">
+			<span class="hint__txt">{t.copyPageHint}</span>
 		</div>
 	</div>
 	<span class="copy-split__divider" aria-hidden="true" />

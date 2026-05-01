@@ -1,5 +1,5 @@
 ---
-/* 与主题、复制共用 u-floating-hint；搜索仅展示文案，无全局快捷键。
+/* 与主题、复制共用 hint；搜索仅展示文案，无全局快捷键。
  * Pagefind 的 pagefind-modal-trigger 由 public/pagefind-loader.js 在包加载后插入，并移除占位按钮，避免双按钮。 */
 interface Props {
 	/** 搜索按钮旁气泡提示文案 */
@@ -10,7 +10,7 @@ interface Props {
 const { searchHint, searchOpenAria } = Astro.props;
 ---
 
-<div class="u-floating-hint u-floating-hint--pagefind" data-anchored-floating-hint>
+<div class="hint hint--pf" data-anchored-floating-hint>
 	<div class="pf-trigger-stack" data-pf-trigger-mount>
 		<button
 			type="button"
@@ -20,7 +20,7 @@ const { searchHint, searchOpenAria } = Astro.props;
 			<span class="pf-trigger-icon" aria-hidden="true"></span>
 		</button>
 	</div>
-	<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
-		<span class="u-floating-hint__text">{searchHint}</span>
+	<div class="hint__layer" data-floating-hint-layer role="tooltip">
+		<span class="hint__txt">{searchHint}</span>
 	</div>
 </div>

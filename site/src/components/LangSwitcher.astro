@@ -14,7 +14,7 @@ const { locale, zhHref, enHref, t } = Astro.props;
 ---
 
 <div class="lang-switch" data-lang-switch>
-	<div class="u-floating-hint" data-anchored-floating-hint>
+	<div class="hint" data-anchored-floating-hint>
 		<button
 			type="button"
 			class="icon-btn"
@@ -28,8 +28,8 @@ const { locale, zhHref, enHref, t } = Astro.props;
 		>
 			<Languages class="lang-switch__icon" aria-hidden="true" />
 		</button>
-		<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
-			<span class="u-floating-hint__text">{t.langSwitcherHint}</span>
+		<div class="hint__layer" data-floating-hint-layer role="tooltip">
+			<span class="hint__txt">{t.langSwitcherHint}</span>
 		</div>
 	</div>
 	<ul

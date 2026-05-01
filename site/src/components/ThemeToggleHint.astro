@@ -9,7 +9,7 @@ interface Props {
 const { themeToggleAria, themeToggleHint } = Astro.props;
 ---
 
-<div class="u-floating-hint" data-anchored-floating-hint>
+<div class="hint" data-anchored-floating-hint>
 	<button
 		type="button"
 		class="icon-btn"
@@ -21,7 +21,7 @@ const { themeToggleAria, themeToggleHint } = Astro.props;
 		<Sun class="theme-icon theme-icon--sun" />
 		<Moon class="theme-icon theme-icon--moon" />
 	</button>
-	<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
-		<span class="u-floating-hint__text">{themeToggleHint}</span>
+	<div class="hint__layer" data-floating-hint-layer role="tooltip">
+		<span class="hint__txt">{themeToggleHint}</span>
 	</div>
 </div>

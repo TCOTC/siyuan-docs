@@ -5,8 +5,8 @@
  */
 (function () {
 	const root = document.documentElement;
-	const dc = document.querySelector('.doc-center');
-	const toc = document.querySelector('.toc-rail') as HTMLElement | null;
+	const dc = document.querySelector('.sheet');
+	const toc = document.querySelector('.toc') as HTMLElement | null;
 	try {
 		if (
 			dc &&
@@ -15,9 +15,9 @@
 			toc.offsetWidth > 0
 		) {
 			const dcr = dc.getBoundingClientRect();
-			root.style.setProperty('--doc-toc-fixed-left', `${Math.round(dcr.right - toc.offsetWidth)}px`);
+			root.style.setProperty('--toc-left', `${Math.round(dcr.right - toc.offsetWidth)}px`);
 		} else {
-			root.style.removeProperty('--doc-toc-fixed-left');
+			root.style.removeProperty('--toc-left');
 		}
 	} catch {
 		/* ignore */
@@ -28,7 +28,7 @@
 	}
 	const tocList0 = document.getElementById('doc-toc-list');
 	const docMain0 = document.getElementById('main-content');
-	if (!toc || !tocList0 || !docMain0?.classList.contains('doc-main')) return;
+	if (!toc || !tocList0 || !docMain0?.classList.contains('read-main')) return;
 	if (toc.getBoundingClientRect().height < 1) return;
 
 	function measureInd(list: Element, liNodes: Element[]) {
@@ -63,8 +63,8 @@
 			ordered0.push(he0);
 		}
 	}
-	const docCenter0 = docMain0.closest('.doc-center');
-	const ch0 = docCenter0?.querySelector(':scope > .content-head') ?? null;
+	const docCenter0 = docMain0.closest('.sheet');
+	const ch0 = docCenter0?.querySelector(':scope > .bar') ?? null;
 	const vpTop0 = ch0 instanceof HTMLElement ? ch0.getBoundingClientRect().bottom : 0;
 	const vpBottom0 = window.innerHeight;
 	const bandH0 = Math.max(1, vpBottom0 - vpTop0);

@@ -30,7 +30,7 @@ export function mountRailScrollWiring(): void {
 		syncRailScrollEdges();
 	}
 	wireRailScrollbarOnScroll(railScrollEl);
-	const railScrollAside = document.getElementById('doc-left-rail');
+	const railScrollAside = document.getElementById('doc-rail');
 	if (railScrollAside && railScrollAside !== railScrollEl) {
 		wireRailScrollbarOnScroll(railScrollAside);
 	}

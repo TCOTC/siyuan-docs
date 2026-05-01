@@ -7,7 +7,7 @@ export function runDocShellBootstrap(): void {
 	syncRailScrollEdges();
 	const tocListBoot = document.getElementById('doc-toc-list');
 	const docMainBoot = document.getElementById('main-content');
-	if (tocListBoot && docMainBoot?.classList.contains('doc-main')) {
+	if (tocListBoot && docMainBoot?.classList.contains('read-main')) {
 		tocSync();
 		markShellBootstrapRanTocSync();
 	}

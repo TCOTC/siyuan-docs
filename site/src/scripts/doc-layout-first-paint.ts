@@ -9,26 +9,26 @@ declare const docScrollSessionPrefix: string;
 declare const hasDocToc: boolean;
 
 const root = document.documentElement;
-root.style.removeProperty('--doc-toc-fixed-left');
+root.style.removeProperty('--toc-left');
 
-const contentHead = document.querySelector('.content-head');
+const contentHead = document.querySelector('.bar');
 if (contentHead instanceof HTMLElement) {
 	const h = Math.ceil(contentHead.getBoundingClientRect().height);
-	root.style.setProperty('--doc-overlay-top', `${h}px`);
+	root.style.setProperty('--overlay-top', `${h}px`);
 }
 
-const docCenter = document.querySelector('.doc-center');
+const docCenter = document.querySelector('.sheet');
 if (docCenter instanceof HTMLElement) {
 	const r = docCenter.getBoundingClientRect();
 	const vw = document.documentElement.clientWidth;
-	root.style.setProperty('--doc-content-head-inset-left', `${r.left}px`);
-	root.style.setProperty('--doc-content-head-inset-right', `${Math.max(0, vw - r.right)}px`);
+	root.style.setProperty('--sheet-pl', `${r.left}px`);
+	root.style.setProperty('--sheet-pr', `${Math.max(0, vw - r.right)}px`);
 
 	if (hasDocToc && window.matchMedia('(min-width: 1000px)').matches) {
-		const twRaw = getComputedStyle(root).getPropertyValue('--toc-aside-width').trim();
+		const twRaw = getComputedStyle(root).getPropertyValue('--toc-w').trim();
 		const tw = Number.parseFloat(twRaw);
 		if (!Number.isNaN(tw) && tw > 0) {
-			root.style.setProperty('--doc-toc-fixed-left', `${Math.round(r.right - tw)}px`);
+			root.style.setProperty('--toc-left', `${Math.round(r.right - tw)}px`);
 		}
 	}
 }

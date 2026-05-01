@@ -11,7 +11,6 @@ const SCRIPT_ENTRIES: Record<string, string> = {
 	'code-copy-i18n-en': 'code-copy-i18n-en.ts',
 	'code-copy-i18n-zh': 'code-copy-i18n-zh.ts',
 	'doc-scroll-persist-boot': 'doc-scroll-persist-boot.ts',
-	'doc-rail-scroll-boot': 'doc-rail-scroll-boot.ts',
 	'pagefind-loader': 'pagefind-loader.ts',
 	'shell-after-load': 'shell-after-load.ts',
 	'index-redirect': 'index-redirect.ts',

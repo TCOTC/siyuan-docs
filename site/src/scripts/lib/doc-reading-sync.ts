@@ -5,6 +5,7 @@
 import {
 	bumpProgrammaticRailScrollDepth,
 	isProgrammaticRailScroll,
+	isRailScrollBootSuppress,
 	scheduleReleaseProgrammaticRailScrollDepth,
 } from './doc-window-runtime';
 
@@ -120,7 +121,7 @@ function computeTocRailTargetScrollTopForCenteredHeads(
 ): number | null {
 	if (activeHeadEls.length === 0) return null;
 	if (!window.matchMedia('(min-width: 1000px)').matches) return null;
-	const tocRail = document.querySelector('.toc-rail');
+	const tocRail = document.querySelector('.toc');
 	if (!(tocRail instanceof HTMLElement)) return null;
 	if (tocRail.getBoundingClientRect().height < 1) return null;
 
@@ -181,24 +182,24 @@ function setTocListIndicatorFromLiNodes(tocList: HTMLElement, liNodes: HTMLEleme
 }
 
 /**
- * 将主栏 `.doc-center` 的视口水平 inset、`.content-head` 高度、宽屏固定 TOC 的 left 写入 CSS 变量。
+ * 将主栏 `.sheet` 的视口水平 inset、`.bar` 高度、宽屏固定 TOC 的 left 写入 CSS 变量。
  * 供 `shell-ui` 与首屏内联脚本使用，避免 fixed 顶栏在 deferred 模块执行前以 inset 0 铺满视口再跳变。
  */
 export function syncDocOverlayLayoutMetrics(): void {
 	const root = document.documentElement;
-	const contentHeadEl = document.querySelector('.content-head');
+	const contentHeadEl = document.querySelector('.bar');
 	if (contentHeadEl instanceof HTMLElement) {
 		const h = Math.ceil(contentHeadEl.getBoundingClientRect().height);
-		root.style.setProperty('--doc-overlay-top', `${h}px`);
+		root.style.setProperty('--overlay-top', `${h}px`);
 	}
-	const docCenterEl = document.querySelector('.doc-center');
+	const docCenterEl = document.querySelector('.sheet');
 	if (docCenterEl instanceof HTMLElement) {
 		const r = docCenterEl.getBoundingClientRect();
 		const vw = document.documentElement.clientWidth;
-		root.style.setProperty('--doc-content-head-inset-left', `${r.left}px`);
-		root.style.setProperty('--doc-content-head-inset-right', `${Math.max(0, vw - r.right)}px`);
+		root.style.setProperty('--sheet-pl', `${r.left}px`);
+		root.style.setProperty('--sheet-pr', `${Math.max(0, vw - r.right)}px`);
 	}
-	const tocRailEl = document.querySelector('.toc-rail');
+	const tocRailEl = document.querySelector('.toc');
 	if (
 		docCenterEl instanceof HTMLElement &&
 		tocRailEl instanceof HTMLElement &&
@@ -207,12 +208,12 @@ export function syncDocOverlayLayoutMetrics(): void {
 		const tw = tocRailEl.offsetWidth;
 		if (tw > 0) {
 			const dc = docCenterEl.getBoundingClientRect();
-			root.style.setProperty('--doc-toc-fixed-left', `${Math.round(dc.right - tw)}px`);
+			root.style.setProperty('--toc-left', `${Math.round(dc.right - tw)}px`);
 		} else {
-			root.style.removeProperty('--doc-toc-fixed-left');
+			root.style.removeProperty('--toc-left');
 		}
 	} else {
-		root.style.removeProperty('--doc-toc-fixed-left');
+		root.style.removeProperty('--toc-left');
 	}
 }
 
@@ -232,10 +233,7 @@ export function syncRailScrollEdges(): void {
 
 /** 程序化滚动或首屏 boot（见 `doc-rail-scroll-boot`）期间不点亮侧栏滚动条 */
 export function shouldSuppressRailScrollbarTransient(): boolean {
-	return (
-		isProgrammaticRailScroll() ||
-		document.documentElement.classList.contains('doc-rail-scroll-boot')
-	);
+	return isProgrammaticRailScroll() || isRailScrollBootSuppress();
 }
 
 /**
@@ -294,7 +292,7 @@ const TOC_READING_LINE_MIN_PX = 48;
 export function tocSync(): void {
 	const tocList = document.getElementById('doc-toc-list');
 	const docMainEl = document.getElementById('main-content');
-	if (!tocList || !docMainEl || !docMainEl.classList.contains('doc-main')) return;
+	if (!tocList || !docMainEl || !docMainEl.classList.contains('read-main')) return;
 	const tocLinks = tocList.querySelectorAll('a[href^="#"]');
 	const idWanted: Record<string, boolean> = {};
 	for (const link of tocLinks) {
@@ -308,8 +306,8 @@ export function tocSync(): void {
 			ordered.push(he);
 		}
 	}
-	const docCenter = docMainEl.closest('.doc-center');
-	const contentHead = docCenter?.querySelector(':scope > .content-head') ?? null;
+	const docCenter = docMainEl.closest('.sheet');
+	const contentHead = docCenter?.querySelector(':scope > .bar') ?? null;
 	const vpTop =
 		contentHead instanceof HTMLElement ? contentHead.getBoundingClientRect().bottom : 0;
 	const vpBottom = window.innerHeight;
@@ -369,7 +367,7 @@ export function tocSync(): void {
 	const sigChanged = sig !== tocActiveHeadSig;
 	if (sigChanged) tocActiveHeadSig = sig;
 
-	const tocRailEl = document.querySelector('.toc-rail');
+	const tocRailEl = document.querySelector('.toc');
 	const wide = window.matchMedia('(min-width: 1000px)').matches;
 	const tocRail = tocRailEl instanceof HTMLElement ? tocRailEl : null;
 

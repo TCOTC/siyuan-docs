@@ -25,7 +25,7 @@ declare global {
 		const skip = document.querySelector('.skip-link');
 		if (skip) skip.textContent = p.skipToContent;
 
-		const aside = document.getElementById('doc-left-rail');
+		const aside = document.getElementById('doc-rail');
 		if (aside) aside.setAttribute('aria-label', p.docNavAria);
 
 		/* 404 双品牌由 `Shell` 叠放 SSR，随 `data-doc-locale` 切换；勿改写避免闪动 */
@@ -38,7 +38,7 @@ declare global {
 			}
 		}
 
-		document.querySelectorAll('.rail-header .u-floating-hint--pagefind .u-floating-hint__text').forEach((el) => {
+		document.querySelectorAll('.rail-header .hint--pf .hint__txt').forEach((el) => {
 			el.textContent = p.searchHint;
 		});
 
@@ -46,9 +46,9 @@ declare global {
 			btn.setAttribute('aria-label', p.searchOpenAria);
 		});
 
-		const floater = document.getElementById('doc-toolbar-floater');
+		const floater = document.getElementById('tool-float');
 		if (floater) {
-			const hint = floater.querySelector('.u-floating-hint--pagefind .u-floating-hint__text');
+			const hint = floater.querySelector('.hint--pf .hint__txt');
 			if (hint) hint.textContent = p.searchHint;
 		}
 
@@ -57,7 +57,7 @@ declare global {
 			themeBtn.setAttribute('aria-label', p.themeToggleAria);
 			const th = themeBtn.closest('[data-anchored-floating-hint]');
 			if (th) {
-				const tl = th.querySelector('[data-floating-hint-layer] .u-floating-hint__text');
+				const tl = th.querySelector('[data-floating-hint-layer] .hint__txt');
 				if (tl) tl.textContent = p.themeToggleHint;
 			}
 		}
@@ -67,7 +67,7 @@ declare global {
 			copyBtn.setAttribute('aria-label', p.copyPageMdAria);
 			const cw = copyBtn.closest('[data-anchored-floating-hint]');
 			if (cw) {
-				const cl = cw.querySelector('[data-floating-hint-layer] .u-floating-hint__text');
+				const cl = cw.querySelector('[data-floating-hint-layer] .hint__txt');
 				if (cl) cl.textContent = p.copyPageHint;
 			}
 		}
@@ -99,7 +99,7 @@ declare global {
 		document.querySelectorAll('[data-lang-menu-btn]').forEach((btn) => {
 			const wrap = btn.closest('[data-lang-switch]');
 			if (!wrap) return;
-			const hintLayer = wrap.querySelector('[data-floating-hint-layer] .u-floating-hint__text');
+			const hintLayer = wrap.querySelector('[data-floating-hint-layer] .hint__txt');
 			if (hintLayer) hintLayer.textContent = p.langSwitcherHint;
 		});
 

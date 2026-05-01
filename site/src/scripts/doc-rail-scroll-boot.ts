@@ -1,13 +1,16 @@
 /**
- * 与 `doc-reading-sync.applyRailActiveNavScroll` 同算法；经 `doc-window-runtime` 与主包共用计数，避免自动滚动触发 `rail-scrollbar--visible`。
+ * 侧栏「当前文档」在 `.rail-scroll` 内纵向居中首帧滚动。
+ * 与 `doc-reading-sync.applyRailActiveNavScroll` 同算法；经 `doc-window-runtime` 与主包共用计数。
+ * 须由 `Shell.astro` 以 `?inline-bundle` 紧接 `.rail-scroll` 后内联同步执行，避免外链模块晚于首帧、先画 scrollTop=0 再瞬移。
  */
 import {
 	bumpProgrammaticRailScrollDepth,
 	scheduleReleaseProgrammaticRailScrollDepth,
+	setRailScrollBootSuppress,
 } from './lib/doc-window-runtime';
 
 (function docRailScrollBoot(): void {
-	document.documentElement.classList.add('doc-rail-scroll-boot');
+	setRailScrollBootSuppress(true);
 	const railMaybe = document.querySelector('.rail-scroll');
 	const clipMaybe = document.querySelector('[data-rail-scroll-clip]');
 	if (!(railMaybe instanceof HTMLElement) || !(clipMaybe instanceof HTMLElement)) return;

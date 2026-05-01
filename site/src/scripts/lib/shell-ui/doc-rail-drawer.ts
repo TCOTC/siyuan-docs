@@ -9,7 +9,7 @@ import {
 export function mountDocRailDrawer(): void {
 	const railToggle = document.getElementById('rail-menu-toggle');
 	const railBackdrop = document.getElementById('rail-backdrop');
-	const railAside = document.getElementById('doc-left-rail');
+	const railAside = document.getElementById('doc-rail');
 	if (!railToggle || !railBackdrop || !railAside) return;
 	const toggle = railToggle;
 	const backdrop = railBackdrop;

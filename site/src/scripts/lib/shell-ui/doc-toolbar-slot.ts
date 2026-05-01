@@ -2,9 +2,9 @@ import { onMediaQueryChange } from '../media-query';
 
 /** 文档工具条在顶栏槽与侧栏槽之间随断点移动（未满 750px 时挂抽屉顶栏） */
 export function mountDocToolbarSlot(): void {
-	const floater = document.getElementById('doc-toolbar-floater');
-	const slotHead = document.getElementById('doc-toolbar-slot-content-head');
-	const slotRail = document.getElementById('doc-toolbar-slot-rail');
+	const floater = document.getElementById('tool-float');
+	const slotHead = document.getElementById('tool-slot-bar');
+	const slotRail = document.getElementById('tool-slot-rail');
 	if (
 		!floater ||
 		!slotHead ||
