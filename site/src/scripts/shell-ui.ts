@@ -167,24 +167,6 @@ import { safeLocalGet, safeLocalSet, safeSessionSet } from './lib/safe-storage';
 		});
 	}
 
-	function isGlobalShortcutTarget(el: EventTarget | null): boolean {
-		return !!(el instanceof Element && el.closest('input, textarea, select, [contenteditable="true"]'));
-	}
-
-	document.addEventListener(
-		'keydown',
-		(e: KeyboardEvent) => {
-			if (isGlobalShortcutTarget(e.target)) return;
-			if (e.defaultPrevented) return;
-			/* 仅单独按下 T 键（无任何修饰键），避免与 Ctrl+T、Shift+T 等冲突 */
-			if (e.code === 'KeyT' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
-				e.preventDefault();
-				setTheme(getTheme() === 'dark' ? 'light' : 'dark');
-			}
-		},
-		true,
-	);
-
 	const menuBtn = document.getElementById('copy-page-menu-btn');
 	const panel = document.getElementById('copy-page-menu');
 	const copyPageMenuMd = document.getElementById('copy-page-menu-md');

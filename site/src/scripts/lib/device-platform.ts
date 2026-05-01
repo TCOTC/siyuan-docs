@@ -1,6 +1,5 @@
 /**
- * 与 theme-boot 的 data-device、搜索快捷键文案一致：
- * userAgentData.platform 优先，否则回退 UA。
+ * 与 theme-boot 的 data-device 一致：userAgentData.platform 优先，否则回退 UA。
  */
 type NavigatorWithUAData = Navigator & {
 	userAgentData?: { platform: string };

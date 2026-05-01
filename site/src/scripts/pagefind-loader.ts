@@ -26,7 +26,8 @@
 			el.className = 'pf-trigger-wrap';
 			el.setAttribute('compact', '');
 			el.setAttribute('placeholder', '');
-			el.setAttribute('shortcut', 'mod+k');
+			/* 非空占位串：有 shortcut 属性且 getAttribute 非空时才不会被 Pagefind 读成默认 mod+k；键名不可能匹配，等价于关闭全局快捷键 */
+			el.setAttribute('shortcut', '__pagefind_no_hotkey__');
 			el.setAttribute('hide-shortcut', '');
 			wrap.appendChild(el);
 			ph?.parentNode?.removeChild(ph);
@@ -55,18 +56,6 @@
 			loadPagefind();
 		},
 		{ timeout: 2000 },
-	);
-
-	document.addEventListener(
-		'keydown',
-		(e: KeyboardEvent) => {
-			if (loaded) return;
-			if (e.defaultPrevented) return;
-			if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
-				loadPagefind();
-			}
-		},
-		true,
 	);
 
 	document.addEventListener(

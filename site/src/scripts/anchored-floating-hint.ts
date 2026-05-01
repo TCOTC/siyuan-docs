@@ -11,8 +11,6 @@
  * 可见性仅由本脚本控制（不用 CSS :hover 显示提示层）：Pagefind 真实按钮出现与 bind 完成
  * 之间若用 CSS 显示，提示会仍留在工具栏内被裁切；悬停后经 SHOW_DELAY_MS 再 portal，与原先 transition-delay 相当。
  */
-import { isApplePlatform } from './lib/device-platform';
-
 const GAP = 5;
 const Z = 20000;
 /** 与 .u-floating-hint__layer 的 max-width: calc(100vw - 24px) 左右留白一致 */
@@ -106,13 +104,6 @@ function placeToButton(btn: Element, layer: HTMLElement): void {
 	}
 }
 
-function labelSearchHintModKeys(): void {
-	const label = isApplePlatform() ? '⌘' : 'Ctrl';
-	for (const el of document.querySelectorAll('[data-search-hint-mod]')) {
-		el.textContent = label;
-	}
-}
-
 function bindRoot(root: Element): void {
 	const btn = resolveHintAnchor(root);
 	const layer = (root.querySelector('[data-floating-hint-layer]') ||
@@ -169,7 +160,6 @@ function bindRoot(root: Element): void {
 }
 
 function run(): void {
-	labelSearchHintModKeys();
 	for (const root of document.querySelectorAll('[data-anchored-floating-hint]')) {
 		bindRoot(root);
 	}

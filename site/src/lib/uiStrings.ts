@@ -7,7 +7,6 @@ export type ShellUi = {
 	skipToContent: string;
 	themeToggleAria: string;
 	themeToggleHint: string;
-	themeKeyT: string;
 	topNavAria: string;
 	topNavDocs: string;
 	docNavAria: string;
@@ -41,9 +40,8 @@ const shellZh: ShellUi = {
 	siteName: '思源开发者',
 	railSiteLabel: '开发者',
 	skipToContent: '跳到正文 →',
-	themeToggleAria: '切换浅色或深色主题（快捷键 T）',
+	themeToggleAria: '切换浅色或深色主题',
 	themeToggleHint: '切换主题',
-	themeKeyT: 'T',
 	topNavAria: '顶部',
 	topNavDocs: '文档',
 	docNavAria: '文档导航',
@@ -75,9 +73,8 @@ const shellEn: ShellUi = {
 	siteName: 'SiYuan Developers',
 	railSiteLabel: 'Developers',
 	skipToContent: 'Skip to content →',
-	themeToggleAria: 'Toggle light or dark theme (shortcut T)',
+	themeToggleAria: 'Toggle light or dark theme',
 	themeToggleHint: 'Toggle theme',
-	themeKeyT: 'T',
 	topNavAria: 'Top',
 	topNavDocs: 'Docs',
 	docNavAria: 'Documentation navigation',

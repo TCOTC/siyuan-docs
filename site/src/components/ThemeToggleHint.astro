@@ -4,10 +4,9 @@ import { Sun, Moon } from '@lucide/astro';
 interface Props {
 	themeToggleAria: string;
 	themeToggleHint: string;
-	themeKeyT: string;
 }
 
-const { themeToggleAria, themeToggleHint, themeKeyT } = Astro.props;
+const { themeToggleAria, themeToggleHint } = Astro.props;
 ---
 
 <div class="u-floating-hint" data-anchored-floating-hint>
@@ -24,6 +23,5 @@ const { themeToggleAria, themeToggleHint, themeKeyT } = Astro.props;
 	</button>
 	<div class="u-floating-hint__layer" data-floating-hint-layer role="tooltip">
 		<span class="u-floating-hint__text">{themeToggleHint}</span>
-		<kbd class="u-floating-hint__key">{themeKeyT}</kbd>
 	</div>
 </div>

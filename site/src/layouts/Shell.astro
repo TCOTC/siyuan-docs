@@ -159,11 +159,7 @@ const scriptResourceHintsHtml = scriptResourceHintParts.join('');
 							<div class="topbar__search-slot" data-pagefind-ignore>
 								<PagefindToolbarTrigger searchHint={pfToolbar.searchHint} searchOpenAria={pfToolbar.searchOpenAria} />
 							</div>
-							<ThemeToggleHint
-								themeToggleAria={t.themeToggleAria}
-								themeToggleHint={t.themeToggleHint}
-								themeKeyT={t.themeKeyT}
-							/>
+							<ThemeToggleHint themeToggleAria={t.themeToggleAria} themeToggleHint={t.themeToggleHint} />
 							<nav class="topbar__nav" aria-label={t.topNavAria}>
 								<a href={docHomeHref}>{t.topNavDocs}</a>
 								<LangSwitcher locale={locale} zhHref={zhDocHref} enHref={enDocHref} t={t} />
@@ -432,11 +428,7 @@ const scriptResourceHintsHtml = scriptResourceHintParts.join('');
 										</div>
 										<LangSwitcher locale={locale} zhHref={zhDocHref} enHref={enDocHref} t={t} />
 										<div class="content-head__desktop-only">
-											<ThemeToggleHint
-												themeToggleAria={t.themeToggleAria}
-												themeToggleHint={t.themeToggleHint}
-												themeKeyT={t.themeKeyT}
-											/>
+											<ThemeToggleHint themeToggleAria={t.themeToggleAria} themeToggleHint={t.themeToggleHint} />
 											<CopyPageMarkdownToolbar
 												mdViewHref={mdViewHref}
 												markdownCopyFetchHref={markdownCopyFetchHref}
