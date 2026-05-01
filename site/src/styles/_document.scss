@@ -1525,6 +1525,11 @@ html[data-theme='dark'] .prose pre {
 	color: var(--shiki-light);
 }
 
+/* Shiki 每行包在 span.line 内，行间通常无文本换行；须块级显示，否则易与 HTML 压缩后挤成一行 */
+.prose pre.astro-code code .line {
+	display: block;
+}
+
 .prose pre.astro-code span {
 	color: var(--shiki-light);
 	font-style: var(--shiki-light-font-style, normal);
