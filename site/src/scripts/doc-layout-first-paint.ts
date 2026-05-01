@@ -1,5 +1,6 @@
 /**
  * 首屏布局变量与滚动恢复：由 `Shell.astro` 以 `<script is:inline set:html>` 注入。
+ * 有保存的滚动值时首帧同步 `scrollTo`（与 URL 是否含 `#` 无关）；无保存值时含 `#` 的页面仍由浏览器做锚点定位。
  * `docScrollSessionPrefix`、`hasDocToc` 由 Astro `define:vars` 注入到脚本外层作用域。
  */
 import { safeSessionGet } from './lib/safe-storage';
@@ -32,13 +33,10 @@ if (docCenter instanceof HTMLElement) {
 	}
 }
 
-const hash = window.location.hash;
-if (!hash || hash.length < 2) {
-	const rawY = safeSessionGet(docScrollSessionPrefix + location.pathname + location.search);
-	if (rawY != null) {
-		const y = Number.parseInt(rawY, 10);
-		if (!Number.isNaN(y) && y >= 0) {
-			window.scrollTo(0, y);
-		}
+const rawY = safeSessionGet(docScrollSessionPrefix + location.pathname + location.search);
+if (rawY != null) {
+	const y = Number.parseInt(rawY, 10);
+	if (!Number.isNaN(y) && y >= 0) {
+		window.scrollTo(0, y);
 	}
 }
