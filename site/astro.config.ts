@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
+import rehypeDeveloperInternalLinks from './src/markdown/rehype-developer-internal-links.ts';
 import rehypeStripInterElementWhitespace from './src/markdown/rehype-strip-inter-element-whitespace.ts';
 import { rewriteBundledScripts } from './vite-plugins/post-bundle-script-entries.ts';
 
@@ -76,10 +77,10 @@ function pagefindDevAssets() {
 // https://astro.build/config
 export default defineConfig({
 	/**
-	 * 无尾斜杠，使正文里 `./sibling` 与仓库内同目录 Markdown 一致，浏览器会解析到 `…/plugin/sibling`，
-	 * 而不会在 `…/plugin-api-basics/plugin-overview` 下误解析。
+	 * `ignore`：预览与各类静态托管对「是否带尾斜杠」不一致时，不因尾斜杠单独 404；
+	 * 正文内链已由 rehype 写成根相对绝对路径，不依赖当前目录解析。
 	 */
-	trailingSlash: 'never',
+	trailingSlash: 'ignore',
 	integrations: [
 		{
 			name: 'post-bundle-script-entries',
@@ -137,7 +138,7 @@ export default defineConfig({
 		plugins: [pagefindDevAssets()],
 	},
 	markdown: {
-		rehypePlugins: [rehypeStripInterElementWhitespace],
+		rehypePlugins: [rehypeStripInterElementWhitespace, [rehypeDeveloperInternalLinks, base]],
 		shikiConfig: {
 			// 双主题 + defaultColor: false → 仅输出 --shiki-light* / --shiki-dark*，由 global.scss 按 data-theme 选用，避免与内联 color 冲突导致无高亮
 			themes: {
