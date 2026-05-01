@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      "name": "Repository",
+      "path": "."
+    },
+    {
+      "name": "Site",
+      "path": "site"
+    }
+  ],
+  "settings": {
+  },
+  "extensions": {
+    "recommendations": ["astro-build.astro-vscode"]
+  }
+}
