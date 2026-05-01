@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
+import type { Rollup, ViteDevServer } from 'vite';
 import { appI18nLocales, defaultLocale } from './src/lib/appLocale.ts';
 import remarkDeveloperInternalLinks from './src/markdown/remark-developer-internal-links.ts';
 import rehypeStripInterElementWhitespace from './src/markdown/rehype-strip-inter-element-whitespace.ts';
@@ -14,7 +15,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 function readPagefindLibVersion(): string {
 	const pkgPath = path.join(__dirname, 'node_modules', 'pagefind', 'package.json');
 	if (!fs.existsSync(pkgPath)) {
-		throw new Error(`[site] 未找到 pagefind：${pkgPath}（请先 pnpm install）`);
+		throw new Error(`[site] pagefind not found at ${pkgPath} (run pnpm install)`);
 	}
 	const { version } = JSON.parse(fs.readFileSync(pkgPath, 'utf8')) as { version: string };
 	return version;
@@ -48,7 +49,7 @@ function pagefindDevAssets() {
 
 	return {
 		name: 'pagefind-dev-assets',
-		configureServer(server: any) {
+		configureServer(server: ViteDevServer) {
 			const root = path.join(__dirname, 'dist', 'pagefind', PAGE_FIND_LIB_VERSION);
 			server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => {
 				if (req.method !== 'GET' && req.method !== 'HEAD') return next();
@@ -127,7 +128,7 @@ export default defineConfig({
 					chunkFileNames: '_astro/[name].[hash].js',
 					entryFileNames: '_astro/[name].[hash].js',
 					/** `import '*.ts?url'` 默认可能落成 `*.ts`，静态托管 MIME 不对；强制改为 `.js` */
-					assetFileNames: (info: { names?: string[] }) => {
+					assetFileNames: (info: Rollup.PreRenderedAsset) => {
 						const names = info.names ?? [];
 						if (names.some((n) => n.endsWith('.ts') || n.endsWith('.tsx'))) {
 							return '_astro/[name].[hash].js';

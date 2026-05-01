@@ -504,9 +504,3 @@ export function tocSync(): void {
 		}
 	}
 }
-
-declare global {
-	interface Window {
-		__siyuanDocsTocBootstrapped?: boolean;
-	}
-}

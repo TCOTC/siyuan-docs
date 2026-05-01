@@ -33,7 +33,7 @@ export function inlineBundleScript(siteRoot: string): Plugin {
 			if (!id.startsWith(VIRTUAL_PREFIX)) return null;
 			const file = id.slice(VIRTUAL_PREFIX.length);
 			if (!fs.existsSync(file)) {
-				this.error(`inline-bundle-script: 找不到入口 ${file}`);
+				this.error(`inline-bundle-script: entry not found: ${file}`);
 			}
 			this.addWatchFile(file);
 
@@ -55,7 +55,7 @@ export function inlineBundleScript(siteRoot: string): Plugin {
 			});
 			const code = result.outputFiles[0]?.text;
 			if (!code) {
-				this.error(`inline-bundle-script: esbuild 未产出 ${file}`);
+				this.error(`inline-bundle-script: esbuild produced no output for ${file}`);
 			}
 			return `export default ${JSON.stringify(code)};`;
 		},

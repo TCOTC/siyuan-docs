@@ -7,7 +7,7 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "node tooling/dev.mjs",
     "build": "astro build && node tooling/run-pagefind.mjs",
     "check": "astro check",
     "preview": "astro preview",
