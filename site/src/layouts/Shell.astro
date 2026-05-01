@@ -609,58 +609,191 @@ const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
 												/* ignore */
 											}
 											var h = window.location.hash;
-											if (!h || h.length < 2) return;
-											var enc = h.slice(1);
-											var id;
-											try {
-												id = decodeURIComponent(enc);
-											} catch (e) {
-												id = enc;
-											}
-											if (
-												!window.matchMedia ||
-												!window.matchMedia('(min-width: 1000px)').matches
-											) {
-												return;
-											}
-											var tocList = document.getElementById('doc-toc-list');
-											if (!toc || !tocList) return;
-											if (toc.getBoundingClientRect().height < 1) return;
-											var links = tocList.querySelectorAll('a[href^="#"]');
-											var target = null;
-											for (var i = 0; i < links.length; i++) {
-												var raw = (links[i].getAttribute('href') || '').replace(/^#/, '');
-												if (raw === id) {
-													target = links[i];
-													break;
+											if (h && h.length >= 2) {
+												var enc = h.slice(1);
+												var id;
+												try {
+													id = decodeURIComponent(enc);
+												} catch (e) {
+													id = enc;
+												}
+												if (
+													!window.matchMedia ||
+													!window.matchMedia('(min-width: 1000px)').matches
+												) {
+													return;
+												}
+												var tocList = document.getElementById('doc-toc-list');
+												if (!toc || !tocList) return;
+												if (toc.getBoundingClientRect().height < 1) return;
+												var links = tocList.querySelectorAll('a[href^="#"]');
+												var target = null;
+												for (var i = 0; i < links.length; i++) {
+													var raw = (links[i].getAttribute('href') || '').replace(/^#/, '');
+													if (raw === id) {
+														target = links[i];
+														break;
+													}
+												}
+												if (!target) return;
+												for (var j = 0; j < links.length; j++) {
+													links[j].classList.remove('is-active');
+													links[j].removeAttribute('aria-current');
+												}
+												target.classList.add('is-active');
+												target.setAttribute('aria-current', 'location');
+												var liNode = target.closest('li');
+												if (liNode) {
+													var listR = tocList.getBoundingClientRect();
+													var liR = liNode.getBoundingClientRect();
+													var topPx = Math.round(liR.top - listR.top);
+													var botPx = Math.round(liR.bottom - listR.top);
+													var hPx = Math.max(0, botPx - topPx);
+													tocList.style.setProperty('--top', topPx + 'px');
+													tocList.style.setProperty('--height', hPx + 'px');
+												}
+												var maxScroll = Math.max(0, toc.scrollHeight - toc.clientHeight);
+												var tr = target.getBoundingClientRect();
+												var windowMid =
+													(window.innerHeight || document.documentElement.clientHeight || 0) / 2;
+												var linkMidViewport = tr.top + tr.height / 2;
+												var nextTop = toc.scrollTop + (linkMidViewport - windowMid);
+												if (nextTop < 0) nextTop = 0;
+												else if (nextTop > maxScroll) nextTop = maxScroll;
+												toc.scrollTop = nextTop;
+											} else {
+												/* 无 hash：与 doc-reading-sync.ts 中 tocSync 阅读线算法一致（首屏内联，先于 deferred 模块） */
+												if (
+													!window.matchMedia ||
+													!window.matchMedia('(min-width: 1000px)').matches
+												) {
+													return;
+												}
+												var tocList0 = document.getElementById('doc-toc-list');
+												var docMain0 = document.getElementById('main-content');
+												if (!toc || !tocList0 || !docMain0 || !docMain0.classList.contains('doc-main'))
+													return;
+												if (toc.getBoundingClientRect().height < 1) return;
+
+												var measureInd = function (list, liNodes) {
+													if (!liNodes.length) return { top: 0, height: 0 };
+													var listR = list.getBoundingClientRect();
+													var minTop = Infinity;
+													var maxBottom = -Infinity;
+													for (var mi = 0; mi < liNodes.length; mi++) {
+														var liR = liNodes[mi].getBoundingClientRect();
+														var t = liR.top - listR.top;
+														var b = liR.bottom - listR.top;
+														if (t < minTop) minTop = t;
+														if (b > maxBottom) maxBottom = b;
+													}
+													return { top: minTop, height: Math.max(0, maxBottom - minTop) };
+												};
+
+												var RL_MIN_R = 0.14;
+												var RL_MAX_R = 0.28;
+												var RL_MIN_PX = 48;
+
+												var links0 = tocList0.querySelectorAll('a[href^="#"]');
+												var idWanted = {};
+												for (var ti = 0; ti < links0.length; ti++) {
+													var href0 = links0[ti].getAttribute('href') || '';
+													var tid0 = href0.charAt(0) === '#' ? href0.slice(1) : '';
+													if (tid0) idWanted[tid0] = true;
+												}
+												var allHeads0 = docMain0.querySelectorAll('h2[id],h3[id],h4[id]');
+												var ordered0 = [];
+												for (var hi = 0; hi < allHeads0.length; hi++) {
+													var he0 = allHeads0[hi];
+													if (idWanted[he0.id]) ordered0.push(he0);
+												}
+												var docCenter0 = docMain0.closest('.doc-center');
+												var ch0 = docCenter0
+													? docCenter0.querySelector(':scope > .content-head')
+													: null;
+												var vpTop0 = 0;
+												if (ch0) {
+													try {
+														vpTop0 = ch0.getBoundingClientRect().bottom;
+													} catch (e0) {
+														vpTop0 = 0;
+													}
+												}
+												var vpBottom0 =
+													window.innerHeight || document.documentElement.clientHeight || 0;
+												var bandH0 = Math.max(1, vpBottom0 - vpTop0);
+												var lineOff0 = Math.min(
+													Math.max(bandH0 * RL_MIN_R, RL_MIN_PX),
+													bandH0 * RL_MAX_R,
+												);
+												var readingY0 = vpTop0 + lineOff0;
+
+												var activeIx = -1;
+												for (var ai = 0; ai < ordered0.length; ai++) {
+													if (ordered0[ai].getBoundingClientRect().top <= readingY0) activeIx = ai;
+												}
+												var activeHeads = [];
+												if (activeIx >= 0) activeHeads = [ordered0[activeIx]];
+												else if (ordered0.length > 0) activeHeads = [ordered0[0]];
+
+												for (var lj = 0; lj < links0.length; lj++) {
+													links0[lj].classList.remove('is-active');
+													links0[lj].removeAttribute('aria-current');
+												}
+												var liNodesInd = [];
+												var firstAria0 = true;
+												for (var aj = 0; aj < activeHeads.length; aj++) {
+													var hid0 = activeHeads[aj].id;
+													for (var lk = 0; lk < links0.length; lk++) {
+														var cand0 = links0[lk];
+														if ((cand0.getAttribute('href') || '').replace(/^#/, '') !== hid0)
+															continue;
+														cand0.classList.add('is-active');
+														if (firstAria0) {
+															cand0.setAttribute('aria-current', 'location');
+															firstAria0 = false;
+														}
+														var liN0 = cand0.closest('li');
+														if (liN0 && liNodesInd.indexOf(liN0) < 0) liNodesInd.push(liN0);
+														break;
+													}
+												}
+												var ind0 = measureInd(tocList0, liNodesInd);
+												tocList0.style.setProperty('--top', Math.round(ind0.top) + 'px');
+												tocList0.style.setProperty(
+													'--height',
+													Math.round(Math.max(0, ind0.height)) + 'px',
+												);
+
+												if (activeHeads.length > 0) {
+													var midIx = Math.floor((activeHeads.length - 1) / 2);
+													var midId0 = activeHeads[midIx].id;
+													var targetLk = null;
+													for (var nk = 0; nk < links0.length; nk++) {
+														var rawN = (links0[nk].getAttribute('href') || '').replace(/^#/, '');
+														if (rawN === midId0) {
+															targetLk = links0[nk];
+															break;
+														}
+													}
+													if (targetLk) {
+														var maxS0 = Math.max(0, toc.scrollHeight - toc.clientHeight);
+														if (maxS0 > 0) {
+															var tr0 = targetLk.getBoundingClientRect();
+															var wm0 =
+																(window.innerHeight || document.documentElement.clientHeight || 0) /
+																2;
+															var lm0 = tr0.top + tr0.height / 2;
+															var nt0 = toc.scrollTop + (lm0 - wm0);
+															if (nt0 < 0) nt0 = 0;
+															else if (nt0 > maxS0) nt0 = maxS0;
+															toc.scrollTop = nt0;
+														}
+													}
+												} else {
+													toc.scrollTop = 0;
 												}
 											}
-											if (!target) return;
-											for (var j = 0; j < links.length; j++) {
-												links[j].classList.remove('is-active');
-												links[j].removeAttribute('aria-current');
-											}
-											target.classList.add('is-active');
-											target.setAttribute('aria-current', 'location');
-											var liNode = target.closest('li');
-											if (liNode) {
-												var listR = tocList.getBoundingClientRect();
-												var liR = liNode.getBoundingClientRect();
-												var topPx = Math.round(liR.top - listR.top);
-												var botPx = Math.round(liR.bottom - listR.top);
-												var hPx = Math.max(0, botPx - topPx);
-												tocList.style.setProperty('--top', topPx + 'px');
-												tocList.style.setProperty('--height', hPx + 'px');
-											}
-											var maxScroll = Math.max(0, toc.scrollHeight - toc.clientHeight);
-											var tr = target.getBoundingClientRect();
-											var windowMid =
-												(window.innerHeight || document.documentElement.clientHeight || 0) / 2;
-											var linkMidViewport = tr.top + tr.height / 2;
-											var nextTop = toc.scrollTop + (linkMidViewport - windowMid);
-											if (nextTop < 0) nextTop = 0;
-											else if (nextTop > maxScroll) nextTop = maxScroll;
-											toc.scrollTop = nextTop;
 										})();
 									</script>
 								</aside>

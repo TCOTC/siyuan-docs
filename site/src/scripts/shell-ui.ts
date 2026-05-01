@@ -412,6 +412,63 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 			const roDocCenter = new ResizeObserver(() => syncDocOverlayTop());
 			roDocCenter.observe(docCenterRo);
 		}
+		/* 点击面包屑当前页标题（.breadcrumbs__current）：回文档开头，与同页 href 刷新区分 */
+		const contentHeadEl = document.querySelector('.content-head');
+		if (contentHeadEl instanceof HTMLElement) {
+			const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
+			contentHeadEl.addEventListener(
+				'click',
+				(e: MouseEvent) => {
+					if (e.defaultPrevented) return;
+					if (e.button !== 0) return;
+					if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+					const t = e.target;
+					if (!(t instanceof Element)) return;
+					const hit = t.closest('a.breadcrumbs__current, span.breadcrumbs__current');
+					if (!hit || !contentHeadEl.contains(hit)) return;
+					let sameDoc = hit instanceof HTMLSpanElement;
+					if (hit instanceof HTMLAnchorElement) {
+						try {
+							const u = new URL(hit.getAttribute('href') || '', location.href);
+							sameDoc = u.pathname === location.pathname && u.search === location.search;
+						} catch {
+							sameDoc = false;
+						}
+					}
+					if (!sameDoc) return;
+					if (hit instanceof HTMLAnchorElement) {
+						e.preventDefault();
+					}
+					try {
+						if (location.hash) {
+							history.replaceState(null, '', location.pathname + location.search);
+						}
+					} catch {
+						/* ignore */
+					}
+					try {
+						sessionStorage.setItem(
+							docScrollSessionPrefix + location.pathname + location.search,
+							'0',
+						);
+					} catch {
+						/* ignore */
+					}
+					window.scrollTo({ top: 0, behavior: 'smooth' });
+					tocSync();
+					requestAnimationFrame(() => {
+						tocSync();
+					});
+					window.setTimeout(() => {
+						tocSync();
+					}, 0);
+					window.setTimeout(() => {
+						tocSync();
+					}, 64);
+				},
+				{ passive: false },
+			);
+		}
 		(function scheduleEndDocRailScrollBoot(): void {
 			let ended = false;
 			const finish = (): void => {

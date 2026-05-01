@@ -1399,7 +1399,7 @@ html[data-theme='dark'] .copy-split__chev:hover {
 	display: block;
 	padding: var(--space-6) 0 var(--space-6) var(--space-10);
 	font-size: 12px;
-	font-weight: 500;
+	font-weight: 600;
 	line-height: 1.5;
 	color: var(--text-secondary);
 	border-radius: var(--space-4);
@@ -1412,7 +1412,7 @@ html[data-theme='dark'] .copy-split__chev:hover {
 
 .toc-rail__list a.is-active {
 	color: var(--text);
-	font-weight: 600;
+	font-weight: 700;
 }
 
 .toc-rail__list a:focus-visible {
@@ -1423,7 +1423,6 @@ html[data-theme='dark'] .copy-split__chev:hover {
 .toc-rail__list li.toc-depth-3 a,
 .toc-rail__list li.toc-depth-4 a {
 	padding-left: var(--space-18);
-	font-weight: 400;
 	font-size: 12px;
 }
 

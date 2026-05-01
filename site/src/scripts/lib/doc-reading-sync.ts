@@ -404,7 +404,7 @@ export function scrollActiveRailNavIntoView(): void {
 	}
 }
 
-/** 阅读线：相对顶栏底边下移量占阅读区高度比例（取 clamp），线越靠上越晚切换到下一节 */
+/** 阅读线：相对顶栏底边下移量占阅读区高度比例（取 clamp），线越靠上越晚切换到下一节（无 hash 首屏内联见 Shell.astro，须与此处一致） */
 const TOC_READING_LINE_MIN_RATIO = 0.14;
 const TOC_READING_LINE_MAX_RATIO = 0.28;
 const TOC_READING_LINE_MIN_PX = 48;
@@ -493,6 +493,8 @@ export function tocSync(): void {
 		tocSyncLastViewportH > 0 && vph > 0 && vph !== tocSyncLastViewportH;
 	tocSyncLastViewportH = vph;
 
+	/* 首帧（含 sessionStorage 恢复滚动后 deferred 的第一次 tocSync）：轨道与指示条直接到位，避免从顶滑入 */
+	const coldStartTocRailLayout = tocActiveHeadSig === '';
 	const sigChanged = sig !== tocActiveHeadSig;
 	if (sigChanged) tocActiveHeadSig = sig;
 
@@ -526,7 +528,8 @@ export function tocSync(): void {
 		shouldSeekRail &&
 		(sigChanged || viewportChanged) &&
 		(geomDelta || scrollDelta) &&
-		!tocRailScrollShouldBeInstant();
+		!tocRailScrollShouldBeInstant() &&
+		!coldStartTocRailLayout;
 
 	if (runSyncAnim) {
 		startTocRailScrollAndIndicatorSync(
