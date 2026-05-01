@@ -1,4 +1,5 @@
-import { detectLocale, type SiteLocale } from '../lib/localePreference';
+import { localeHtmlLang, type AppLocale } from '../lib/appLocale';
+import { detectLocale } from '../lib/localePreference';
 import type { NotFoundLocalePatch } from '../lib/notFoundLocale';
 
 declare global {
@@ -7,7 +8,7 @@ declare global {
 	}
 }
 
-(function initNotFoundLocale(): void {
+(function initI18n404(): void {
 	const cfg = window.__NF_LOCALE__;
 	if (!cfg) return;
 	const { base, patchZh } = cfg;
@@ -112,18 +113,20 @@ declare global {
 		}
 	}
 
-	function syncLangLinkAriaCurrent(loc: SiteLocale): void {
+	function syncLangLinkAriaCurrent(loc: AppLocale): void {
 		document.querySelectorAll('a[data-lang-locale]').forEach((a) => {
 			const v = a.getAttribute('data-lang-locale');
-			if (loc === 'en' && v === 'en') a.setAttribute('aria-current', 'page');
-			else if (loc === 'zh' && v === 'zh') a.setAttribute('aria-current', 'page');
+			if (v === loc) a.setAttribute('aria-current', 'page');
 			else a.removeAttribute('aria-current');
 		});
 	}
 
 	const loc = detectLocale(location.pathname, base);
 	document.documentElement.setAttribute('data-doc-locale', loc);
-	document.documentElement.setAttribute('lang', loc === 'en' ? 'en' : 'zh-CN');
+	document.documentElement.setAttribute(
+		'lang',
+		localeHtmlLang[loc] ?? loc,
+	);
 
 	if (loc === 'zh') applyNotFoundHeadZh(patchZh);
 

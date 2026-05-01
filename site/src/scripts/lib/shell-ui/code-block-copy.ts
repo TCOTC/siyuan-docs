@@ -1,31 +1,37 @@
+import type { AppLocale } from '../../../lib/appLocale';
+import { isSiteLocale } from '../../../lib/localePreference';
+
 type CodeCopyI18n = { copyAria: string; copiedAria: string; failedAria: string };
 
-const CODE_COPY_FALLBACK: CodeCopyI18n = {
-	copyAria: 'Copy code',
-	copiedAria: 'Copied',
-	failedAria: 'Copy failed',
+const CODE_COPY_I18N: Record<AppLocale, CodeCopyI18n> = {
+	zh: {
+		copyAria: '复制代码',
+		copiedAria: '已复制',
+		failedAria: '复制失败',
+	},
+	en: {
+		copyAria: 'Copy code',
+		copiedAria: 'Copied',
+		failedAria: 'Copy failed',
+	},
 };
 
-function readCodeCopyI18n(): CodeCopyI18n {
-	const el = document.getElementById('siyuan-code-copy-i18n');
-	const raw = el?.textContent?.trim();
-	if (!raw) return CODE_COPY_FALLBACK;
-	try {
-		const j = JSON.parse(raw) as Record<string, unknown>;
-		return {
-			copyAria: typeof j.copyAria === 'string' ? j.copyAria : CODE_COPY_FALLBACK.copyAria,
-			copiedAria:
-				typeof j.copiedAria === 'string' ? j.copiedAria : CODE_COPY_FALLBACK.copiedAria,
-			failedAria: typeof j.failedAria === 'string' ? j.failedAria : CODE_COPY_FALLBACK.failedAria,
-		};
-	} catch {
-		return CODE_COPY_FALLBACK;
+/** 与 Shell、`not-found-locale-head-sync` 一致：优先 `data-doc-locale`，否则取 `<html lang>` 的主语言段；非站内语言则回退 `en` */
+function localeForCodeBlockCopy(): AppLocale {
+	const dataLoc = document.documentElement.getAttribute('data-doc-locale');
+	if (dataLoc != null) {
+		const v = dataLoc.trim().toLowerCase();
+		if (isSiteLocale(v)) return v;
 	}
+	const lang = document.documentElement.getAttribute('lang') || '';
+	const primary = lang.trim().split('-')[0]?.toLowerCase() ?? '';
+	if (primary && isSiteLocale(primary)) return primary;
+	return 'en';
 }
 
 /** 为 `.prose pre` 注入代码块复制按钮 */
 export function mountCodeBlockCopy(): void {
-	const { copyAria, copiedAria, failedAria } = readCodeCopyI18n();
+	const { copyAria, copiedAria, failedAria } = CODE_COPY_I18N[localeForCodeBlockCopy()];
 	const copySvg =
 		'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
 	const checkSvg =

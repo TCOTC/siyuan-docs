@@ -7,7 +7,8 @@
 - **Astro 静态导出**：`output: 'static'`。
 - **HTML 压缩**：`compressHTML: true`。
 - **首屏主题脚本**：`src/scripts/theme-boot.js`（单行压缩）外链加载，避免原先 `<script is:inline>` 既不压缩又保留注释。
-- **`html` 根节点**：仅保留 `lang`、404 页所需的 `data-doc-locale`；Pagefind bundle 改为 `<meta name="pagefind-bundle">`；代码块复制文案改为 `<script type="application/json" id="siyuan-code-copy-i18n">`，避免在 `<html>` 上堆叠多条 `data-*`。
+- **`html` 根节点**：保留 `lang`、404 页所需的 `data-doc-locale`；Pagefind bundle 改为 `<meta name="pagefind-bundle">`；代码块复制等客户端文案在对应脚本内按 `data-doc-locale` / `lang` 分支，避免在 `<html>` 上堆叠多条 `data-*`。
+- **开发者文档壳层 CSS 产物名**：源码侧栏数据仍为 `doc-reading-frame.ts`，Rollup 仍生成 `doc-reading-frame.[hash].css`；`astro:build:done` 中 `renameDocReadingFrameCssToStyle` 将其重命名为 `style.[hash].css` 并修补 HTML / `.md` 引用。
 - **Vite 构建**：`build.target: 'es2022'`、`minify: 'esbuild'`、`cssMinify: true`；`assetsInlineLimit: 0` 避免小资源被内联为 `data:`，便于缓存与压缩。
 - **Pagefind**：`pnpm build` 后对 `dist` 建立搜索索引；产物在 `dist/pagefind/<已安装 pagefind 的 npm 版本>/`，与页面 `bundle-path` 对齐，升级依赖时整包 URL 前缀变化以免缓存混用。
 - **配置入口**：`astro.config.ts`（由原先的 `astro.config.mjs` 迁移）。
@@ -27,7 +28,7 @@
 - **开发者文档路由**：`/zh/developers/...` 与 `/en/developers/...`。
 - **根路径 `/`**：根据 `localStorage` / 浏览器语言重定向到中文或英文 welcome（`src/pages/index.astro` + `index-redirect.ts`）。
 - **语言切换**：顶栏组件记录 `siyuan-docs-locale`，供首页与 404 判定使用。
-- **404 页**：同页中英双份正文与双份侧栏目录；按 URL / 存储 / 浏览器语言切换 `data-doc-locale` 与中文补丁文案（`not-found-locale.ts`、`NotFoundLocaleHeadScript.astro`）。
+- **404 页**：同页中英双份正文与双份侧栏目录；按 URL / 存储 / 浏览器语言切换 `data-doc-locale` 与中文补丁文案（`i18n-404.ts`、`NotFoundLocaleHeadScript.astro`）。
 
 ## 布局与组件（Astro）
 
@@ -43,13 +44,13 @@
 ## 内容（Content Collections）
 
 - **`docs` 集合**：自仓库根目录 `developers/` 加载 `**/*.md`，字段含 `title`、`description`、`order` 等（见 `src/content.config.ts`）。
-- **导航**：`getDeveloperDocsNav.ts` 等按分组与 `order` 生成侧栏。
+- **导航**：`doc-reading-frame.ts` 等按分组与 `order` 生成侧栏。
 
 ## Markdown 与代码展示
 
 - **Shiki 双主题**：亮/暗对应 `github-light` / `github-dark`，`defaultColor: false`，由 CSS 变量驱动（避免与主题切换冲突）。
 - **正文 `.prose`**：标题锚点、列表、引用、表格等层级样式。
-- **代码块复制**：`shell-ui.ts` 为 `.prose pre` 注入右上角复制按钮；文案来自 `<script type="application/json" id="siyuan-code-copy-i18n">`（见 `Shell.astro`）。
+- **代码块复制**：`shell-ui.ts` → `code-block-copy.ts` 为 `.prose pre` 注入右上角复制按钮；无障碍文案在同文件内按页面语言选用。
 
 ## 客户端脚本（TypeScript → 打包）
 
@@ -58,7 +59,8 @@
 - **`doc-reading-sync.ts`**：`syncDocOverlayLayoutMetrics`、侧栏 `syncRailScrollEdges` 与 `tocSync` 算法，供 bootstrap、内联首屏与 `shell-ui` 共用。
 - **`anchored-floating-hint.ts`**：浮动提示层 portal 到 `body`、`⌘/Ctrl` 标签、Pagefind 占位替换后重新绑定。
 - **`pagefind-loader.js`（`public/`，保持传统脚本）**：空闲或快捷键/点击时加载 Pagefind Component UI，挂载 `pagefind-modal-trigger`，避免双按钮。
-- **`not-found-locale.ts`**：404 语言检测与中英文 DOM 补丁。
+- **`scroll-persist.ts`**：文档页 `pagehide` 时将主文档滚动位置写入 `sessionStorage`（键前缀见 `docScrollSession.ts`）。
+- **`i18n-404.ts`**：404 语言检测与中英文 DOM 补丁。
 - **`index-redirect.ts`**：首页语言重定向。
 
 ## 服务端 / 构建期 API

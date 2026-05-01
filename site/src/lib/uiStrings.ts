@@ -30,10 +30,6 @@ export type ShellUi = {
 	langSwitcherAria: string;
 	/** 语言按钮悬停提示（与界面语言一致） */
 	langSwitcherHint: string;
-	/** 代码块右上角复制按钮 */
-	copyCodeBlockAria: string;
-	copyCodeBlockCopiedAria: string;
-	copyCodeBlockFailedAria: string;
 };
 
 const shellZh: ShellUi = {
@@ -64,9 +60,6 @@ const shellZh: ShellUi = {
 	langSwitcherEn: 'English',
 	langSwitcherAria: '界面语言',
 	langSwitcherHint: '切换语言',
-	copyCodeBlockAria: '复制代码',
-	copyCodeBlockCopiedAria: '已复制',
-	copyCodeBlockFailedAria: '复制失败',
 };
 
 const shellEn: ShellUi = {
@@ -97,9 +90,6 @@ const shellEn: ShellUi = {
 	langSwitcherEn: 'English',
 	langSwitcherAria: 'Interface language',
 	langSwitcherHint: 'Switch language',
-	copyCodeBlockAria: 'Copy code',
-	copyCodeBlockCopiedAria: 'Copied',
-	copyCodeBlockFailedAria: 'Copy failed',
 };
 
 export function shellUi(locale: AppLocale): ShellUi {

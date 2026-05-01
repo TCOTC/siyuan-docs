@@ -11,11 +11,9 @@ import docLayoutFirstPaintInline from '../scripts/doc-layout-first-paint.ts?inli
 // 首屏布局变量：内联同步执行，避免外链阻塞 `<main>` 与首帧变量空窗（源码见 doc-layout-first-paint.ts）
 import docTocFirstBootInline from '../scripts/doc-toc-first-boot.ts?inline-bundle';
 // 大纲首屏脚本：紧接 `#doc-toc-list`，说明见 doc-toc-first-boot.ts
-import codeCopyI18nEnUrl from '../scripts/code-copy-i18n-en.ts?url';
-import codeCopyI18nZhUrl from '../scripts/code-copy-i18n-zh.ts?url';
 import docRailScrollBootInline from '../scripts/doc-rail-scroll-boot.ts?inline-bundle';
 // 侧栏目录首屏滚动：紧接 `.rail-scroll` 后内联执行，避免外链模块晚于首帧导致目录条闪一下再居中
-import docScrollPersistBootUrl from '../scripts/doc-scroll-persist-boot.ts?url';
+import scrollPersistUrl from '../scripts/scroll-persist.ts?url';
 import pagefindLoaderUrl from '../scripts/pagefind-loader.ts?url';
 import shellAfterLoadUrl from '../scripts/shell-after-load.ts?url';
 import themeBootInline from '../scripts/theme-boot.ts?inline-bundle';
@@ -103,11 +101,9 @@ const mdViewHref = `${Astro.url.pathname.replace(/\/+$/, '')}.md`;
 const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
 
 /** 与正文里 `<ExternalScript>` 顺序一致的资源提示，便于在解析到 `<script>` 前尽早发起下载（执行时机不变） */
-const codeCopyI18nUrl = locale === 'zh' ? codeCopyI18nZhUrl : codeCopyI18nEnUrl;
 const scriptResourceHintParts: string[] = [];
-scriptResourceHintParts.push(linkModulePreload(codeCopyI18nUrl));
 if (!noSidebar) {
-	scriptResourceHintParts.push(linkModulePreload(docScrollPersistBootUrl));
+	scriptResourceHintParts.push(linkModulePreload(scrollPersistUrl));
 }
 scriptResourceHintParts.push(linkModulePreload(pagefindLoaderUrl));
 scriptResourceHintParts.push(linkModulePreload(shellAfterLoadUrl));
@@ -120,7 +116,6 @@ const scriptResourceHintsHtml = scriptResourceHintParts.join('');
 		<meta charset="utf-8" />
 		<script is:inline set:html={themeBootInline} />
 		<Fragment set:html={scriptResourceHintsHtml} />
-		<ExternalScript src={locale === 'zh' ? codeCopyI18nZhUrl : codeCopyI18nEnUrl} />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="pagefind-bundle" content={pagefindBundle} />
 		{description ? <meta name="description" content={description} /> : null}
@@ -139,7 +134,7 @@ const scriptResourceHintsHtml = scriptResourceHintParts.join('');
 	</head>
 	<body class:list={[{ 'doc-layout': !noSidebar }]}>
 		{
-			!noSidebar ? <ExternalScript src={docScrollPersistBootUrl} /> : null
+			!noSidebar ? <ExternalScript src={scrollPersistUrl} /> : null
 		}
 		<ExternalScript src={pagefindLoaderUrl} />
 		<a class="skip-link" href="#main-content">{t.skipToContent}</a>

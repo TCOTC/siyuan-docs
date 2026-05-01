@@ -9,7 +9,7 @@ import remarkDeveloperInternalLinks from './src/markdown/remark-developer-intern
 import rehypeStripInterElementWhitespace from './src/markdown/rehype-strip-inter-element-whitespace.ts';
 import { inlineBundleScript } from './vite-plugins/inline-bundle-script.ts';
 import { publishedSiteBaseUrlFromEnv } from './vite-plugins/lib/publishedSiteBaseUrl.ts';
-import { rewriteUrlScriptOutputsToIife } from './vite-plugins/rewrite-url-script-outputs-to-iife.ts';
+import { rewriteUrlScriptOutputsToIife, renameDocReadingFrameCssToStyle } from './vite-plugins/rewrite-url-script-outputs-to-iife.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -89,6 +89,7 @@ export default defineConfig({
 						typeof dir === 'string' ? dir : fileURLToPath(dir);
 					const siteRoot = path.dirname(distPath);
 					await rewriteUrlScriptOutputsToIife(siteRoot);
+					renameDocReadingFrameCssToStyle(siteRoot);
 				},
 			},
 		},

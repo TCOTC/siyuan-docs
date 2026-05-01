@@ -17,7 +17,7 @@ export function developerPagePathForStaticSite(locale: AppLocale, docRelPath: st
 	return (baseNorm ? `${baseNorm}/${rel}` : `/${rel}`).replace(/\/{2,}/g, '/');
 }
 
-/** 404 页 head 外链脚本与 `not-found-locale.ts` 共用的 `window.__NF_LOCALE__` 载荷（构建期固定） */
+/** 404 页 head 外链脚本与 `i18n-404.ts` 共用的 `window.__NF_LOCALE__` 载荷（构建期固定） */
 export function getNotFoundLocaleWindowConfig(): { base: string; patchZh: NotFoundLocalePatch } {
 	const base = import.meta.env.BASE_URL;
 	const nfZh = notFoundUi('zh');

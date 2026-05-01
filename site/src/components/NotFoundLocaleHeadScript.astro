@@ -3,12 +3,12 @@ import ExternalScript from './ExternalScript.astro';
 import { getNotFoundLocaleWindowConfig } from '../lib/not-found-locale-boot-payload';
 import { buildInlineNotFoundLocaleHeadScriptContent } from '../lib/not-found-locale-head-sync';
 import { linkModulePreload } from '../lib/resourceHintHtml';
-import notFoundLocaleUrl from '../scripts/not-found-locale.ts?url';
+import i18n404Url from '../scripts/i18n-404.ts?url';
 
 const inlineHeadJs = buildInlineNotFoundLocaleHeadScriptContent(getNotFoundLocaleWindowConfig());
-const notFoundResourceHintsHtml = linkModulePreload(notFoundLocaleUrl);
+const notFoundResourceHintsHtml = linkModulePreload(i18n404Url);
 ---
 
 <Fragment set:html={notFoundResourceHintsHtml} />
 <script is:inline set:html={inlineHeadJs}></script>
-<ExternalScript src={notFoundLocaleUrl} />
+<ExternalScript src={i18n404Url} />
