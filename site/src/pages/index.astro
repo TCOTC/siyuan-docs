@@ -1,22 +1,27 @@
 ---
 import { developerPageRelativePath } from '../lib/docRoutes';
+import { linkModulePreload } from '../lib/resourceHintHtml';
+import ExternalScript from '../components/ExternalScript.astro';
 import indexRedirectUrl from '../scripts/index-redirect.ts?url';
 
 const zhWelcome = developerPageRelativePath('zh', 'welcome');
 const enWelcome = developerPageRelativePath('en', 'welcome');
+
+const indexResourceHintsHtml = linkModulePreload(indexRedirectUrl);
 ---
 
 <!doctype html>
 <html lang="en" data-index-zh={zhWelcome} data-index-en={enWelcome}>
 	<head>
 		<meta charset="utf-8" />
+		<Fragment set:html={indexResourceHintsHtml} />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>Redirecting…</title>
 		<link rel="canonical" href={enWelcome} />
 		<noscript>
 			<meta http-equiv="refresh" content={`0;url=${enWelcome}`} />
 		</noscript>
-		<script src={indexRedirectUrl}></script>
+		<ExternalScript src={indexRedirectUrl} />
 	</head>
 	<body>
 		<p>Redirecting to documentation…</p>

@@ -2,14 +2,22 @@
 import '../styles/global.scss';
 import BrandLogo from '../components/BrandLogo.astro';
 import CopyPageMarkdownToolbar from '../components/CopyPageMarkdownToolbar.astro';
+import DocTocFirstBootScript from '../components/DocTocFirstBootScript.astro';
+import ExternalScript from '../components/ExternalScript.astro';
 import LangSwitcher from '../components/LangSwitcher.astro';
 import PagefindToolbarTrigger from '../components/PagefindToolbarTrigger.astro';
 import RailNavSections from '../components/RailNavSections.astro';
 import ThemeToggleHint from '../components/ThemeToggleHint.astro';
+import codeCopyI18nEnUrl from '../scripts/code-copy-i18n-en.ts?url';
+import codeCopyI18nZhUrl from '../scripts/code-copy-i18n-zh.ts?url';
+import docRailScrollBootUrl from '../scripts/doc-rail-scroll-boot.ts?url';
+import docScrollPersistBootUrl from '../scripts/doc-scroll-persist-boot.ts?url';
 import pagefindLoaderUrl from '../scripts/pagefind-loader.ts?url';
 import shellAfterLoadUrl from '../scripts/shell-after-load.ts?url';
 import themeBootUrl from '../scripts/theme-boot.ts?url';
+import { DOC_SCROLL_SESSION_PREFIX } from '../lib/docScrollSession';
 import { developerPageRelativePath } from '../lib/docRoutes';
+import { linkModulePreload, linkPreloadScript } from '../lib/resourceHintHtml';
 import { getPagefindLibVersion } from '../lib/pagefindBundlePath';
 import { pagefindToolbarUi, shellUi } from '../lib/uiStrings';
 import type { AppLocale } from '../lib/appLocale';
@@ -89,27 +97,32 @@ const enDocHref = developerPageRelativePath('en', pathForLangSwitch);
 const mdViewHref = `${Astro.url.pathname.replace(/\/+$/, '')}.md`;
 /** 仅开发者内容页带 `currentPath`，用于在点击复制时请求 `.md`，避免把正文塞进 HTML */
 const markdownCopyFetchHref = currentPath ? mdViewHref : undefined;
-/** F5 整页刷新：`history.scrollRestoration` 不负责恢复滚动；用 sessionStorage 在首帧同步 scrollTo（无 # 时）。后退/前进仍走浏览器，勿设 scrollRestoration=manual */
-const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
+
+/** 与正文里 `<ExternalScript>` 顺序一致的资源提示，便于在解析到 `<script>` 前尽早发起下载（执行时机不变） */
+const codeCopyI18nUrl = locale === 'zh' ? codeCopyI18nZhUrl : codeCopyI18nEnUrl;
+const scriptResourceHintParts: string[] = [];
+scriptResourceHintParts.push(linkPreloadScript(themeBootUrl));
+scriptResourceHintParts.push(linkModulePreload(codeCopyI18nUrl));
+if (!noSidebar) {
+	scriptResourceHintParts.push(linkModulePreload(docScrollPersistBootUrl));
+}
+scriptResourceHintParts.push(linkModulePreload(pagefindLoaderUrl));
+if (!noSidebar) {
+	scriptResourceHintParts.push(linkModulePreload(docRailScrollBootUrl));
+}
+scriptResourceHintParts.push(linkModulePreload(shellAfterLoadUrl));
+const scriptResourceHintsHtml = scriptResourceHintParts.join('');
 ---
 
 <!doctype html>
 <html lang={htmlLang} data-doc-locale={notFoundDualSidebars ? 'en' : undefined}>
 	<head>
 		<meta charset="utf-8" />
-		<script src={themeBootUrl}></script>
+		<Fragment set:html={scriptResourceHintsHtml} />
+		<ExternalScript src={themeBootUrl} kind="classic" />
+		<ExternalScript src={locale === 'zh' ? codeCopyI18nZhUrl : codeCopyI18nEnUrl} />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="pagefind-bundle" content={pagefindBundle} />
-		<script
-			type="application/json"
-			id="siyuan-code-copy-i18n"
-			is:inline
-			set:html={JSON.stringify({
-				copyAria: t.copyCodeBlockAria,
-				copiedAria: t.copyCodeBlockCopiedAria,
-				failedAria: t.copyCodeBlockFailedAria,
-			})}
-		/>
 		{description ? <meta name="description" content={description} /> : null}
 		<link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
 		<link rel="icon" href={`${base}favicon.ico`} sizes="any" />
@@ -126,24 +139,9 @@ const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
 	</head>
 	<body class:list={[{ 'doc-layout': !noSidebar }]}>
 		{
-			!noSidebar ? (
-				<script is:inline define:vars={{ docScrollSessionPrefix }}>
-					(function () {
-						window.addEventListener('pagehide', function () {
-							try {
-								sessionStorage.setItem(
-									docScrollSessionPrefix + location.pathname + location.search,
-									String(window.scrollY || 0),
-								);
-							} catch (e) {
-								/* ignore */
-							}
-						});
-					})();
-				</script>
-			) : null
+			!noSidebar ? <ExternalScript src={docScrollPersistBootUrl} /> : null
 		}
-		<script src={pagefindLoaderUrl}></script>
+		<ExternalScript src={pagefindLoaderUrl} />
 		<a class="skip-link" href="#main-content">{t.skipToContent}</a>
 		<pagefind-config bundle-path={pagefindBundle} lang={pagefindUiLang} />
 		{
@@ -181,11 +179,28 @@ const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
 					<div class="rail-backdrop" id="rail-backdrop" aria-hidden="true" />
 					<aside class="left-rail" id="doc-left-rail" aria-label={t.docNavAria} data-pagefind-ignore>
 						<header class="rail-header">
-							<a class="brand-lockup brand-lockup--rail" href={docHomeHref}>
-								<BrandLogo />
-								<span class="brand-lockup__divider" aria-hidden="true" />
-								<span class="brand-lockup__text">{railSiteLabel}</span>
-							</a>
+							{
+								notFoundDualSidebars ? (
+									<div class="rail-header__brand-i18n-stack u-doc-locale-stack">
+										<a class="brand-lockup brand-lockup--rail doc-i18n doc-i18n--zh" href={zhDocHref}>
+											<BrandLogo />
+											<span class="brand-lockup__divider" aria-hidden="true" />
+											<span class="brand-lockup__text">{tZh.railSiteLabel}</span>
+										</a>
+										<a class="brand-lockup brand-lockup--rail doc-i18n doc-i18n--en" href={enDocHref}>
+											<BrandLogo />
+											<span class="brand-lockup__divider" aria-hidden="true" />
+											<span class="brand-lockup__text">{tEn.railSiteLabel}</span>
+										</a>
+									</div>
+								) : (
+									<a class="brand-lockup brand-lockup--rail" href={docHomeHref}>
+										<BrandLogo />
+										<span class="brand-lockup__divider" aria-hidden="true" />
+										<span class="brand-lockup__text">{railSiteLabel}</span>
+									</a>
+								)
+							}
 							<div id="doc-toolbar-slot-rail" class="doc-toolbar-slot doc-toolbar-slot--in-rail"></div>
 							<div class="rail-header__actions">
 								<div class="rail-header__search-slot">
@@ -273,79 +288,7 @@ const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
 										)
 									}
 								</div>
-								<script is:inline>
-									(function () {
-										document.documentElement.classList.add('doc-rail-scroll-boot');
-										/* 与 doc-reading-sync.applyRailActiveNavScroll 同算法；window.__siyuanRailScrollProg 与 TS 共用，避免自动滚动触发 rail-scrollbar--visible */
-										var rail = document.querySelector('.rail-scroll');
-										var clip = document.querySelector('[data-rail-scroll-clip]');
-										if (!rail || !clip) return;
-										var links = rail.querySelectorAll('.rail-nav__link.is-active');
-										var target = null;
-										for (var i = 0; i < links.length; i++) {
-											var el = links[i];
-											var r = el.getBoundingClientRect();
-											if (r.width > 0 && r.height > 0) {
-												target = el;
-												break;
-											}
-										}
-										function syncEdges() {
-											var maxScroll = Math.max(0, rail.scrollHeight - rail.clientHeight);
-											var canScroll = maxScroll > 2;
-											var st = rail.scrollTop;
-											var atTop = st <= 1;
-											var atBottom = st >= maxScroll - 1;
-											clip.setAttribute('data-edge-top', canScroll && !atTop ? '1' : '0');
-											clip.setAttribute('data-edge-bottom', canScroll && !atBottom ? '1' : '0');
-										}
-										function bumpProgRailScroll() {
-											window.__siyuanRailScrollProg =
-												(window.__siyuanRailScrollProg || 0) + 1;
-										}
-										function releaseProgRailScroll() {
-											queueMicrotask(function () {
-												requestAnimationFrame(function () {
-													requestAnimationFrame(function () {
-														window.__siyuanRailScrollProg = Math.max(
-															0,
-															(window.__siyuanRailScrollProg || 0) - 1,
-														);
-													});
-												});
-											});
-										}
-										function applyScroll() {
-											if (!target || rail.clientHeight <= 1) {
-												syncEdges();
-												return;
-											}
-											var maxScroll = Math.max(0, rail.scrollHeight - rail.clientHeight);
-											if (maxScroll <= 0) {
-												syncEdges();
-												return;
-											}
-											bumpProgRailScroll();
-											try {
-												var rr = rail.getBoundingClientRect();
-												var tr = target.getBoundingClientRect();
-												var yCenterInContent =
-													rail.scrollTop + (tr.top - rr.top) + tr.height / 2;
-												var nextTop = yCenterInContent - rail.clientHeight / 2;
-												if (nextTop < 0) nextTop = 0;
-												else if (nextTop > maxScroll) nextTop = maxScroll;
-												rail.scrollTop = nextTop;
-												syncEdges();
-											} finally {
-												releaseProgRailScroll();
-											}
-										}
-										applyScroll();
-										if (typeof requestAnimationFrame === 'function') {
-											requestAnimationFrame(applyScroll);
-										}
-									})();
-								</script>
+								<ExternalScript src={docRailScrollBootUrl} />
 								<div class="rail-scroll__edge rail-scroll__edge--top" aria-hidden="true" />
 								<div class="rail-scroll__edge rail-scroll__edge--bottom" aria-hidden="true" />
 							</div>
@@ -425,7 +368,7 @@ const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
 						</div>
 					</aside>
 
-					<div class="doc-center">
+					<div class="doc-center" {...tocItems.length > 0 ? { 'data-doc-has-toc': '1' } : {}}>
 						<div class="content-head" data-pagefind-ignore>
 							{
 								notFoundDualSidebars && notFoundDualCrumbLabels ? (
@@ -517,62 +460,74 @@ const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
 								</button>
 							</div>
 						</div>
+						<!-- 首屏布局变量：内联同步执行，避免外链阻塞 `<main>` 与首帧变量空窗 -->
+						<script
+							is:inline
+							define:vars={{
+								docScrollSessionPrefix: DOC_SCROLL_SESSION_PREFIX,
+								hasDocToc: tocItems.length > 0,
+							}}
+						>
+							(function () {
+								const root = document.documentElement;
+								try {
+									root.style.removeProperty('--doc-toc-fixed-left');
+								} catch (e) {}
+								const ch = document.querySelector('.content-head');
+								if (ch) {
+									try {
+										root.style.setProperty(
+											'--doc-overlay-top',
+											Math.ceil(ch.getBoundingClientRect().height) + 'px',
+										);
+									} catch (e) {}
+								}
+								const dc = document.querySelector('.doc-center');
+								if (dc) {
+									try {
+										const r = dc.getBoundingClientRect();
+										const vw = window.innerWidth || document.documentElement.clientWidth || 0;
+										root.style.setProperty('--doc-content-head-inset-left', r.left + 'px');
+										root.style.setProperty(
+											'--doc-content-head-inset-right',
+											Math.max(0, vw - r.right) + 'px',
+										);
+										if (
+											hasDocToc &&
+											window.matchMedia &&
+											window.matchMedia('(min-width: 1000px)').matches
+										) {
+											const twRaw = getComputedStyle(root).getPropertyValue('--toc-aside-width').trim();
+											const tw = parseFloat(twRaw);
+											if (!isNaN(tw) && tw > 0) {
+												root.style.setProperty(
+													'--doc-toc-fixed-left',
+													Math.round(r.right - tw) + 'px',
+												);
+											}
+										}
+									} catch (e) {}
+								}
+								const h = window.location.hash;
+								if (!h || h.length < 2) {
+									try {
+										const rawY = sessionStorage.getItem(
+											docScrollSessionPrefix + location.pathname + location.search,
+										);
+										if (rawY != null) {
+											const y = parseInt(rawY, 10);
+											if (!isNaN(y) && y >= 0) window.scrollTo(0, y);
+										}
+									} catch (e) {}
+								}
+							})();
+						</script>
 						<div
 							class:list={['doc-reading', { 'doc-reading--with-toc': tocItems.length > 0 }]}
 						>
 							<main id="main-content" class="doc-main" tabindex="-1" data-pagefind-body>
 								<slot />
 							</main>
-							<script is:inline define:vars={{ docScrollSessionPrefix }}>
-								(function () {
-									var root = document.documentElement;
-									var ch = document.querySelector('.content-head');
-									if (ch) {
-										try {
-											root.style.setProperty(
-												'--doc-overlay-top',
-												Math.ceil(ch.getBoundingClientRect().height) + 'px',
-											);
-										} catch (e) {
-											/* ignore */
-										}
-									}
-									var dc = document.querySelector('.doc-center');
-									if (dc) {
-										try {
-											var r = dc.getBoundingClientRect();
-											var vw = window.innerWidth || document.documentElement.clientWidth || 0;
-											root.style.setProperty('--doc-content-head-inset-left', r.left + 'px');
-											root.style.setProperty(
-												'--doc-content-head-inset-right',
-												Math.max(0, vw - r.right) + 'px',
-											);
-										} catch (e) {
-											/* ignore */
-										}
-									}
-									try {
-										root.style.removeProperty('--doc-toc-fixed-left');
-									} catch (e) {
-										/* ignore */
-									}
-									var h = window.location.hash;
-									var hasHash = h && h.length >= 2;
-									if (!hasHash) {
-										try {
-											var rawY = sessionStorage.getItem(
-												docScrollSessionPrefix + location.pathname + location.search,
-											);
-											if (rawY != null) {
-												var y = parseInt(rawY, 10);
-												if (!isNaN(y) && y >= 0) window.scrollTo(0, y);
-											}
-										} catch (e) {
-											/* ignore */
-										}
-									}
-								})();
-							</script>
 							{tocItems.length > 0 && (
 								<aside class="toc-rail" aria-label={t.tocAsideAria} data-pagefind-ignore>
 									<div class="toc-rail__container">
@@ -584,218 +539,7 @@ const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
 											))}
 										</ul>
 									</div>
-									<script is:inline>
-										(function () {
-											var root = document.documentElement;
-											var dc = document.querySelector('.doc-center');
-											var toc = document.querySelector('.toc-rail');
-											try {
-												if (
-													dc &&
-													toc &&
-													window.matchMedia &&
-													window.matchMedia('(min-width: 1000px)').matches &&
-													toc.offsetWidth > 0
-												) {
-													var dcr = dc.getBoundingClientRect();
-													root.style.setProperty(
-														'--doc-toc-fixed-left',
-														Math.round(dcr.right - toc.offsetWidth) + 'px',
-													);
-												} else {
-													root.style.removeProperty('--doc-toc-fixed-left');
-												}
-											} catch (e) {
-												/* ignore */
-											}
-											var h = window.location.hash;
-											if (h && h.length >= 2) {
-												var enc = h.slice(1);
-												var id;
-												try {
-													id = decodeURIComponent(enc);
-												} catch (e) {
-													id = enc;
-												}
-												if (
-													!window.matchMedia ||
-													!window.matchMedia('(min-width: 1000px)').matches
-												) {
-													return;
-												}
-												var tocList = document.getElementById('doc-toc-list');
-												if (!toc || !tocList) return;
-												if (toc.getBoundingClientRect().height < 1) return;
-												var links = tocList.querySelectorAll('a[href^="#"]');
-												var target = null;
-												for (var i = 0; i < links.length; i++) {
-													var raw = (links[i].getAttribute('href') || '').replace(/^#/, '');
-													if (raw === id) {
-														target = links[i];
-														break;
-													}
-												}
-												if (!target) return;
-												for (var j = 0; j < links.length; j++) {
-													links[j].classList.remove('is-active');
-													links[j].removeAttribute('aria-current');
-												}
-												target.classList.add('is-active');
-												target.setAttribute('aria-current', 'location');
-												var liNode = target.closest('li');
-												if (liNode) {
-													var listR = tocList.getBoundingClientRect();
-													var liR = liNode.getBoundingClientRect();
-													var topPx = Math.round(liR.top - listR.top);
-													var botPx = Math.round(liR.bottom - listR.top);
-													var hPx = Math.max(0, botPx - topPx);
-													tocList.style.setProperty('--top', topPx + 'px');
-													tocList.style.setProperty('--height', hPx + 'px');
-												}
-												var maxScroll = Math.max(0, toc.scrollHeight - toc.clientHeight);
-												var tr = target.getBoundingClientRect();
-												var windowMid =
-													(window.innerHeight || document.documentElement.clientHeight || 0) / 2;
-												var linkMidViewport = tr.top + tr.height / 2;
-												var nextTop = toc.scrollTop + (linkMidViewport - windowMid);
-												if (nextTop < 0) nextTop = 0;
-												else if (nextTop > maxScroll) nextTop = maxScroll;
-												toc.scrollTop = nextTop;
-											} else {
-												/* 无 hash：与 doc-reading-sync.ts 中 tocSync 阅读线算法一致（首屏内联，先于 deferred 模块） */
-												if (
-													!window.matchMedia ||
-													!window.matchMedia('(min-width: 1000px)').matches
-												) {
-													return;
-												}
-												var tocList0 = document.getElementById('doc-toc-list');
-												var docMain0 = document.getElementById('main-content');
-												if (!toc || !tocList0 || !docMain0 || !docMain0.classList.contains('doc-main'))
-													return;
-												if (toc.getBoundingClientRect().height < 1) return;
-
-												var measureInd = function (list, liNodes) {
-													if (!liNodes.length) return { top: 0, height: 0 };
-													var listR = list.getBoundingClientRect();
-													var minTop = Infinity;
-													var maxBottom = -Infinity;
-													for (var mi = 0; mi < liNodes.length; mi++) {
-														var liR = liNodes[mi].getBoundingClientRect();
-														var t = liR.top - listR.top;
-														var b = liR.bottom - listR.top;
-														if (t < minTop) minTop = t;
-														if (b > maxBottom) maxBottom = b;
-													}
-													return { top: minTop, height: Math.max(0, maxBottom - minTop) };
-												};
-
-												var RL_MIN_R = 0.14;
-												var RL_MAX_R = 0.28;
-												var RL_MIN_PX = 48;
-
-												var links0 = tocList0.querySelectorAll('a[href^="#"]');
-												var idWanted = {};
-												for (var ti = 0; ti < links0.length; ti++) {
-													var href0 = links0[ti].getAttribute('href') || '';
-													var tid0 = href0.charAt(0) === '#' ? href0.slice(1) : '';
-													if (tid0) idWanted[tid0] = true;
-												}
-												var allHeads0 = docMain0.querySelectorAll('h2[id],h3[id],h4[id]');
-												var ordered0 = [];
-												for (var hi = 0; hi < allHeads0.length; hi++) {
-													var he0 = allHeads0[hi];
-													if (idWanted[he0.id]) ordered0.push(he0);
-												}
-												var docCenter0 = docMain0.closest('.doc-center');
-												var ch0 = docCenter0
-													? docCenter0.querySelector(':scope > .content-head')
-													: null;
-												var vpTop0 = 0;
-												if (ch0) {
-													try {
-														vpTop0 = ch0.getBoundingClientRect().bottom;
-													} catch (e0) {
-														vpTop0 = 0;
-													}
-												}
-												var vpBottom0 =
-													window.innerHeight || document.documentElement.clientHeight || 0;
-												var bandH0 = Math.max(1, vpBottom0 - vpTop0);
-												var lineOff0 = Math.min(
-													Math.max(bandH0 * RL_MIN_R, RL_MIN_PX),
-													bandH0 * RL_MAX_R,
-												);
-												var readingY0 = vpTop0 + lineOff0;
-
-												var activeIx = -1;
-												for (var ai = 0; ai < ordered0.length; ai++) {
-													if (ordered0[ai].getBoundingClientRect().top <= readingY0) activeIx = ai;
-												}
-												var activeHeads = [];
-												if (activeIx >= 0) activeHeads = [ordered0[activeIx]];
-												else if (ordered0.length > 0) activeHeads = [ordered0[0]];
-
-												for (var lj = 0; lj < links0.length; lj++) {
-													links0[lj].classList.remove('is-active');
-													links0[lj].removeAttribute('aria-current');
-												}
-												var liNodesInd = [];
-												var firstAria0 = true;
-												for (var aj = 0; aj < activeHeads.length; aj++) {
-													var hid0 = activeHeads[aj].id;
-													for (var lk = 0; lk < links0.length; lk++) {
-														var cand0 = links0[lk];
-														if ((cand0.getAttribute('href') || '').replace(/^#/, '') !== hid0)
-															continue;
-														cand0.classList.add('is-active');
-														if (firstAria0) {
-															cand0.setAttribute('aria-current', 'location');
-															firstAria0 = false;
-														}
-														var liN0 = cand0.closest('li');
-														if (liN0 && liNodesInd.indexOf(liN0) < 0) liNodesInd.push(liN0);
-														break;
-													}
-												}
-												var ind0 = measureInd(tocList0, liNodesInd);
-												tocList0.style.setProperty('--top', Math.round(ind0.top) + 'px');
-												tocList0.style.setProperty(
-													'--height',
-													Math.round(Math.max(0, ind0.height)) + 'px',
-												);
-
-												if (activeHeads.length > 0) {
-													var midIx = Math.floor((activeHeads.length - 1) / 2);
-													var midId0 = activeHeads[midIx].id;
-													var targetLk = null;
-													for (var nk = 0; nk < links0.length; nk++) {
-														var rawN = (links0[nk].getAttribute('href') || '').replace(/^#/, '');
-														if (rawN === midId0) {
-															targetLk = links0[nk];
-															break;
-														}
-													}
-													if (targetLk) {
-														var maxS0 = Math.max(0, toc.scrollHeight - toc.clientHeight);
-														if (maxS0 > 0) {
-															var tr0 = targetLk.getBoundingClientRect();
-															var wm0 =
-																(window.innerHeight || document.documentElement.clientHeight || 0) /
-																2;
-															var lm0 = tr0.top + tr0.height / 2;
-															var nt0 = toc.scrollTop + (lm0 - wm0);
-															if (nt0 < 0) nt0 = 0;
-															else if (nt0 > maxS0) nt0 = maxS0;
-															toc.scrollTop = nt0;
-														}
-													}
-												} else {
-													toc.scrollTop = 0;
-												}
-											}
-										})();
-									</script>
+									<DocTocFirstBootScript />
 								</aside>
 							)}
 						</div>
@@ -806,6 +550,6 @@ const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
 
 		<pagefind-modal reset-on-close></pagefind-modal>
 
-		<script type="module" src={shellAfterLoadUrl}></script>
+		<ExternalScript src={shellAfterLoadUrl} />
 	</body>
 </html>

@@ -28,11 +28,14 @@ declare global {
 		const aside = document.getElementById('doc-left-rail');
 		if (aside) aside.setAttribute('aria-label', p.docNavAria);
 
-		const railBrand = document.querySelector('.rail-header .brand-lockup--rail');
-		if (railBrand instanceof HTMLAnchorElement) {
-			railBrand.setAttribute('href', p.railBrandHref);
-			const railLbl = railBrand.querySelector('.brand-lockup__text');
-			if (railLbl) railLbl.textContent = p.railSiteLabel;
+		/* 404 双品牌由 `Shell` 叠放 SSR，随 `data-doc-locale` 切换；勿改写避免闪动 */
+		if (!document.querySelector('.rail-header__brand-i18n-stack')) {
+			const railBrand = document.querySelector('.rail-header .brand-lockup--rail');
+			if (railBrand instanceof HTMLAnchorElement) {
+				railBrand.setAttribute('href', p.railBrandHref);
+				const railLbl = railBrand.querySelector('.brand-lockup__text');
+				if (railLbl) railLbl.textContent = p.railSiteLabel;
+			}
 		}
 
 		document.querySelectorAll('.rail-header .u-floating-hint--pagefind .u-floating-hint__text').forEach((el) => {

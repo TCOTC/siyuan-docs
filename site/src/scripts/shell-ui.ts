@@ -1,3 +1,4 @@
+import { DOC_SCROLL_SESSION_PREFIX } from '../lib/docScrollSession';
 import {
 	scrollActiveRailNavIntoView,
 	shouldSuppressRailScrollbarTransient,
@@ -415,7 +416,6 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 		/* 点击面包屑当前页标题（.breadcrumbs__current）：回文档开头，与同页 href 刷新区分 */
 		const contentHeadEl = document.querySelector('.content-head');
 		if (contentHeadEl instanceof HTMLElement) {
-			const docScrollSessionPrefix = 'siyuan-docs:doc-scroll:v1:';
 			contentHeadEl.addEventListener(
 				'click',
 				(e: MouseEvent) => {
@@ -448,7 +448,7 @@ import { runDocShellBootstrap } from './lib/doc-shell-bootstrap';
 					}
 					try {
 						sessionStorage.setItem(
-							docScrollSessionPrefix + location.pathname + location.search,
+							DOC_SCROLL_SESSION_PREFIX + location.pathname + location.search,
 							'0',
 						);
 					} catch {

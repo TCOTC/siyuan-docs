@@ -1,14 +1,14 @@
 ---
-import type { NotFoundLocalePatch } from '../lib/notFoundLocale';
+import ExternalScript from './ExternalScript.astro';
+import { getNotFoundLocaleWindowConfig } from '../lib/not-found-locale-boot-payload';
+import { buildInlineNotFoundLocaleHeadScriptContent } from '../lib/not-found-locale-head-sync';
+import { linkModulePreload } from '../lib/resourceHintHtml';
 import notFoundLocaleUrl from '../scripts/not-found-locale.ts?url';
 
-interface Props {
-	base: string;
-	patchZh: NotFoundLocalePatch;
-}
-
-const { base, patchZh } = Astro.props;
+const inlineHeadJs = buildInlineNotFoundLocaleHeadScriptContent(getNotFoundLocaleWindowConfig());
+const notFoundResourceHintsHtml = linkModulePreload(notFoundLocaleUrl);
 ---
 
-<script is:inline set:html={`window.__NF_LOCALE__=${JSON.stringify({ base, patchZh })};`}></script>
-<script src={notFoundLocaleUrl}></script>
+<Fragment set:html={notFoundResourceHintsHtml} />
+<script is:inline set:html={inlineHeadJs}></script>
+<ExternalScript src={notFoundLocaleUrl} />

@@ -1744,6 +1744,11 @@ html[data-theme='dark'] .btn:hover {
 	justify-items: stretch;
 }
 
+/* 404 侧栏顶栏：双品牌链接叠放，与 `rail-header` 纵向居中一致 */
+.rail-header__brand-i18n-stack.u-doc-locale-stack {
+	align-items: center;
+}
+
 .u-doc-locale-stack > .doc-i18n {
 	grid-area: 1 / 1;
 	min-width: 0;
@@ -1781,7 +1786,11 @@ html[data-doc-locale='zh'] .doc-i18n--en {
 	body.doc-layout .toc-rail {
 		position: fixed;
 		top: var(--doc-overlay-top, var(--doc-header-row-h));
-		left: var(--doc-toc-fixed-left);
+		/* 脚本未跑完前：用主栏右缘与栏宽推算，避免 `left` 缺失时叠在正文左侧 */
+		left: var(
+			--doc-toc-fixed-left,
+			calc(100vw - var(--doc-content-head-inset-right, 0px) - var(--toc-aside-width))
+		);
 		right: auto;
 		width: var(--toc-aside-width);
 		max-width: var(--layout-toc-column-max-width);
