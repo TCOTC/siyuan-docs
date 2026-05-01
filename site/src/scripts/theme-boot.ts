@@ -10,6 +10,22 @@ function systemTheme(): Theme {
 	}
 }
 
+type DeviceKind = 'apple' | 'unknown';
+
+/** 与 anchored-floating-hint 等一致：按平台判定，覆盖 macOS / iOS 上各浏览器引擎 */
+function deviceKind(): DeviceKind {
+	try {
+		const nav = navigator;
+		const platform = (nav as Navigator & { userAgentData?: { platform: string } }).userAgentData
+			?.platform;
+		if (platform === 'macOS' || platform === 'iOS') return 'apple';
+		if (/iPhone|iPad|iPod|Macintosh/.test(nav.userAgent)) return 'apple';
+		return 'unknown';
+	} catch {
+		return 'unknown';
+	}
+}
+
 (function boot(): void {
 	try {
 		const stored = localStorage.getItem('siyuan-docs-theme');
@@ -18,5 +34,10 @@ function systemTheme(): Theme {
 		document.documentElement.setAttribute('data-theme', theme);
 	} catch {
 		document.documentElement.setAttribute('data-theme', systemTheme());
+	}
+	try {
+		document.documentElement.setAttribute('data-device', deviceKind());
+	} catch {
+		document.documentElement.setAttribute('data-device', 'unknown');
 	}
 })();

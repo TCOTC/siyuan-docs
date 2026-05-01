@@ -88,7 +88,7 @@
 	--brand-logo-mark: #d23f31;
 	--brand-logo-fold: #3b3e43;
 	/* 滚动条：细条、透明轨道 */
-	--scrollbar-size: 5px;
+	--scrollbar-size: var(--space-10);
 	--scrollbar-thumb: rgba(0, 0, 0, 0.22);
 	--scrollbar-thumb-hover: rgba(0, 0, 0, 0.36);
 }

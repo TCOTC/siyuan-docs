@@ -426,6 +426,11 @@ body.doc-rail-open .rail-menu-trigger__bar:nth-child(3) {
 	-webkit-overflow-scrolling: touch;
 }
 
+/* 苹果平台：侧栏滚动区右侧内边距，代替 scrollbar-gutter: stable; */
+html[data-device='apple'] .rail-scroll {
+	padding-right: var(--scrollbar-size);
+}
+
 /* 侧栏文档列表：滑块默认透明，仅在滚动时由脚本加上 .rail-scrollbar--visible 后显示（与 macOS 覆盖式滚动条体验接近） */
 .rail-scroll:not(.rail-scrollbar--visible) {
 	scrollbar-color: transparent transparent;
