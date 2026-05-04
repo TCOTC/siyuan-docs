@@ -968,6 +968,11 @@ html[data-device='apple'] .rail-scroll {
 		display: none !important;
 	}
 
+	/* 与语言切换等相邻时由 margin-left 分缝；仅汉堡时避免再缩进，与已补偿的 bar 右内边距配合 */
+	body.doc-layout .rail-menu-trigger {
+		margin-left: 0;
+	}
+
 	body.doc-layout .tool-slot--rail {
 		display: flex;
 	}
@@ -1903,12 +1908,27 @@ body.doc-rail-open .rail-menu-trigger__bar {
  */
 @media (width < 850px) {
 	body.doc-layout {
+		/*
+		 * 抽屉档右侧基准：与主栏汉堡外沿一致；侧栏顶栏工具钮与 `.rail-nav__trigger` 内 chevron 共用此列。
+		 */
+		--doc-drawer-pad-r: calc(
+			var(--sp-6) - (var(--tool-h) - (var(--sp-4) + var(--sp-micro))) / 2
+		);
+
 		.shell {
 			grid-template-columns: 1fr;
 		}
 
 		.sheet {
 			grid-column: 1;
+		}
+
+		/*
+		 * 顶栏左右对称：面包屑文字从 padding-left 起笔；汉堡图标在 --tool-h 方钮内水平居中，
+		 * 若不抵消会视觉上比左侧更「缩进」。扣除半幅差使条形与左侧文字大致同列边距。
+		 */
+		.bar {
+			padding-right: var(--doc-drawer-pad-r);
 		}
 
 		.rail-menu-trigger {
@@ -1978,6 +1998,11 @@ body.doc-rail-open .rail-menu-trigger__bar {
 					}
 				}
 			}
+
+			/* 与主栏顶栏右缘、目录折叠 chevron 右缘同一垂线 */
+			.rail-header {
+				padding-right: var(--doc-drawer-pad-r);
+			}
 		}
 
 		&.doc-rail-open .rail {
@@ -1989,7 +2014,8 @@ body.doc-rail-open .rail-menu-trigger__bar {
 		/* 与 .bar 左内边距一致，使面包屑与抽屉内目录文字同列左对齐 */
 		.rail-scroll {
 			padding-left: var(--sp-6);
-			padding-right: var(--sp-6);
+			/* 触发条右侧有 var(--sp-1)，与 scroll 内边距相加后等于 --doc-drawer-pad-r */
+			padding-right: calc(var(--doc-drawer-pad-r) - var(--sp-1));
 		}
 
 		.rail-nav {
@@ -2005,7 +2031,7 @@ body.doc-rail-open .rail-menu-trigger__bar {
 		/* 底部外链区与面包屑、目录同列左对齐（原 20px + 8px 列表 padding ≈ 28px） */
 		.rail-footer {
 			padding-left: var(--sp-6);
-			padding-right: var(--sp-6);
+			padding-right: var(--doc-drawer-pad-r);
 
 			&__links {
 				padding-left: 0;
