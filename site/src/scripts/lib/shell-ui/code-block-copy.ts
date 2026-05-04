@@ -1,22 +1,15 @@
-import type { AppLocale } from '../../../lib/appLocale';
+import { zhCodeBlockCopyUi } from '../../../i18n/zh';
+import { enCodeBlockCopyUi } from '../../../i18n/en';
+import type { CodeBlockCopyUi } from '../../../i18n/types';
+import { defaultLocale, type AppLocale } from '../../../lib/appLocale';
 import { isSiteLocale } from '../../../lib/localePreference';
 
-type CodeCopyI18n = { copyAria: string; copiedAria: string; failedAria: string };
-
-const CODE_COPY_I18N: Record<AppLocale, CodeCopyI18n> = {
-	zh: {
-		copyAria: '复制代码',
-		copiedAria: '已复制',
-		failedAria: '复制失败',
-	},
-	en: {
-		copyAria: 'Copy code',
-		copiedAria: 'Copied',
-		failedAria: 'Copy failed',
-	},
+const CODE_COPY_I18N: Record<AppLocale, CodeBlockCopyUi> = {
+	zh: zhCodeBlockCopyUi,
+	en: enCodeBlockCopyUi,
 };
 
-/** 与 Shell、`not-found-locale-head-sync` 一致：优先 `data-doc-locale`，否则取 `<html lang>` 的主语言段；非站内语言则回退 `en` */
+/** 与 Shell、`not-found-locale-head-sync` 一致：优先 `data-doc-locale`，否则取 `<html lang>` 的主语言段；非站内语言则回退 `defaultLocale` */
 function localeForCodeBlockCopy(): AppLocale {
 	const dataLoc = document.documentElement.getAttribute('data-doc-locale');
 	if (dataLoc != null) {
@@ -26,7 +19,7 @@ function localeForCodeBlockCopy(): AppLocale {
 	const lang = document.documentElement.getAttribute('lang') || '';
 	const primary = lang.trim().split('-')[0]?.toLowerCase() ?? '';
 	if (primary && isSiteLocale(primary)) return primary;
-	return 'en';
+	return defaultLocale;
 }
 
 /** 为 `.prose pre` 注入代码块复制按钮 */

@@ -1,16 +1,21 @@
 ---
 import { Languages } from '@lucide/astro';
-import type { AppLocale } from '../lib/appLocale';
+import {
+	appLocaleCode,
+	appLocalesForPresentation,
+	langSwitcherOptionLabel,
+	localeHtmlLang,
+	type AppLocale,
+} from '../lib/appLocale';
 import type { ShellUi } from '../lib/uiStrings';
 
 interface Props {
 	locale: AppLocale;
-	zhHref: string;
-	enHref: string;
+	hrefByLocale: Record<AppLocale, string>;
 	t: ShellUi;
 }
 
-const { locale, zhHref, enHref, t } = Astro.props;
+const { locale, hrefByLocale, t } = Astro.props;
 ---
 
 <div class="lang-switch" data-lang-switch>
@@ -39,31 +44,25 @@ const { locale, zhHref, enHref, t } = Astro.props;
 		hidden
 		aria-label={t.langSwitcherAria}
 	>
-		<li role="presentation">
-			<a
-				role="menuitem"
-				class="copy-split__panel-item lang-switch__panel-item"
-				href={zhHref}
-				hreflang="zh-Hans"
-				lang="zh-Hans"
-				data-lang-locale="zh"
-				aria-current={locale === 'zh' ? 'page' : undefined}
-			>
-				<span class="copy-split__panel-item__title">{t.langSwitcherZh}</span>
-			</a>
-		</li>
-		<li role="presentation">
-			<a
-				role="menuitem"
-				class="copy-split__panel-item lang-switch__panel-item"
-				href={enHref}
-				hreflang="en"
-				lang="en"
-				data-lang-locale="en"
-				aria-current={locale === 'en' ? 'page' : undefined}
-			>
-				<span class="copy-split__panel-item__title">{t.langSwitcherEn}</span>
-			</a>
-		</li>
+		{
+			appLocalesForPresentation().map((loc) => {
+				const htmlLangTag = localeHtmlLang[loc];
+				return (
+					<li role="presentation">
+						<a
+							role="menuitem"
+							class="copy-split__panel-item lang-switch__panel-item"
+							href={hrefByLocale[loc]}
+							hreflang={htmlLangTag}
+							lang={htmlLangTag}
+							data-lang-locale={appLocaleCode[loc]}
+							aria-current={locale === loc ? 'page' : undefined}
+						>
+							<span class="copy-split__panel-item__title">{langSwitcherOptionLabel[loc]}</span>
+						</a>
+					</li>
+				);
+			})
+		}
 	</ul>
 </div>

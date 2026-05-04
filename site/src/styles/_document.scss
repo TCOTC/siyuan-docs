@@ -1,3 +1,6 @@
+// 站点路由语言段（与 `locale--*`、`data-doc-locale` 同源）。
+// 须与 `site/src/lib/appLocale.ts` 中 `appI18nLocales` 的集合一致；新增语言时请两处同步更新。
+$i18n-locale-list: en, zh;
 
 *,
 *::before,
@@ -1874,15 +1877,16 @@ body.doc-rail-open .rail-menu-trigger__bar {
 	}
 }
 
-html[data-doc-locale='en'] {
-	.locale--zh {
-		display: none !important;
-	}
-}
-
-html[data-doc-locale='zh'] {
-	.locale--en {
-		display: none !important;
+/* 按当前 `data-doc-locale` 隐藏叠放栈内其它语言的 `.locale--*`，语言列表见文件开头 `$i18n-locale-list` */
+@each $shown in $i18n-locale-list {
+	html[data-doc-locale='#{$shown}'] {
+		@each $hidden in $i18n-locale-list {
+			@if $hidden != $shown {
+				.locale--#{$hidden} {
+					display: none !important;
+				}
+			}
+		}
 	}
 }
 

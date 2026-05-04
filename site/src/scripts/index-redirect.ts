@@ -1,10 +1,10 @@
-import { detectRootLocale } from '../lib/localePreference';
+import { pickByAppLocale } from '../lib/appLocale';
+import { detectRootLocale, parseIndexHrefByLocaleJson } from '../lib/localePreference';
 
 (function runIndexRedirect(): void {
 	const root = document.documentElement;
-	const zhWelcome = root.getAttribute('data-index-zh');
-	const enWelcome = root.getAttribute('data-index-en');
-	if (!zhWelcome || !enWelcome) return;
+	const hrefByLocale = parseIndexHrefByLocaleJson(root.getAttribute('data-index-href-by-locale'));
+	if (!hrefByLocale) return;
 	const loc = detectRootLocale();
-	location.replace(loc === 'zh' ? zhWelcome : enWelcome);
+	location.replace(pickByAppLocale(loc, hrefByLocale));
 })();

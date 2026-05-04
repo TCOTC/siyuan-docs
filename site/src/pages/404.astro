@@ -1,43 +1,54 @@
 ---
 import Shell from '../layouts/Shell.astro';
 import NotFoundLocaleHeadScript from '../components/NotFoundLocaleHeadScript.astro';
-import { developerPageRelativePath } from '../lib/docRoutes';
-import { getDeveloperDocsNavGroups } from '../lib/doc-reading-frame';
-import { notFoundUi } from '../lib/uiStrings';
+import { developerWelcomeHrefByLocale } from '../lib/docRoutes';
+import { getDeveloperDocsNavGroups, type DeveloperNavGroup } from '../lib/doc-reading-frame';
+import { appI18nLocales, appLocalesForPresentation, defaultLocale, localeHtmlLang, type AppLocale } from '../lib/appLocale';
+import { shellUi } from '../lib/uiStrings';
 
-const nfZh = notFoundUi('zh');
-const nfEn = notFoundUi('en');
+const tDefault = shellUi(defaultLocale);
 
-const sidebarGroupsZh = await getDeveloperDocsNavGroups('zh');
-const sidebarGroupsEn = await getDeveloperDocsNavGroups('en');
+const welcomeHrefByLocale = developerWelcomeHrefByLocale();
+
+const sidebarByLocaleEntries = await Promise.all(
+	appI18nLocales.map(async (loc) => [loc, await getDeveloperDocsNavGroups(loc)] as const),
+);
+const sidebars = Object.fromEntries(sidebarByLocaleEntries) as Record<AppLocale, DeveloperNavGroup[]>;
+const crumbLabels = Object.fromEntries(
+	appI18nLocales.map((loc) => [loc, shellUi(loc).crumbLabel] as const),
+) as Record<AppLocale, string>;
 ---
 
 <Shell
-	locale="en"
-	htmlLang="en"
-	pagefindUiLang="en"
-	title={nfEn.shellTitle}
-	description={nfEn.shellDescription}
-	notFoundDualSidebars={{ zh: sidebarGroupsZh, en: sidebarGroupsEn }}
-	notFoundDualCrumbLabels={{ zh: nfZh.crumbLabel, en: nfEn.crumbLabel }}
+	locale={defaultLocale}
+	htmlLang={localeHtmlLang[defaultLocale]}
+	pagefindUiLang={defaultLocale}
+	title={tDefault.shellTitle}
+	description={tDefault.shellDescription}
+	notFound={{
+		sidebars,
+		crumbLabels,
+	}}
 	headings={[]}
 >
 	<NotFoundLocaleHeadScript slot="head-after-title" />
 	<article class="prose not-found-doc" data-pagefind-ignore>
 		<p class="not-found__code" aria-hidden="true">404</p>
-		<div class="locale locale--zh">
-			<h1>{nfZh.heading}</h1>
-			<p>{nfZh.body}</p>
-			<p class="not-found__actions">
-				<a class="btn" href={developerPageRelativePath('zh', 'welcome')}>{nfZh.button}</a>
-			</p>
-		</div>
-		<div class="locale locale--en">
-			<h1>{nfEn.heading}</h1>
-			<p>{nfEn.body}</p>
-			<p class="not-found__actions">
-				<a class="btn" href={developerPageRelativePath('en', 'welcome')}>{nfEn.button}</a>
-			</p>
-		</div>
+		{
+			appLocalesForPresentation().map((loc) => {
+				const nf = shellUi(loc);
+				return (
+					<div class:list={['locale', `locale--${loc}`]}>
+						<h1>{nf.heading}</h1>
+						<p>{nf.body}</p>
+						<p class="not-found__actions">
+							<a class="btn" href={welcomeHrefByLocale[loc]}>
+								{nf.button}
+							</a>
+						</p>
+					</div>
+				);
+			})
+		}
 	</article>
 </Shell>

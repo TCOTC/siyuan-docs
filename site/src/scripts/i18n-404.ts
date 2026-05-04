@@ -1,25 +1,25 @@
-import { localeHtmlLang, type AppLocale } from '../lib/appLocale';
+import { defaultLocale, localeHtmlLang, type AppLocale } from '../lib/appLocale';
 import { detectLocale } from '../lib/localePreference';
-import type { NotFoundLocalePatch } from '../lib/notFoundLocale';
+import type { ClientShellLocaleWindowPayload, ClientShellUiLocalePatch } from '../i18n/types';
 
 declare global {
 	interface Window {
-		__NF_LOCALE__?: { base: string; patchZh: NotFoundLocalePatch };
+		__NF_LOCALE__?: ClientShellLocaleWindowPayload;
 	}
 }
 
 (function initI18n404(): void {
 	const cfg = window.__NF_LOCALE__;
 	if (!cfg) return;
-	const { base, patchZh } = cfg;
+	const { base, patchByLocale } = cfg;
 
-	function applyNotFoundHeadZh(p: NotFoundLocalePatch): void {
+	function applyNotFoundHeadPatch(p: ClientShellUiLocalePatch): void {
 		document.title = p.title;
 		const meta = document.querySelector('meta[name="description"]');
 		if (meta) meta.setAttribute('content', p.description);
 	}
 
-	function applyNotFoundBodyZh(p: NotFoundLocalePatch): void {
+	function applyNotFoundBodyPatch(p: ClientShellUiLocalePatch): void {
 		const pfc = document.querySelector('pagefind-config');
 		if (pfc) pfc.setAttribute('lang', p.pagefindLang);
 
@@ -33,7 +33,8 @@ declare global {
 		if (!document.querySelector('.rail-header__brand-i18n-stack')) {
 			const railBrand = document.querySelector('.rail-header .brand-lockup--rail');
 			if (railBrand instanceof HTMLAnchorElement) {
-				railBrand.setAttribute('href', p.railBrandHref);
+				/* 与 `cfg.base` + 当前页源拼成站点根绝对 URL，不依赖补丁字段 */
+				railBrand.setAttribute('href', new URL(base, window.location.origin).href);
 				const railLbl = railBrand.querySelector('.brand-lockup__text');
 				if (railLbl) railLbl.textContent = p.railSiteLabel;
 			}
@@ -128,11 +129,12 @@ declare global {
 		localeHtmlLang[loc] ?? loc,
 	);
 
-	if (loc === 'zh') applyNotFoundHeadZh(patchZh);
+	const patch = patchByLocale[loc];
+	if (loc !== defaultLocale && patch) applyNotFoundHeadPatch(patch);
 
 	function onDomReady(): void {
 		syncLangLinkAriaCurrent(loc);
-		if (loc === 'zh') applyNotFoundBodyZh(patchZh);
+		if (loc !== defaultLocale && patch) applyNotFoundBodyPatch(patch);
 	}
 
 	if (document.readyState === 'loading') {

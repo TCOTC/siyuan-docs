@@ -1,7 +1,7 @@
 import { getCollection } from 'astro:content';
-import type { AppLocale } from './appLocale';
+import { appI18nLocales, localeCollatorBcp47, type AppLocale } from './appLocale';
 import { developerDocPath } from './developerDocPath';
-import { navUi } from './uiStrings';
+import { shellUi } from './uiStrings';
 
 export type DeveloperNavItem = { path: string; title: string };
 export type DeveloperNavGroup = { label: string; items: DeveloperNavItem[] };
@@ -11,10 +11,10 @@ export async function getDeveloperDocsNavGroups(locale: AppLocale): Promise<Deve
 	const all = await getCollection('docs');
 	const prefix = `${locale}/`;
 	const scoped = all.filter((d) => d.id.startsWith(prefix));
-	const collator = locale === 'zh' ? 'zh-CN' : 'en';
+	const collator = localeCollatorBcp47[locale];
 	const byOrder = (a: { order: number; title: string }, b: { order: number; title: string }) =>
 		a.order - b.order || a.title.localeCompare(b.title, collator);
-	const ui = navUi(locale);
+	const ui = shellUi(locale);
 	const intro = scoped
 		.filter((d) => stripAfterLocale(d.id).startsWith('intro/'))
 		.map((d) => ({ path: developerDocPath(d), title: d.data.title, order: d.data.order }))
@@ -35,6 +35,9 @@ export async function getDeveloperDocsNavGroups(locale: AppLocale): Promise<Deve
 }
 
 function stripAfterLocale(id: string): string {
-	if (id.startsWith('zh/') || id.startsWith('en/')) return id.slice(3);
+	for (const loc of appI18nLocales) {
+		const p = `${loc}/`;
+		if (id.startsWith(p)) return id.slice(p.length);
+	}
 	return id;
 }

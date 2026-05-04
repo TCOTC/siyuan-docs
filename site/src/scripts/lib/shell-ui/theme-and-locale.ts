@@ -1,4 +1,5 @@
 import { onMediaQueryChange } from '../media-query';
+import { isSiteLocale } from '../../../lib/localePreference';
 import { safeLocalGet, safeLocalSet } from '../safe-storage';
 
 const THEME_STORAGE_KEY = 'siyuan-docs-theme';
@@ -47,7 +48,7 @@ export function mountShellThemeAndLocale(): void {
 	for (const a of document.querySelectorAll<HTMLAnchorElement>('a[data-lang-locale]')) {
 		a.addEventListener('click', () => {
 			const loc = a.getAttribute('data-lang-locale');
-			if (loc === 'en' || loc === 'zh') {
+			if (loc && isSiteLocale(loc)) {
 				safeLocalSet('siyuan-docs-locale', loc);
 			}
 		});

@@ -5,8 +5,8 @@ import Shell from '../layouts/Shell.astro';
 import { developerDocPath, developerNavGroupKey } from '../lib/developerDocPath';
 import { developerPageRelativePath } from '../lib/docRoutes';
 import { getDeveloperDocsNavGroups } from '../lib/doc-reading-frame';
-import { navUi } from '../lib/uiStrings';
-import type { AppLocale } from '../lib/appLocale';
+import { shellUi } from '../lib/uiStrings';
+import { localeHtmlLang, type AppLocale } from '../lib/appLocale';
 
 interface Props {
 	locale: AppLocale;
@@ -18,13 +18,13 @@ const { Content, headings } = await render(doc);
 
 const sidebarGroups = await getDeveloperDocsNavGroups(locale);
 const currentPath = developerDocPath(doc);
-const ui = navUi(locale);
+const ui = shellUi(locale);
 const groupKey = developerNavGroupKey(doc.id);
 const breadcrumbGroupLabel = ui.navGroup[groupKey];
 const docHref = developerPageRelativePath(locale, currentPath);
 const breadcrumbs = [{ label: breadcrumbGroupLabel }, { label: doc.data.title, href: docHref }];
-const htmlLang = locale === 'zh' ? 'zh-CN' : 'en';
-const pagefindUiLang = locale === 'zh' ? 'zh' : 'en';
+const htmlLang = localeHtmlLang[locale];
+const pagefindUiLang = locale;
 ---
 
 <Shell

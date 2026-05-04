@@ -5,6 +5,7 @@ import { visit } from 'unist-util-visit';
 import type { VFile } from 'vfile';
 import { type AppLocale, appI18nLocales } from '../lib/appLocale';
 import { developerDocPath } from '../lib/developerDocPath';
+import { isSiteLocale } from '../lib/localePreference';
 
 const localePathRe = appI18nLocales.map((c) => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
 
@@ -21,7 +22,9 @@ function filePathToDocMeta(absPath: string): { docId: string; locale: AppLocale 
 	const reCollectionRelative = new RegExp(`^(${localePathRe})/(.+)\\.md$`);
 	const m = norm.match(reUnderDevelopers) ?? norm.match(reCollectionRelative);
 	if (!m) return null;
-	const locale = m[1] as AppLocale;
+	const seg = m[1];
+	if (!isSiteLocale(seg)) return null;
+	const locale: AppLocale = seg;
 	return { locale, docId: `${locale}/${m[2]}` };
 }
 

@@ -1,25 +1,30 @@
 ---
-import { developerPageRelativePath } from '../lib/docRoutes';
+import { developerWelcomeHrefByLocale } from '../lib/docRoutes';
 import { linkModulePreload } from '../lib/resourceHintHtml';
+import {
+	appLocalesForPresentation,
+	defaultLocale,
+	langSwitcherOptionLabel,
+	localeHtmlLang,
+} from '../lib/appLocale';
 import ExternalScript from '../components/ExternalScript.astro';
 import indexRedirectUrl from '../scripts/index-redirect.ts?url';
 
-const zhWelcome = developerPageRelativePath('zh', 'welcome');
-const enWelcome = developerPageRelativePath('en', 'welcome');
-
+const indexHrefByLocale = developerWelcomeHrefByLocale();
+const canonicalHref = indexHrefByLocale[defaultLocale];
 const indexResourceHintsHtml = linkModulePreload(indexRedirectUrl);
 ---
 
 <!doctype html>
-<html lang="en" data-index-zh={zhWelcome} data-index-en={enWelcome}>
+<html lang={localeHtmlLang[defaultLocale]} data-index-href-by-locale={JSON.stringify(indexHrefByLocale)}>
 	<head>
 		<meta charset="utf-8" />
 		<Fragment set:html={indexResourceHintsHtml} />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>Redirecting…</title>
-		<link rel="canonical" href={enWelcome} />
+		<link rel="canonical" href={canonicalHref} />
 		<noscript>
-			<meta http-equiv="refresh" content={`0;url=${enWelcome}`} />
+			<meta http-equiv="refresh" content={`0;url=${canonicalHref}`} />
 		</noscript>
 		<ExternalScript src={indexRedirectUrl} />
 	</head>
@@ -27,9 +32,13 @@ const indexResourceHintsHtml = linkModulePreload(indexRedirectUrl);
 		<p>Redirecting to documentation…</p>
 		<noscript>
 			<p>
-				<a href={zhWelcome}>中文文档</a>
-				{' · '}
-				<a href={enWelcome}>English documentation</a>
+				{
+					appLocalesForPresentation().flatMap((loc, i) =>
+						i === 0
+							? [<a href={indexHrefByLocale[loc]}>{langSwitcherOptionLabel[loc]}</a>]
+							: [' · ', <a href={indexHrefByLocale[loc]}>{langSwitcherOptionLabel[loc]}</a>],
+					)
+				}
 			</p>
 		</noscript>
 	</body>

@@ -1,10 +1,6 @@
 /** 站内语言偏好（URL / localStorage / navigator），供首页重定向与 404 脚本共用 */
 
-import {
-	type AppLocale,
-	appI18nLocales,
-	localePreferenceFallback,
-} from './appLocale';
+import { type AppLocale, appI18nLocales, defaultLocale } from './appLocale';
 
 export function isSiteLocale(value: any): value is AppLocale {
 	return (appI18nLocales as readonly string[]).includes(value);
@@ -62,13 +58,35 @@ export function localeFromNavigator(): AppLocale | null {
 	return null;
 }
 
+/**
+ * 解析首页 `data-index-href-by-locale` 的 JSON；必须包含且仅包含 `appI18nLocales` 中各键的非空字符串，否则返回 null。
+ */
+export function parseIndexHrefByLocaleJson(raw: string | null): Record<AppLocale, string> | null {
+	if (raw == null || raw === '') return null;
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(raw);
+	} catch {
+		return null;
+	}
+	if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
+	const o = parsed as Record<string, unknown>;
+	const out = {} as Record<AppLocale, string>;
+	for (const loc of appI18nLocales) {
+		const v = o[loc];
+		if (typeof v !== 'string' || v.length === 0) return null;
+		out[loc] = v;
+	}
+	return out;
+}
+
 /** 首页 `/`：无路径段时的判定顺序 */
 export function detectRootLocale(): AppLocale {
 	const fromStore = localeFromStorage();
 	if (fromStore) return fromStore;
 	const fromNav = localeFromNavigator();
 	if (fromNav) return fromNav;
-	return localePreferenceFallback;
+	return defaultLocale;
 }
 
 /** 404 等：路径 → 存储 → 浏览器 → 回退语言 */
@@ -79,5 +97,5 @@ export function detectLocale(pathname: string, baseStr: string): AppLocale {
 	if (fromStore) return fromStore;
 	const fromNav = localeFromNavigator();
 	if (fromNav) return fromNav;
-	return localePreferenceFallback;
+	return defaultLocale;
 }
