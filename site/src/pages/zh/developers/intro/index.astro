@@ -1,0 +1,9 @@
+---
+import { appLocaleCode } from '../../../../lib/appLocale';
+import { redirectHrefForDeveloperDocFolder, siteNotFoundHref } from '../../../../lib/developerDocFolderEntry';
+
+const href =
+	(await redirectHrefForDeveloperDocFolder(appLocaleCode.zh, 'intro')) ?? siteNotFoundHref();
+if (href.length < 1) throw new Error('[developers/zh/intro] 无有效跳转目标');
+return Astro.redirect(href);
+---
