@@ -8,7 +8,7 @@ import PagefindToolbarTrigger from '../components/PagefindToolbarTrigger.astro';
 import RailNavSections from '../components/RailNavSections.astro';
 import ThemeToggleHint from '../components/ThemeToggleHint.astro';
 import docLayoutFirstPaintInline from '../scripts/doc-layout-first-paint.ts?inline-bundle';
-// 首屏布局变量：内联同步执行，避免外链阻塞 `<main>` 与首帧变量空窗（源码见 doc-layout-first-paint.ts）
+// 首屏滚动恢复：内联同步执行，避免外链阻塞 `<main>`；布局变量由 `body.doc-layout` 纯 CSS 提供（源码见 doc-layout-first-paint.ts）
 import docTocFirstBootInline from '../scripts/doc-toc-first-boot.ts?inline-bundle';
 // 大纲首屏脚本：紧接 `#doc-toc-list`，说明见 doc-toc-first-boot.ts
 import docRailScrollBootInline from '../scripts/doc-rail-scroll-boot.ts?inline-bundle';

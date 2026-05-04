@@ -46,6 +46,7 @@
 	/* 文档 chrome（脚本写入像素） */
 	--anchor-scroll: var(--sp-9);
 	--toc-track: rgba(0, 0, 0, 0.1);
+	/* 文档页 `body.doc-layout` 会覆盖为与 `--doc-rail-width` 同源的单列宽 */
 	--rail-grid: minmax(200px, 248px);
 	--toc-w: clamp(180px, 24vw, var(--w-toc-max));
 	--bar-h: var(--sp-8);

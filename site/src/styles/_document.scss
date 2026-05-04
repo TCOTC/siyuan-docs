@@ -13,6 +13,11 @@ html {
 	font-size: 100%;
 }
 
+/* 文档页为纵向 document 滚动时预留稳定 gutter，减轻 `100vw` 与布局视口宽差导致的水平对不齐 */
+html:has(body.doc-layout) {
+	scrollbar-gutter: stable;
+}
+
 body {
 	margin: 0;
 	min-height: 100vh;
@@ -205,10 +210,12 @@ body.doc-layout {
 	min-height: 100dvh;
 	overflow-x: hidden;
 	/*
-	 * 与 `.rail` / `.shell` 第一列同形的首屏主栏左缘（避免沿用 :root 的 `--sheet-pl: 0` 导致 bar / 大纲错位）。
-	 * 脚本运行后仍以测量像素覆盖，用于亚像素与滚动条等细节。
+	 * 侧栏宽度、`.shell` 栅格首列、`--sheet-pl`、`.bar` 的 `left` 同源（`--doc-rail-width`），
+	 * 与固定侧栏 `.rail` 的 `width` 一致，避免原先 `:root` 的 `minmax(200px, 248px)` 与 `clamp(200px, 22vw, 248px)` 分叉再依赖脚本测量 `.sheet`。
 	 */
-	--sheet-pl: clamp(200px, 22vw, 248px);
+	--doc-rail-width: clamp(200px, 22vw, 248px);
+	--rail-grid: var(--doc-rail-width);
+	--sheet-pl: var(--doc-rail-width);
 	--sheet-pr: 0px;
 	/*
 	 * 与 `.bar` 边框盒同高：`height: var(--bar-h)` + `border-bottom`，避免首帧沿用 :root 的 `--overlay-top: var(--bar-h)` 少 1px、
@@ -251,12 +258,12 @@ body.doc-layout .shell {
 	display: flex;
 	flex-direction: column;
 	min-height: 0;
-	/* 相对视口固定，避免 sticky 在页面末尾随包含块回弹；宽度与主栏左缘对齐（见 --sheet-pl） */
+	/* 相对视口固定，避免 sticky 在页面末尾随包含块回弹；文档页宽度与 `body.doc-layout` 的 `--doc-rail-width` 同源 */
 	position: fixed;
 	left: 0;
 	top: 0;
 	bottom: 0;
-	width: max(var(--sheet-pl, 0px), clamp(200px, 22vw, 248px));
+	width: var(--doc-rail-width, max(var(--sheet-pl, 0px), clamp(200px, 22vw, 248px)));
 	padding: 0;
 	border-right: var(--sp-line) solid var(--line);
 	background: var(--panel);
@@ -1963,6 +1970,7 @@ body.doc-rail-open .rail-menu-trigger__bar {
  */
 @media (width < 850px) {
 	body.doc-layout {
+		--doc-rail-width: 0px;
 		--sheet-pl: 0px;
 		--sheet-pr: 0px;
 		/*

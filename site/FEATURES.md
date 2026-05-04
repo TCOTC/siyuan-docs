@@ -55,8 +55,8 @@
 ## 客户端脚本（TypeScript → 打包）
 
 - **`shell-ui.ts`**：主题切换与存储、`prefers-color-scheme` 监听、跨标签 `storage` 同步；文档工具条在顶栏/侧栏槽位间移动；复制整页 Markdown（支持 fetch 当前页 `.md`）；`T` 键切换主题；复制/语言菜单；侧栏抽屉开关与 `Escape`；侧栏滚动边缘虚化数据属性；侧栏分组折叠；**本页目录（TOC）滚动高亮与指示条**；代码块复制。
-- **`doc-shell-bootstrap`（内联于 shell-ui 入口）**：首帧前同步主栏 inset（`syncDocOverlayLayoutMetrics` → `applyDocSheetViewportInsets`）、侧栏滚动边缘与 TOC；`Shell.astro` 内联脚本在 deferred 模块之前写入主栏变量（与计算值差 ≥ 1px 才落到 `body.style`，减轻与 `clamp` 首帧的亚像素重排）并将会话滚动恢复放到下一帧 `requestAnimationFrame`，减轻顶栏与面包屑首帧跳变（原独立 `doc-layout-bootstrap.js` 已合并）。`--overlay-top` 由 `body.doc-layout` 与 `.bar` 边框盒对齐；宽屏大纲 `left` 由 `_document.scss` 纯 CSS 推算。
-- **`doc-reading-sync.ts`**：`syncDocOverlayLayoutMetrics`、`doc-sheet-insets.ts` 中 `applyDocSheetViewportInsets`、侧栏 `syncRailScrollEdges` 与 `tocSync` 算法，供 bootstrap、内联首屏与 `shell-ui` 共用。
+- **`doc-shell-bootstrap`（内联于 shell-ui 入口）**：首帧前同步侧栏滚动边缘与 TOC；`Shell.astro` 内联脚本在 deferred 模块之前将会话滚动恢复放到下一帧 `requestAnimationFrame`，减轻顶栏与面包屑首帧跳变（原独立 `doc-layout-bootstrap.js` 已合并）。主栏水平 inset 与侧栏宽由 `body.doc-layout` 的 `--doc-rail-width` / `--rail-grid` / `--sheet-pl` 纯 CSS 同源；`--overlay-top` 由 `body.doc-layout` 与 `.bar` 边框盒对齐；宽屏大纲 `left` 由 `_document.scss` 纯 CSS 推算。
+- **`doc-reading-sync.ts`**：侧栏 `syncRailScrollEdges` 与 `tocSync` 算法，供 bootstrap 与 `shell-ui` 共用。
 - **`anchored-floating-hint.ts`**：浮动提示层 portal 到 `body`、`⌘/Ctrl` 标签、Pagefind 占位替换后重新绑定。
 - **`pagefind-loader.js`（`public/`，保持传统脚本）**：空闲或快捷键/点击时加载 Pagefind Component UI，挂载 `pagefind-modal-trigger`，避免双按钮。
 - **`scroll-persist.ts`**：文档页 `pagehide` 时将主文档滚动位置写入 `sessionStorage`（键前缀见 `docScrollSession.ts`）。

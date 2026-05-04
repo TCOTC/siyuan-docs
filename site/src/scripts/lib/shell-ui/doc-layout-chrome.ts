@@ -1,7 +1,6 @@
 import { DOC_SCROLL_SESSION_PREFIX } from '../../../lib/docScrollSession';
-import { onMediaQueryChange } from '../media-query';
 import { safeSessionSet } from '../safe-storage';
-import { syncDocOverlayLayoutMetrics, syncRailScrollEdges, tocSync } from '../doc-reading-sync';
+import { syncRailScrollEdges, tocSync } from '../doc-reading-sync';
 import { setRailScrollBootSuppress } from '../doc-window-runtime';
 
 function scheduleEndDocRailScrollBoot(): void {
@@ -9,7 +8,6 @@ function scheduleEndDocRailScrollBoot(): void {
 	const finish = (): void => {
 		if (ended) return;
 		ended = true;
-		syncDocOverlayLayoutMetrics();
 		requestAnimationFrame(() => {
 			requestAnimationFrame(() => {
 				setRailScrollBootSuppress(false);
@@ -26,27 +24,8 @@ function scheduleEndDocRailScrollBoot(): void {
 	window.setTimeout(finish, 2500);
 }
 
-/** 文档页 overlay 度量、面包屑回顶、侧栏滚动 boot 结束、侧栏分组折叠 */
+/** 文档页面包屑回顶、侧栏滚动 boot 结束、侧栏分组折叠 */
 export function mountDocLayoutChrome(): void {
-	syncDocOverlayLayoutMetrics();
-	requestAnimationFrame(() => {
-		syncDocOverlayLayoutMetrics();
-	});
-	window.addEventListener('resize', syncDocOverlayLayoutMetrics, { passive: true });
-	const mqTocTier = window.matchMedia('(min-width: 1000px)');
-	onMediaQueryChange(mqTocTier, () => {
-		syncDocOverlayLayoutMetrics();
-	});
-	const docCenterRo = document.querySelector('.sheet');
-	if (docCenterRo) {
-		const roDocCenter = new ResizeObserver(() => syncDocOverlayLayoutMetrics());
-		roDocCenter.observe(docCenterRo);
-	}
-	const readMainRo = document.querySelector('.toc') ? document.getElementById('main-content') : null;
-	if (readMainRo) {
-		const roReadMain = new ResizeObserver(() => syncDocOverlayLayoutMetrics());
-		roReadMain.observe(readMainRo);
-	}
 	/* 点击面包屑当前页标题（.breadcrumbs__current）：回文档开头，与同页 href 刷新区分 */
 	const contentHeadEl = document.querySelector('.bar');
 	if (contentHeadEl instanceof HTMLElement) {

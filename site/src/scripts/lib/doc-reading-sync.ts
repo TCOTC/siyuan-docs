@@ -8,7 +8,6 @@ import {
 	isRailScrollBootSuppress,
 	scheduleReleaseProgrammaticRailScrollDepth,
 } from './doc-window-runtime';
-import { applyDocSheetViewportInsets } from './doc-sheet-insets';
 
 /** 避免正文滚动时每个 rAF 都重算大纲 scrollTop；仅在高亮集合变化时自动滚大纲 */
 let tocActiveHeadSig = '';
@@ -180,16 +179,6 @@ function measureTocListIndicatorFromLiNodes(
  */
 function setTocListIndicatorFromLiNodes(tocList: HTMLElement, liNodes: HTMLElement[]): void {
 	applyTocListIndicatorPx(tocList, measureTocListIndicatorFromLiNodes(tocList, liNodes));
-}
-
-/**
- * 将主栏 `.sheet` 的视口水平 inset 写入 CSS 变量（`--sheet-pl` / `--sheet-pr`）。
- * `--overlay-top` 由 `body.doc-layout` 与 `.bar` 边框盒对齐，不在此写入，避免首帧与 CSS 差 1px 造成正文上下跳。
- * 宽屏大纲 `left` 由 `_document.scss` 纯 CSS 推算。
- * 供 `shell-ui` 与首屏内联脚本使用。
- */
-export function syncDocOverlayLayoutMetrics(): void {
-	applyDocSheetViewportInsets();
 }
 
 export function syncRailScrollEdges(): void {

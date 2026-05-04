@@ -1,11 +1,7 @@
 import { onMediaQueryChange } from '../media-query';
-import {
-	scrollActiveRailNavIntoView,
-	syncDocOverlayLayoutMetrics,
-	syncRailScrollEdges,
-} from '../doc-reading-sync';
+import { scrollActiveRailNavIntoView, syncRailScrollEdges } from '../doc-reading-sync';
 
-/** 窄屏侧栏抽屉：开关、Escape、断点升档时关闭、resize 时同步 overlay */
+/** 窄屏侧栏抽屉：开关、Escape、断点升档时关闭、resize 时保持侧栏滚动边缘数据属性 */
 export function mountDocRailDrawer(): void {
 	const railToggle = document.getElementById('rail-menu-toggle');
 	const railBackdrop = document.getElementById('rail-backdrop');
@@ -29,7 +25,6 @@ export function mountDocRailDrawer(): void {
 		}
 		document.body.style.overflow = open ? 'hidden' : '';
 		if (open) {
-			syncDocOverlayLayoutMetrics();
 			window.requestAnimationFrame(() => {
 				scrollActiveRailNavIntoView();
 				syncRailScrollEdges();
@@ -65,7 +60,7 @@ export function mountDocRailDrawer(): void {
 		'resize',
 		() => {
 			if (document.body.classList.contains('doc-rail-open')) {
-				syncDocOverlayLayoutMetrics();
+				syncRailScrollEdges();
 			}
 		},
 		{ passive: true },
