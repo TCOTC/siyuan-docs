@@ -19,11 +19,22 @@ export function developerDocPath(doc: { id: string }): string {
 	return id;
 }
 
-export type NavGroupKey = 'intro' | 'plugin' | 'theme';
+export type NavGroupKey =
+	| 'intro'
+	| 'plugin'
+	| 'theme'
+	| 'bazaar'
+	| 'icons'
+	| 'templates'
+	| 'widgets';
 
 export function developerNavGroupKey(id: string): NavGroupKey {
 	const stripped = stripLocalePrefixFromDocId(id);
 	if (stripped.startsWith('plugin/')) return 'plugin';
 	if (stripped.startsWith('theme/')) return 'theme';
+	if (stripped.startsWith('bazaar/')) return 'bazaar';
+	if (stripped.startsWith('icons/')) return 'icons';
+	if (stripped.startsWith('templates/')) return 'templates';
+	if (stripped.startsWith('widgets/')) return 'widgets';
 	return 'intro';
 }

@@ -62,6 +62,14 @@ export type ShellUi = {
 	navPlugin: string;
 	/** `getDeveloperDocsNavGroups` 侧栏「主题」分组的折叠标题 */
 	navTheme: string;
+	/** `getDeveloperDocsNavGroups` 侧栏「集市」分组的折叠标题 */
+	navBazaar: string;
+	/** `getDeveloperDocsNavGroups` 侧栏「图标包」分组的折叠标题 */
+	navIcons: string;
+	/** `getDeveloperDocsNavGroups` 侧栏「模板」分组的折叠标题 */
+	navTemplates: string;
+	/** `getDeveloperDocsNavGroups` 侧栏「挂件」分组的折叠标题 */
+	navWidgets: string;
 	/** 文档页面包屑中当前文档所属分组名（键为 `NavGroupKey`） */
 	navGroup: Record<NavGroupKey, string>;
 	/** `PagefindToolbarTrigger` 占位与触发器旁可见的「搜索」提示 */

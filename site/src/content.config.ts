@@ -3,7 +3,7 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 const docs = defineCollection({
-	/** 仓库根目录 `developers/zh` 与 `developers/en` 下按 `intro` / `plugin` / `theme` 分子目录存放 */
+/** 仓库根目录 `developers/<locale>/` 下按 intro / plugin / theme / bazaar / icons / templates / widgets 等子目录存放 */
 	loader: glob({ pattern: '**/*.md', base: '../developers' }),
 	schema: z.object({
 		title: z.string(),

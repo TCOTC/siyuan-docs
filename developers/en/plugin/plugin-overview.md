@@ -1,79 +1,97 @@
 ---
 title: Plugin development overview
-description: Sample chapter for sidebar and layout
-order: 1
+description: Plugin runtime, load chain, and lifecycle
+order: 20
 ---
 
-Use this space for plugin lifecycle, the `plugin.json` entry point, and talking to the kernel. **Markdown is still rendered by Astro’s default engine**; swap the pipeline for Lute in production if you need parity.
+SiYuan **plugins** are also called **Petals**: JavaScript running in the **SiYuan client UI process**, talking to the **local HTTP API** via **`fetchPost`** and similar APIs to extend the editor, commands, and UI.
 
-### Code sample
+---
 
-```ts
-export default class PluginSample {
-	async onload() {
-		console.log('Hello, SiYuan');
-	}
-}
+## Architecture (logical)
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│ SiYuan client (Electron / browser / mobile WebView)     │
+│  ┌─────────────┐    fetchPost / WebSocket    ┌──────────┐ │
+│  │ Plugin index.js │ ───────────────────────► │ HTTP API │ │
+│  │ extends Plugin  │                          │ :6806    │ │
+│  └─────────────┘                              └──────────┘ │
+└─────────────────────────────────────────────────────────┘
+         │ Notebook data and attachments must go through this API
+         ▼
+   {workspace}/data/...
 ```
 
-Inline code like `plugin.json` uses the same thin-border style.
+Plugins are **not** arbitrary background scripts with full disk access; do **not** use **`require('fs')`** to edit raw files under the notebook tree—use the interfaces documented in **`API.md`**.
 
 ---
 
-The following paragraphs only exist to lengthen the page for scroll and anchor testing; delete the whole block when you are done.
+## Directory layout
 
-## 1. Where plugins run in SiYuan
+Enabled plugins live at:
 
-SiYuan plugins run in the Electron renderer (desktop) or the equivalent WebView, talking to the local kernel via `fetch` / `WebSocket`. That helps debug “works in the browser, fails in the client”: same-origin rules, local ports, and permissions declared in `plugin.json` all affect real behavior.
+**`{workspace}/data/plugins/<package-name>/`**
 
-A plugin usually includes: `plugin.json` (metadata and entry), `index.js` or the bundled main script, optional `icon.png`, and static assets. Prefer `pnpm` for dependencies, and in `onunload` unregister timers, listeners, and commands so hot reload or disable does not leave side effects.
+SiYuan reads fixed filenames from the package:
 
-## 2. Lifecycle and common hooks
+| File | Required | Notes |
+| --- | --- | --- |
+| **`index.js`** | Yes | Bundled output (webpack, esbuild, etc.); injected and executed in the frontend |
+| **`index.css`** | No | Injected when present |
+| **`plugin.json`** | Strongly recommended | Local and marketplace metadata, compatibility checks |
+| **`i18n/*.json`** | No | Plugin UI strings |
 
-- **`onload`**: Called when the plugin is enabled — register commands, toolbar buttons, settings, Protyle events, etc.
-- **`onunload`**: Symmetric cleanup; skipping it often causes leaks or double registration.
-- **`onLayoutReady`** (when available): Touch the DOM after layout is stable to reduce “element not mounted yet” races.
+The entry file is **always `index.js`**; there is **no** `main` field in `plugin.json`.
 
-Long list for height: command registration, shortcut binding, block menu extensions, editor context menus, Dock panels, custom tabs, grouped settings, export hooks, pre-import validation, sync conflict UI… Document when each fires and what it returns so authors and tooling share expectations.
+---
 
-## 3. Interacting with the kernel API
+## Load chain (simplified)
 
-Most kernel APIs are HTTP + JSON; some payloads are large or streamed. Keep request size reasonable, avoid hammering save while an IME composition is in progress, and backoff-retry on failures. If you need workspace paths, concatenate from API responses instead of assuming folder layout.
+1. The client calls **`/api/petal/loadPetals`** and receives **`js` / `css` / `i18n`** for enabled plugins.
+2. **`loader.ts`** wraps the script with **`eval`**, runs it, and reads **`export default`**.
+3. `new PluginSubclass({ app, name, displayName, i18n })`, then **`await onload()`**.
 
-### 3.1 Error handling (illustrative)
+Errors at any step surface in the console as **`plugin <name> run error`** or **`onload error`**.
 
-Network jitter, kernel restarts, and laptop sleep can all fail requests. Surface understandable text in the UI and keep `status` / `message` in logs for bug reports. Never log tokens or passwords.
+---
 
-### 3.2 Version compatibility
+## Lifecycle hooks
 
-Major SiYuan upgrades may change or deprecate API fields. Set `minAppVersion` in `plugin.json` truthfully and list tested version ranges in the README. Example checklist:
+| Method | When it runs |
+| --- | --- |
+| **`onload`** | Right after the plugin is enabled; register commands, menus, `eventBus`, Dock, etc. |
+| **`onunload`** | Before disable; **must** remove listeners, timers, and DOM |
+| **`onLayoutReady`** | After the main layout is ready |
+| **`onDataChanged`** | Plugin storage sync changes (see source comments, multi-device sync) |
+| **`uninstall`** | Override when uninstall flow needs custom behavior |
 
-1. Run smoke tests on 3.x and 2.x if still supported.
-2. Check whether `window.siyuan` or equivalent globals changed.
-3. Check block attribute read/write key names.
-4. Check whether theme CSS variables were renamed.
-5. Check i18n keys against official language packs.
+There are also optional overrides such as **`updateProtyleToolbar`**, **`updateCards`**, and more.
 
-## 4. Developer experience
+---
 
-TypeScript and official or community typings reduce typos when building API paths. Do not ship uncompressed source maps in release builds unless you accept exposing internals. With Vite / Rollup, keep HMR in dev and tree-shake plus chunk splits for production.
+## How plugins relate to other marketplace packages
 
-A good overview should answer in five minutes: **where to start**, **what pitfalls to avoid**, and **where to read APIs**. Keep heading levels clear: H2 for big topics, H3 for subtopics; avoid jumping straight to H4 in the body or the TOC becomes noisy.
+| Type | When to use a plugin |
+| --- | --- |
+| Theme | Skin only, CSS variables → use a **theme** |
+| Template | Insert snippets only → **template pack** |
+| Widget | Standalone iframe page → **widget** |
+| Icon pack | Swap emoji / icon set → **icon pack** |
+| Plugin | Commands, HTTP API, editor behavior → **plugin** |
 
-If you have reached this far, try the scrollbar a few times: sidebar highlight, sticky header, or “back to top” (if any) should feel right. If the wrong element scrolls, inspect `overflow`, `height: 100%`, and flex children with `min-height: 0`.
+---
 
-**Q: Can a plugin replace the kernel?** Usually not; plugins extend via public APIs.
+## Compatibility and trust
 
-**Q: Do plugins conflict?** Yes — two items on the same menu or the same shortcut need coordination.
+- **`minAppVersion`**: SiYuan below this version should not enable the plugin.
+- **`backends` / `frontends`**: Mismatch with the current environment may skip loading.
+- **Marketplace trust**: Some setups require the user to trust the marketplace before the plugin list loads (depends on client settings).
 
-**Q: How to debug?** Open dev tools in SiYuan and set breakpoints in plugin scripts; production builds may strip debug symbols.
+---
 
-**Q: Can I publish to the marketplace?** Depends on channel policy and this repo’s notes; not expanded here.
+## Next steps
 
-## 5. Appendix: placeholder A–J (abbreviated)
-
-Paragraphs A–J in the Chinese original only add scroll height. For English, this appendix is shortened on purpose: in real docs, alternate block quotes, lists, tasks, code blocks, and tables; mix CJK and Latin spacing (e.g. `SiYuan API`); avoid mega-long single-line URLs; lazy-load images; use KaTeX pages to test math height; keep footnotes at the end; verify TOC sync on long pages; test mobile drawer scrolling separately.
-
-## 6. Closing
-
-Replace everything from “The following paragraphs only exist…” onward with real API text, screenshots, and minimal repros when you are ready.
+1. [Quick start](./plugin-quickstart)
+2. [plugin.json](./plugin-manifest)
+3. [Frontend Plugin API](./plugin-frontend-api)

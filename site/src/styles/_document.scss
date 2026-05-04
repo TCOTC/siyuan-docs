@@ -1482,6 +1482,9 @@ body.doc-rail-open .rail-menu-trigger__bar {
 /* 正文：Linear 文档式层级与链接下划线 */
 .prose {
 	max-width: 100%;
+	/* 宽 Markdown 表可在正文栏内横向滚动，避免被 `.read-main { overflow-x: hidden }` 裁切 */
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
 
 	h1 {
 		margin: 0 0 0.5em;
@@ -1697,6 +1700,64 @@ body.doc-rail-open .rail-menu-trigger__bar {
 		border-radius: var(--sp-1);
 		background: var(--muted);
 		color: var(--ink);
+	}
+
+	/* 技术文档表格：网格边框、表头区分、斑马纹与悬停（与正文颜色 token 一致） */
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		margin: 1.15em 0;
+		font-size: var(--tp-sm);
+		line-height: 1.5;
+		border: var(--sp-line) solid var(--line-strong);
+		border-radius: var(--r-card);
+		background: var(--canvas);
+	}
+
+	caption {
+		caption-side: bottom;
+		margin-top: var(--sp-2);
+		font-size: var(--tp-xs);
+		font-weight: 500;
+		color: var(--ink-dim);
+		text-align: left;
+		line-height: 1.5;
+	}
+
+	th,
+	td {
+		padding: var(--sp-2) var(--sp-3);
+		vertical-align: top;
+		border: var(--sp-line) solid var(--line);
+		color: var(--ink-dim);
+	}
+
+	th {
+		font-weight: 600;
+		color: var(--ink);
+	}
+
+	thead th {
+		text-align: left;
+		background: var(--muted);
+		border-color: var(--line-strong);
+		border-bottom: var(--sp-line) solid var(--line-strong);
+	}
+
+	tbody tr:nth-child(even) td {
+		background: rgba(0, 0, 0, 0.025);
+	}
+
+	html[data-theme='dark'] & tbody tr:nth-child(even) td {
+		background: rgba(255, 255, 255, 0.04);
+	}
+
+	tbody tr:hover td {
+		background: rgba(0, 0, 0, 0.05);
+	}
+
+	html[data-theme='dark'] & tbody tr:hover td {
+		background: rgba(255, 255, 255, 0.07);
 	}
 
 	hr {

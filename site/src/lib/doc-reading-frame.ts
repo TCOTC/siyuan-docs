@@ -7,7 +7,14 @@ export type DeveloperNavItem = { path: string; title: string };
 export type DeveloperNavGroup = { label: string; items: DeveloperNavItem[] };
 
 /** 与 `developers/<locale>/intro|plugin|theme/` 目录一一对应，用于「分组路径」重定向 */
-export type DeveloperNavFolderKey = 'intro' | 'plugin' | 'theme';
+export type DeveloperNavFolderKey =
+	| 'intro'
+	| 'plugin'
+	| 'theme'
+	| 'bazaar'
+	| 'icons'
+	| 'templates'
+	| 'widgets';
 
 /** 与文档页侧栏一致：按内容集合与语言过滤后构建入门 / 插件 / 主题分组 */
 export async function getDeveloperDocsNavGroups(locale: AppLocale): Promise<DeveloperNavGroup[]> {
@@ -15,10 +22,20 @@ export async function getDeveloperDocsNavGroups(locale: AppLocale): Promise<Deve
 	const intro = await developerNavDocsSortedForIdPrefix(locale, 'intro/');
 	const pluginItems = await developerNavDocsSortedForIdPrefix(locale, 'plugin/');
 	const themeItems = await developerNavDocsSortedForIdPrefix(locale, 'theme/');
+	const bazaarItems = await developerNavDocsSortedForIdPrefix(locale, 'bazaar/');
+	const iconItems = await developerNavDocsSortedForIdPrefix(locale, 'icons/');
+	const templateItems = await developerNavDocsSortedForIdPrefix(locale, 'templates/');
+	const widgetItems = await developerNavDocsSortedForIdPrefix(locale, 'widgets/');
 	return [
 		intro.length ? { label: ui.navIntro, items: intro.map(({ path, title }) => ({ path, title })) } : null,
 		pluginItems.length ? { label: ui.navPlugin, items: pluginItems.map(({ path, title }) => ({ path, title })) } : null,
 		themeItems.length ? { label: ui.navTheme, items: themeItems.map(({ path, title }) => ({ path, title })) } : null,
+		bazaarItems.length ? { label: ui.navBazaar, items: bazaarItems.map(({ path, title }) => ({ path, title })) } : null,
+		iconItems.length ? { label: ui.navIcons, items: iconItems.map(({ path, title }) => ({ path, title })) } : null,
+		templateItems.length
+			? { label: ui.navTemplates, items: templateItems.map(({ path, title }) => ({ path, title })) }
+			: null,
+		widgetItems.length ? { label: ui.navWidgets, items: widgetItems.map(({ path, title }) => ({ path, title })) } : null,
 	].filter((g): g is DeveloperNavGroup => g != null);
 }
 
@@ -34,7 +51,7 @@ export async function firstDeveloperDocRelPathForFolder(
 		const items = await developerNavDocsSortedForIdPrefix(locale, `${folder}/`);
 		return items[0]?.path ?? null;
 	}
-	for (const key of ['intro', 'plugin', 'theme'] as const) {
+	for (const key of ['intro', 'plugin', 'theme', 'bazaar', 'icons', 'templates', 'widgets'] as const) {
 		const items = await developerNavDocsSortedForIdPrefix(locale, `${key}/`);
 		if (items[0]) return items[0].path;
 	}
