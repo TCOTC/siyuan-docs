@@ -10,6 +10,8 @@
  *
  * 可见性仅由本脚本控制（不用 CSS :hover 显示提示层）：Pagefind 真实按钮出现与 bind 完成
  * 之间若用 CSS 显示，提示会仍留在工具栏内被裁切；悬停后经 SHOW_DELAY_MS 再 portal，与原先 transition-delay 相当。
+ *
+ * 触屏上 :hover 常为「黏滞」态，且 mouseleave 不可靠。对 (hover: none) 设备不展示气泡，并在 pointerup（非 mouse）时强制收起。
  */
 const GAP = 5;
 const Z = 20000;
@@ -22,7 +24,17 @@ const PLACED_OPEN_CLASS = 'js-floating-hint--anchored-open';
 
 const portalAnchor = new WeakMap<Element, { parent: Node; next: ChildNode | null }>();
 
-type RootBinding = { btn: Element; sync: () => void; clearPending: () => void };
+/** 无可靠悬停（多为触屏为主）：不要用 :hover 展示气泡，避免首次点击后黏滞 hover 导致提示常亮 */
+function prefersHover(): boolean {
+	return typeof window.matchMedia === 'function' && window.matchMedia('(hover: hover)').matches;
+}
+
+type RootBinding = {
+	btn: Element;
+	sync: () => void;
+	clearPending: () => void;
+	onPointerUp: (e: Event) => void;
+};
 const rootBindings = new WeakMap<Element, RootBinding>();
 
 /**
@@ -117,6 +129,7 @@ function bindRoot(root: Element): void {
 		prev.clearPending();
 		prev.btn.removeEventListener('mouseenter', prev.sync);
 		prev.btn.removeEventListener('mouseleave', prev.sync);
+		prev.btn.removeEventListener('pointerup', prev.onPointerUp);
 		window.removeEventListener('scroll', prev.sync, true);
 		window.removeEventListener('resize', prev.sync);
 		/* 占位被 Pagefind 替换时若提示曾挂到 body，需收回，否则会残留在最上层 */
@@ -132,7 +145,21 @@ function bindRoot(root: Element): void {
 		}
 	};
 
+	const onPointerUp = (e: Event): void => {
+		/* 触笔 / 手指抬起后强制收起；避免少数设备误报 (hover: hover) 时黏滞 hover */
+		const pe = e as PointerEvent;
+		if (pe.pointerType !== 'mouse') {
+			clearPending();
+			clearPlacedStyles(layer);
+		}
+	};
+
 	const sync = (): void => {
+		if (!prefersHover()) {
+			clearPending();
+			clearPlacedStyles(layer);
+			return;
+		}
 		/* 仅用 :hover，避免点击后 :focus-visible 残留导致提示不随鼠标离开而收起 */
 		if (btn instanceof HTMLElement && btn.matches(':hover')) {
 			if (layer.classList.contains(PLACED_OPEN_CLASS)) {
@@ -140,7 +167,11 @@ function bindRoot(root: Element): void {
 			} else if (showTimer == null) {
 				showTimer = setTimeout(() => {
 					showTimer = null;
-					if (btn instanceof HTMLElement && btn.matches(':hover')) {
+					if (
+						prefersHover() &&
+						btn instanceof HTMLElement &&
+						btn.matches(':hover')
+					) {
 						setLayerPlacedStyles(layer);
 						placeToButton(btn, layer);
 					}
@@ -154,9 +185,10 @@ function bindRoot(root: Element): void {
 
 	btn.addEventListener('mouseenter', sync);
 	btn.addEventListener('mouseleave', sync);
+	btn.addEventListener('pointerup', onPointerUp);
 	window.addEventListener('scroll', sync, true);
 	window.addEventListener('resize', sync);
-	rootBindings.set(root, { btn, sync, clearPending });
+	rootBindings.set(root, { btn, sync, clearPending, onPointerUp });
 }
 
 function run(): void {
