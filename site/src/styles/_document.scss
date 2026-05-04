@@ -210,6 +210,11 @@ body.doc-layout {
 	 */
 	--sheet-pl: clamp(200px, 22vw, 248px);
 	--sheet-pr: 0px;
+	/*
+	 * 与 `.bar` 边框盒同高：`height: var(--bar-h)` + `border-bottom`，避免首帧沿用 :root 的 `--overlay-top: var(--bar-h)` 少 1px、
+	 * 脚本再写入 `getBoundingClientRect().height` 时造成 `.sheet` 的 `padding-top` 突变与正文轻微上下跳。
+	 */
+	--overlay-top: calc(var(--bar-h) + var(--sp-line));
 }
 
 /* —— 文档：左侧导航 + 阅读区（正文与本页大纲同列内并排） —— */
@@ -1701,7 +1706,7 @@ body.doc-rail-open .rail-menu-trigger__bar {
 	width: var(--toc-w);
 	max-width: var(--w-toc-max);
 	position: sticky;
-	/* 与固定主栏顶栏底边对齐（--overlay-top 由脚本同步实际高度） */
+	/* 与固定主栏顶栏底边对齐（`--overlay-top` 见 `body.doc-layout`） */
 	top: var(--overlay-top, var(--bar-h));
 	align-self: flex-start;
 	max-height: calc(100dvh - var(--overlay-top, var(--bar-h)));

@@ -8,6 +8,7 @@ import {
 	isRailScrollBootSuppress,
 	scheduleReleaseProgrammaticRailScrollDepth,
 } from './doc-window-runtime';
+import { applyDocSheetViewportInsets } from './doc-sheet-insets';
 
 /** 避免正文滚动时每个 rAF 都重算大纲 scrollTop；仅在高亮集合变化时自动滚大纲 */
 let tocActiveHeadSig = '';
@@ -182,24 +183,13 @@ function setTocListIndicatorFromLiNodes(tocList: HTMLElement, liNodes: HTMLEleme
 }
 
 /**
- * 将主栏 `.sheet` 的视口水平 inset、`.bar` 高度写入 CSS 变量（`--overlay-top` / `--sheet-pl` / `--sheet-pr`）。
- * 宽屏大纲 `left` 由 `_document.scss` 纯 CSS 推算；此处测量值用于与首屏近似对齐并处理滚动条等亚像素差异。
- * 供 `shell-ui` 与首屏内联脚本使用，避免 fixed 顶栏在 deferred 模块执行前以 inset 0 铺满视口再跳变。
+ * 将主栏 `.sheet` 的视口水平 inset 写入 CSS 变量（`--sheet-pl` / `--sheet-pr`）。
+ * `--overlay-top` 由 `body.doc-layout` 与 `.bar` 边框盒对齐，不在此写入，避免首帧与 CSS 差 1px 造成正文上下跳。
+ * 宽屏大纲 `left` 由 `_document.scss` 纯 CSS 推算。
+ * 供 `shell-ui` 与首屏内联脚本使用。
  */
 export function syncDocOverlayLayoutMetrics(): void {
-	const root = document.documentElement;
-	const contentHeadEl = document.querySelector('.bar');
-	if (contentHeadEl instanceof HTMLElement) {
-		const h = Math.ceil(contentHeadEl.getBoundingClientRect().height);
-		root.style.setProperty('--overlay-top', `${h}px`);
-	}
-	const docCenterEl = document.querySelector('.sheet');
-	if (docCenterEl instanceof HTMLElement) {
-		const r = docCenterEl.getBoundingClientRect();
-		const vw = document.documentElement.clientWidth;
-		root.style.setProperty('--sheet-pl', `${r.left}px`);
-		root.style.setProperty('--sheet-pr', `${Math.max(0, vw - r.right)}px`);
-	}
+	applyDocSheetViewportInsets();
 }
 
 export function syncRailScrollEdges(): void {
