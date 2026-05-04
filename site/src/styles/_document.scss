@@ -216,6 +216,11 @@ body.doc-layout {
 	background: var(--canvas);
 }
 
+// 修复文档内容不足时也会显示滚动条的问题
+body.doc-layout .shell {
+	min-height: calc(100dvh - 1px);
+}
+
 .rail-backdrop {
 	position: fixed;
 	inset: 0;
