@@ -204,6 +204,12 @@ a {
 body.doc-layout {
 	min-height: 100dvh;
 	overflow-x: hidden;
+	/*
+	 * 与 `.rail` / `.shell` 第一列同形的首屏主栏左缘（避免沿用 :root 的 `--sheet-pl: 0` 导致 bar / 大纲错位）。
+	 * 脚本运行后仍以测量像素覆盖，用于亚像素与滚动条等细节。
+	 */
+	--sheet-pl: clamp(200px, 22vw, 248px);
+	--sheet-pr: 0px;
 }
 
 /* —— 文档：左侧导航 + 阅读区（正文与本页大纲同列内并排） —— */
@@ -1405,6 +1411,16 @@ body.doc-rail-open .rail-menu-trigger__bar {
 	overflow-y: visible;
 	-webkit-overflow-scrolling: touch;
 
+	/* 有本页大纲时：正文 + 大纲同排，便于宽屏下作为一整块水平居中 */
+	&-cluster {
+		display: flex;
+		flex-direction: row;
+		align-items: flex-start;
+		min-width: 0;
+		flex: 1 1 auto;
+		width: 100%;
+	}
+
 	/* 与 Shell 中 read-main 同级：连字符类名用 &-main 展开为 .read-main */
 	&-main {
 		flex: 1 1 auto;
@@ -1422,10 +1438,31 @@ body.doc-rail-open .rail-menu-trigger__bar {
 		}
 	}
 
-	@media (width >= 1000px) {
-		body.doc-layout &--toc {
-			padding-right: var(--toc-w);
-			box-sizing: border-box;
+	@media (min-width: 1000px) {
+		/* 正文 + 大纲占位同宽，`margin: auto` 居中整块（大纲本体为 fixed 不占 flex 宽） */
+		body.doc-layout &.read--toc &-cluster {
+			flex: 0 1 auto;
+			width: auto;
+			max-width: 100%;
+			min-width: 0;
+			margin-left: auto;
+			margin-right: auto;
+
+			/* 与 fixed 大纲同宽，保证 cluster 横向尺寸 = 正文栏 + 大纲栏 */
+			&::after {
+				content: '';
+				flex: 0 0 var(--toc-w);
+				width: var(--toc-w);
+				max-width: var(--w-toc-max);
+				min-height: 1px;
+				pointer-events: none;
+			}
+		}
+
+		body.doc-layout &.read--toc &-cluster &-main {
+			flex: 0 1 var(--w-read);
+			min-width: 0;
+			width: min(100%, var(--w-read));
 		}
 	}
 }
@@ -1657,7 +1694,7 @@ body.doc-rail-open .rail-menu-trigger__bar {
 	}
 }
 
-/* 本页大纲：与正文并排；宽屏下 fixed，left 由 syncDocOverlayLayoutMetrics 写入 --toc-left */
+/* 本页大纲：DOM 中置于 `read-cluster` 内；宽屏下 fixed，`left` 由纯 CSS 与 `--sheet-pl` / 正文最大宽推算（与 `read-cluster` 居中一致） */
 .toc {
 	flex: 0 0 var(--toc-w);
 	min-height: 0;
@@ -1753,21 +1790,34 @@ body.doc-rail-open .rail-menu-trigger__bar {
 		}
 	}
 
-	/* ≥1000px：固定视口；≤999px：隐藏（与 shell-ui / read--toc 档位一致） */
-	@media (width >= 1000px) {
+	/* ≥1000px：固定视口；与 JS `matchMedia('(min-width: 1000px)')` 对齐用 not，避免与 `<` 在亚像素下错档 */
+	@media (min-width: 1000px) {
 		body.doc-layout & {
 			position: fixed;
 			top: var(--overlay-top, var(--bar-h));
-			/* 脚本未跑完前：用主栏右缘与栏宽推算，避免 `left` 缺失时叠在正文左侧 */
-			left: var(
-				--toc-left,
-				calc(100vw - var(--sheet-pr, 0px) - var(--toc-w))
+			/*
+			 * 与 `#main-content` 右缘对齐：`inner` 为主栏内宽，`mw` 为正文实际宽度上限，
+			 * 与 `read-cluster` 内 `min(100%, var(--w-read))` + `::after` 占位一致。
+			 */
+			left: calc(
+				var(--sheet-pl, 0px) +
+					(
+						(100vw - var(--sheet-pl, 0px) - var(--sheet-pr, 0px)) +
+							min(
+								var(--w-read),
+								max(
+									0px,
+									(100vw - var(--sheet-pl, 0px) - var(--sheet-pr, 0px)) - var(--toc-w)
+								)
+							) -
+							var(--toc-w)
+					) /
+					2
 			);
 			right: auto;
 			width: var(--toc-w);
 			max-width: var(--w-toc-max);
 			flex: none;
-			/* 勿用 height:auto + max-height:none，否则固定栏会按内容无限增高超出视口 */
 			bottom: auto;
 			max-height: calc(
 				100dvh - var(--overlay-top, var(--bar-h)) - env(safe-area-inset-bottom, 0px)
@@ -1781,7 +1831,7 @@ body.doc-rail-open .rail-menu-trigger__bar {
 		}
 	}
 
-	@media (width <= 999px) {
+	@media not (min-width: 1000px) {
 		body.doc-layout & {
 			display: none;
 		}
@@ -1900,14 +1950,16 @@ body.doc-rail-open .rail-menu-trigger__bar {
 	}
 }
 
-/* 宽屏文档三级版面（仅随视口宽度；分界用 width 范围语法，避免 max 与 min 在亚像素下留缝）：
+/* 宽屏文档三级版面（仅随视口宽度；本页大纲档与 JS 共用 `min-width: 1000px` / `not (min-width: 1000px)`，避免与 `width` 语法在亚像素下错档）：
  * <850px：仅正文 + 抽屉文档列表，无本页大纲
- * 850px–999px：固定文档列表 + 正文，无本页大纲
- * 1000px–1300px：文档列表 + 正文 + 本页大纲（与上一档以 999px/1000px 分界）
+ * 850px–<1000px：固定文档列表 + 正文，无本页大纲
+ * ≥1000px：文档列表 + 正文 + 本页大纲
  * ≥1300px：同上一档
  */
 @media (width < 850px) {
 	body.doc-layout {
+		--sheet-pl: 0px;
+		--sheet-pr: 0px;
 		/*
 		 * 抽屉档右侧基准：与主栏汉堡外沿一致；侧栏顶栏工具钮与 `.rail-nav__trigger` 内 chevron 共用此列。
 		 */

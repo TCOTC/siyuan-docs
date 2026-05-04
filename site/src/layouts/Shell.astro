@@ -431,35 +431,42 @@ const scriptResourceHintsHtml = scriptResourceHintParts.join('');
 								</button>
 							</div>
 						</div>
+						<div
+							class:list={['read', { 'read--toc': tocItems.length > 0 }]}
+						>
+							{
+								tocItems.length > 0 ? (
+									<div class="read-cluster">
+										<main id="main-content" class="read-main" tabindex="-1" data-pagefind-body>
+											<slot />
+										</main>
+										<aside class="toc" aria-label={t.tocAsideAria} data-pagefind-ignore>
+											<div class="toc__inner">
+												<ul class="toc__list" id="doc-toc-list" style="--top: 0px; --height: 0px;">
+													{tocItems.map((h) => (
+														<li class:list={[`toc-depth-${h.depth}`]}>
+															<a href={`#${h.slug}`}>{h.text}</a>
+														</li>
+													))}
+												</ul>
+											</div>
+											<script is:inline set:html={docTocFirstBootInline}></script>
+										</aside>
+									</div>
+								) : (
+									<main id="main-content" class="read-main" tabindex="-1" data-pagefind-body>
+										<slot />
+									</main>
+								)
+							}
+						</div>
 						<script
 							is:inline
 							define:vars={{
 								docScrollSessionPrefix: DOC_SCROLL_SESSION_PREFIX,
-								hasDocToc: tocItems.length > 0,
 							}}
 							set:html={docLayoutFirstPaintInline}
 						/>
-						<div
-							class:list={['read', { 'read--toc': tocItems.length > 0 }]}
-						>
-							<main id="main-content" class="read-main" tabindex="-1" data-pagefind-body>
-								<slot />
-							</main>
-							{tocItems.length > 0 && (
-								<aside class="toc" aria-label={t.tocAsideAria} data-pagefind-ignore>
-									<div class="toc__inner">
-										<ul class="toc__list" id="doc-toc-list" style="--top: 0px; --height: 0px;">
-											{tocItems.map((h) => (
-												<li class:list={[`toc-depth-${h.depth}`]}>
-													<a href={`#${h.slug}`}>{h.text}</a>
-												</li>
-											))}
-										</ul>
-									</div>
-									<script is:inline set:html={docTocFirstBootInline}></script>
-								</aside>
-							)}
-						</div>
 					</div>
 				</div>
 			)

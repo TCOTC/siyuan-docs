@@ -42,6 +42,11 @@ export function mountDocLayoutChrome(): void {
 		const roDocCenter = new ResizeObserver(() => syncDocOverlayLayoutMetrics());
 		roDocCenter.observe(docCenterRo);
 	}
+	const readMainRo = document.querySelector('.toc') ? document.getElementById('main-content') : null;
+	if (readMainRo) {
+		const roReadMain = new ResizeObserver(() => syncDocOverlayLayoutMetrics());
+		roReadMain.observe(readMainRo);
+	}
 	/* 点击面包屑当前页标题（.breadcrumbs__current）：回文档开头，与同页 href 刷新区分 */
 	const contentHeadEl = document.querySelector('.bar');
 	if (contentHeadEl instanceof HTMLElement) {

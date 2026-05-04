@@ -182,7 +182,8 @@ function setTocListIndicatorFromLiNodes(tocList: HTMLElement, liNodes: HTMLEleme
 }
 
 /**
- * 将主栏 `.sheet` 的视口水平 inset、`.bar` 高度、宽屏固定 TOC 的 left 写入 CSS 变量。
+ * 将主栏 `.sheet` 的视口水平 inset、`.bar` 高度写入 CSS 变量（`--overlay-top` / `--sheet-pl` / `--sheet-pr`）。
+ * 宽屏大纲 `left` 由 `_document.scss` 纯 CSS 推算；此处测量值用于与首屏近似对齐并处理滚动条等亚像素差异。
  * 供 `shell-ui` 与首屏内联脚本使用，避免 fixed 顶栏在 deferred 模块执行前以 inset 0 铺满视口再跳变。
  */
 export function syncDocOverlayLayoutMetrics(): void {
@@ -198,22 +199,6 @@ export function syncDocOverlayLayoutMetrics(): void {
 		const vw = document.documentElement.clientWidth;
 		root.style.setProperty('--sheet-pl', `${r.left}px`);
 		root.style.setProperty('--sheet-pr', `${Math.max(0, vw - r.right)}px`);
-	}
-	const tocRailEl = document.querySelector('.toc');
-	if (
-		docCenterEl instanceof HTMLElement &&
-		tocRailEl instanceof HTMLElement &&
-		window.matchMedia('(min-width: 1000px)').matches
-	) {
-		const tw = tocRailEl.offsetWidth;
-		if (tw > 0) {
-			const dc = docCenterEl.getBoundingClientRect();
-			root.style.setProperty('--toc-left', `${Math.round(dc.right - tw)}px`);
-		} else {
-			root.style.removeProperty('--toc-left');
-		}
-	} else {
-		root.style.removeProperty('--toc-left');
 	}
 }
 

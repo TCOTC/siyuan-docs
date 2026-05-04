@@ -1,34 +1,17 @@
 /**
  * 本页大纲首屏：须 `is:inline` 且紧跟 `#doc-toc-list` 之后同步执行，避免外链 `src` 在 fetch
  * 期间先画出 scrollTop=0 再瞬移。算法与 `doc-reading-sync.ts` 中 `tocSync` 视口阅读线分支一致。
+ * 大纲水平位置由 `_document.scss` 纯 CSS 与主栏变量决定，不依赖本脚本写 `--toc-left`。
  * 由 `Shell.astro` 以 `?inline-bundle` 压缩后内联；外层 IIFE 保留 `return` 语义，esbuild 会再包一层 iife 产出。
  */
 (function () {
-	const root = document.documentElement;
-	const dc = document.querySelector('.sheet');
-	const toc = document.querySelector('.toc') as HTMLElement | null;
-	try {
-		if (
-			dc &&
-			toc &&
-			window.matchMedia('(min-width: 1000px)').matches &&
-			toc.offsetWidth > 0
-		) {
-			const dcr = dc.getBoundingClientRect();
-			root.style.setProperty('--toc-left', `${Math.round(dcr.right - toc.offsetWidth)}px`);
-		} else {
-			root.style.removeProperty('--toc-left');
-		}
-	} catch {
-		/* ignore */
-	}
-
 	if (!window.matchMedia('(min-width: 1000px)').matches) {
 		return;
 	}
+	const toc = document.querySelector('.toc') as HTMLElement | null;
+	const readMain = document.getElementById('main-content');
 	const tocList0 = document.getElementById('doc-toc-list');
-	const docMain0 = document.getElementById('main-content');
-	if (!toc || !tocList0 || !docMain0?.classList.contains('read-main')) return;
+	if (!toc || !tocList0 || !readMain?.classList.contains('read-main')) return;
 	if (toc.getBoundingClientRect().height < 1) return;
 
 	function measureInd(list: Element, liNodes: Element[]) {
@@ -58,12 +41,12 @@
 		if (tid0) idWanted[tid0] = true;
 	}
 	const ordered0: HTMLElement[] = [];
-	for (const he0 of docMain0.querySelectorAll('h2[id],h3[id],h4[id]')) {
+	for (const he0 of readMain.querySelectorAll('h2[id],h3[id],h4[id]')) {
 		if (he0 instanceof HTMLElement && idWanted[he0.id]) {
 			ordered0.push(he0);
 		}
 	}
-	const docCenter0 = docMain0.closest('.sheet');
+	const docCenter0 = readMain.closest('.sheet');
 	const ch0 = docCenter0?.querySelector(':scope > .bar') ?? null;
 	const vpTop0 = ch0 instanceof HTMLElement ? ch0.getBoundingClientRect().bottom : 0;
 	const vpBottom0 = window.innerHeight;
