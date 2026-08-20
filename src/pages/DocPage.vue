@@ -6,8 +6,8 @@ import DocLayout from '../layouts/DocLayout.vue';
 import generated from '../generated/docs.json';
 import { shellUi } from '../i18n';
 import {
+	docMarkdownHref,
 	findDoc,
-	githubBlobUrl,
 	railGroupContaining,
 	stemFromRouteParam,
 	type GeneratedDocs,
@@ -60,7 +60,7 @@ onUnmounted(() => {
 		:rail="nav"
 		:breadcrumbs="breadcrumbs"
 		:headings="doc?.headings ?? []"
-		:md-view-href="doc ? githubBlobUrl(doc.sourcePath) : undefined"
+		:md-view-href="doc ? docMarkdownHref(locale, doc.stem) : undefined"
 		:home-stem="homeStem"
 		:not-found="!doc"
 	>

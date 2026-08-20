@@ -4,6 +4,10 @@ dist/
 content/
 tmp/
 src/generated/docs.json
+public/en/
+public/zh-CN/
+public/en.md
+public/zh-CN.md
 .DS_Store
 .idea/
 *.log

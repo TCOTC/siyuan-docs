@@ -25,6 +25,7 @@ defineProps<{
 				class="copy-split__main js-copy-page-md"
 				id="copy-page-md"
 				data-floating-hint-anchor
+				:data-copy-md-src="mdViewHref"
 				:aria-label="t.copyPageMdAria"
 			>
 				<span class="copy-split__main-icons" aria-hidden="true">

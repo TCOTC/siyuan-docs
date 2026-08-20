@@ -59,15 +59,22 @@ export function docHref(locale: AppLocale, stem: string, base = import.meta.env.
 	return `${prefix}${docPath(locale, stem)}`;
 }
 
+/** 站内纯文本 Markdown：`/{locale}/{stem}/` 对应 `/{locale}/{stem}.md`，首页为 `/{locale}.md` */
+export function docMarkdownPath(locale: AppLocale, stem: string): string {
+	if (stem === HOME_STEM) return `/${locale}.md`;
+	return `/${locale}/${stem}.md`;
+}
+
+export function docMarkdownHref(locale: AppLocale, stem: string, base = import.meta.env.BASE_URL): string {
+	const prefix = base.endsWith('/') ? base.slice(0, -1) : base;
+	return `${prefix}${docMarkdownPath(locale, stem)}`;
+}
+
 /** 从 `/:locale` 或 `/:locale/:path(.*)` 取出文档 stem（空路径即首页） */
 export function stemFromRouteParam(pathParam: unknown): string {
 	const raw = Array.isArray(pathParam) ? pathParam.join('/') : String(pathParam ?? '');
 	const stem = raw.replace(/\/+$/, '');
 	return stem === '' ? HOME_STEM : stem;
-}
-
-export function githubBlobUrl(sourcePath: string): string {
-	return `https://github.com/TCOTC/siyuan-docs/blob/main/${sourcePath}`;
 }
 
 export function findDoc(docs: DocRecord[], locale: AppLocale, stem: string): DocRecord | undefined {

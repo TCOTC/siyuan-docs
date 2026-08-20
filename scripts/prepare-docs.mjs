@@ -180,4 +180,20 @@ const payload = {
 
 fs.mkdirSync(generatedDir, { recursive: true });
 fs.writeFileSync(path.join(generatedDir, 'docs.json'), `${JSON.stringify(payload, null, '\t')}\n`);
-console.log(`[prepare-docs] wrote ${docs.length} pages`);
+
+const publicDir = path.join(root, 'public');
+for (const loc of localeSuffixes) {
+	fs.rmSync(path.join(publicDir, loc), { recursive: true, force: true });
+	fs.rmSync(path.join(publicDir, `${loc}.md`), { force: true });
+}
+for (const doc of docs) {
+	const abs =
+		doc.stem === homeStem
+			? path.join(publicDir, `${doc.locale}.md`)
+			: `${path.join(publicDir, doc.locale, ...doc.stem.split('/'))}.md`;
+	fs.mkdirSync(path.dirname(abs), { recursive: true });
+	const body = doc.markdown.endsWith('\n') ? doc.markdown : `${doc.markdown}\n`;
+	fs.writeFileSync(abs, body, 'utf8');
+}
+
+console.log(`[prepare-docs] wrote ${docs.length} pages and public markdown`);
