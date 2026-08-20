@@ -90,14 +90,15 @@ const files = walkMarkdown(contentDir)
 		if (!parsed) return null;
 		const raw = fs.readFileSync(abs, 'utf8');
 		const fm = matter(raw);
+		const title = String(fm.data.title ?? parsed.stem);
 		return {
 			id: `${parsed.locale}:${parsed.stem}`,
 			locale: parsed.locale,
 			stem: parsed.stem,
 			sourcePath: rel,
-			title: String(fm.data.title ?? parsed.stem),
+			title,
 			description: fm.data.description ? String(fm.data.description) : undefined,
-			markdown: fm.content.replace(/^\uFEFF/, ''),
+			markdown: `# ${title}\n\n${fm.content.replace(/^\uFEFF/, '').replace(/^\s+/, '')}`,
 		};
 	})
 	.filter(Boolean);
