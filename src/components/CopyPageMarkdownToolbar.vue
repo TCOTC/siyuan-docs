@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown, Copy, Check, X } from 'lucide-vue-next';
+import { ChevronDown, Copy, Check, X } from '@lucide/vue';
 import type { ShellUi } from '../i18n/types';
 
 defineProps<{

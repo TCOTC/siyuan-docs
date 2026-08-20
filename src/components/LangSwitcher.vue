@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Languages } from 'lucide-vue-next';
+import { Languages } from '@lucide/vue';
 import {
 	appLocalesForPresentation,
 	langSwitcherOptionLabel,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown } from 'lucide-vue-next';
+import { ChevronDown } from '@lucide/vue';
 import { docHref, type NavGroup } from '../lib/docData';
 import type { AppLocale } from '../lib/locales';
 

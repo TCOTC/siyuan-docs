@@ -3,32 +3,30 @@
 	"private": true,
 	"type": "module",
 	"version": "0.0.1",
-	"packageManager": "pnpm@10.33.2",
+	"packageManager": "pnpm@11.22.0",
 	"engines": {
 		"node": ">=24.0.0"
 	},
 	"scripts": {
 		"fetch-docs": "node scripts/fetch-docs.mjs",
 		"prepare-docs": "node scripts/prepare-docs.mjs",
+		"dev": "node scripts/fetch-docs.mjs && node scripts/prepare-docs.mjs && vite",
 		"build": "node scripts/fetch-docs.mjs && node scripts/prepare-docs.mjs && vite-ssg build && node scripts/run-pagefind.mjs",
 		"preview": "vite preview"
 	},
 	"dependencies": {
-		"@unhead/vue": "^2.1.12",
-		"lucide-vue-next": "^0.562.0",
-		"vue": "^3.5.32",
-		"vue-router": "^4.6.4"
+		"@lucide/vue": "^1.33.0",
+		"@unhead/vue": "^3.3.2",
+		"vue": "^3.5.41",
+		"vue-router": "^5.2.0"
 	},
 	"devDependencies": {
-		"@vitejs/plugin-vue": "^6.0.5",
+		"@vitejs/plugin-vue": "^6.0.8",
 		"gray-matter": "^4.0.3",
 		"pagefind": "^1.5.2",
-		"sass": "^1.99.0",
-		"typescript": "^5.9.3",
-		"vite": "^7.3.2",
+		"sass": "~1.102.0",
+		"typescript": "npm:@typescript/typescript6@^6.0.2",
+		"vite": "8.2.1",
 		"vite-ssg": "^28.3.0"
-	},
-	"pnpm": {
-		"onlyBuiltDependencies": ["esbuild", "@parcel/watcher"]
 	}
 }
