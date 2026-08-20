@@ -1,0 +1,51 @@
+import type { NavGroupKey } from '../lib/docMeta';
+
+export type ShellUi = {
+	siteName: string;
+	railSiteLabel: string;
+	skipToContent: string;
+	themeToggleAria: string;
+	themeToggleHint: string;
+	topNavAria: string;
+	topNavDocs: string;
+	docNavAria: string;
+	railNavAria: string;
+	railFooterDocs: string;
+	railFooterBazaar: string;
+	railFooterOfficial: string;
+	breadcrumbsAria: string;
+	copyPageMdAria: string;
+	copyPageHint: string;
+	copyMenuMoreTitle: string;
+	copyMenuMdTitle: string;
+	copyMenuMdDesc: string;
+	copyMenuViewTitle: string;
+	copyMenuViewDesc: string;
+	railMenuOpenAria: string;
+	railMenuCloseAria: string;
+	tocAsideAria: string;
+	langSwitcherAria: string;
+	langSwitcherHint: string;
+	navIntro: string;
+	navPlugin: string;
+	navTheme: string;
+	navBazaar: string;
+	navIcons: string;
+	navTemplates: string;
+	navWidgets: string;
+	navGroup: Record<NavGroupKey, string>;
+	searchHint: string;
+	searchOpenAria: string;
+	shellTitle: string;
+	shellDescription: string;
+	heading: string;
+	body: string;
+	button: string;
+	crumbLabel: string;
+};
+
+export type CodeBlockCopyUi = {
+	copyAria: string;
+	copiedAria: string;
+	failedAria: string;
+};

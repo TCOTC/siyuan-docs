@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vite/
+content/
+tmp/
+src/generated/docs.json
+.DS_Store
+.idea/
+*.log
