@@ -6,13 +6,12 @@ import DocLayout from '../layouts/DocLayout.vue';
 import generated from '../generated/docs.json';
 import { shellUi } from '../i18n';
 import {
-	docPath,
 	findDoc,
 	githubBlobUrl,
+	railGroupContaining,
 	stemFromRouteParam,
 	type GeneratedDocs,
 } from '../lib/docData';
-import { navGroupKeyFromStem } from '../lib/docMeta';
 import { defaultLocale, type AppLocale } from '../lib/locales';
 import { normalizeLocale } from '../lib/localePreference';
 
@@ -31,12 +30,11 @@ const t = computed(() => shellUi(locale.value));
 const nav = computed(() => data.nav[locale.value] ?? []);
 const breadcrumbs = computed(() => {
 	if (!doc.value) return [{ label: t.value.crumbLabel }];
-	const groupKey = navGroupKeyFromStem(stem.value);
-	return [
-		{ label: t.value.navGroup.intro, href: docPath(locale.value, homeStem) },
-		{ label: t.value.navGroup[groupKey] },
-		{ label: doc.value.title },
-	];
+	if (stem.value === homeStem) {
+		return [{ label: doc.value.title }];
+	}
+	const group = railGroupContaining(nav.value, stem.value);
+	return [...(group ? [{ label: group.label }] : []), { label: doc.value.title }];
 });
 
 watch(
@@ -59,7 +57,7 @@ onUnmounted(() => {
 		:title="doc?.title ?? t.shellTitle"
 		:description="doc ? doc.description : t.shellDescription"
 		:current-stem="doc?.stem"
-		:sidebar-groups="nav"
+		:rail="nav"
 		:breadcrumbs="breadcrumbs"
 		:headings="doc?.headings ?? []"
 		:md-view-href="doc ? githubBlobUrl(doc.sourcePath) : undefined"

@@ -655,6 +655,33 @@ html[data-device='apple'] .rail-scroll {
 		}
 	}
 
+	&__home {
+		margin: 0 0 var(--sp-1);
+	}
+
+	&__home-link {
+		display: block;
+		width: 100%;
+		margin: 0;
+		padding: var(--sp-2) var(--sp-1) var(--sp-2) var(--sp-micro);
+		font-size: var(--tp-body);
+		font-weight: 500;
+		letter-spacing: 0.01em;
+		color: var(--ink-faint);
+		border-radius: var(--r);
+		line-height: 1.3;
+
+		&:hover,
+		&.is-active {
+			color: var(--ink);
+		}
+
+		&:focus-visible {
+			outline: var(--sp-micro) solid var(--accent);
+			outline-offset: var(--sp-micro);
+		}
+	}
+
 	&__trigger {
 		display: flex;
 		align-items: center;
@@ -2145,6 +2172,7 @@ body.doc-rail-open .rail-menu-trigger__bar {
 		}
 
 		.rail-nav {
+			&__home-link,
 			&__trigger {
 				padding-left: 0;
 			}

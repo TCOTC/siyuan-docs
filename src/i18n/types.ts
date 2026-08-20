@@ -1,5 +1,3 @@
-import type { NavGroupKey } from '../lib/docMeta';
-
 export type ShellUi = {
 	siteName: string;
 	railSiteLabel: string;
@@ -26,14 +24,7 @@ export type ShellUi = {
 	tocAsideAria: string;
 	langSwitcherAria: string;
 	langSwitcherHint: string;
-	navIntro: string;
-	navPlugin: string;
-	navTheme: string;
-	navBazaar: string;
-	navIcons: string;
-	navTemplates: string;
-	navWidgets: string;
-	navGroup: Record<NavGroupKey, string>;
+	navHome: string;
 	searchHint: string;
 	searchOpenAria: string;
 	shellTitle: string;

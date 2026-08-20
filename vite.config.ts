@@ -11,10 +11,12 @@ function includedDocRoutes(): string[] {
 	if (!fs.existsSync(jsonPath)) return ['/'];
 	const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as {
 		docs: { locale: string; stem: string }[];
+		homeStem: string;
 	};
 	const routes = ['/', '/404'];
 	for (const doc of data.docs) {
-		routes.push(`/${doc.locale}/${doc.stem}`);
+		if (doc.stem === data.homeStem) routes.push(`/${doc.locale}`);
+		else routes.push(`/${doc.locale}/${doc.stem}`);
 	}
 	return routes;
 }

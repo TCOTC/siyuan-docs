@@ -3,33 +3,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
+import { parseNavYml } from './parse-nav-yml.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const contentDir = path.join(root, 'content');
 const generatedDir = path.join(root, 'src', 'generated');
 const localeSuffixes = ['en', 'zh-CN'];
-const navKeys = ['intro', 'plugin', 'theme', 'bazaar', 'icons', 'templates', 'widgets'];
-
-const navLabels = {
-	en: {
-		intro: 'Introduction',
-		plugin: 'Plugins',
-		theme: 'Themes',
-		bazaar: 'Marketplace',
-		icons: 'Icon packs',
-		templates: 'Templates',
-		widgets: 'Widgets',
-	},
-	'zh-CN': {
-		intro: '入门',
-		plugin: '插件',
-		theme: '主题',
-		bazaar: '集市与发布',
-		icons: '图标包',
-		templates: '模板',
-		widgets: '挂件',
-	},
-};
+const homeStem = 'home';
 
 function walkMarkdown(dir, acc = []) {
 	if (!fs.existsSync(dir)) return acc;
@@ -68,6 +48,7 @@ function rewriteHref(href, locale, stem) {
 	if (joined.endsWith('.md')) joined = joined.slice(0, -3);
 	const base = process.env.SITE_BASE || '/';
 	const prefix = base.endsWith('/') ? base.slice(0, -1) : base;
+	if (joined === homeStem) return `${prefix}/${locale}/${hash}`;
 	return `${prefix}/${locale}/${joined}/${hash}`;
 }
 
@@ -97,10 +78,12 @@ function extractHeadings(html) {
 	return headings;
 }
 
-function navGroupKey(stem) {
-	const first = stem.split('/')[0] ?? '';
-	return navKeys.includes(first) ? first : 'intro';
+const navYmlPath = path.join(contentDir, 'nav.yml');
+if (!fs.existsSync(navYmlPath)) {
+	console.error(`[prepare-docs] missing ${navYmlPath} (run fetch-docs first)`);
+	process.exit(1);
 }
+const navSpec = parseNavYml(fs.readFileSync(navYmlPath, 'utf8'));
 
 const files = walkMarkdown(contentDir)
 	.map((abs) => {
@@ -116,7 +99,6 @@ const files = walkMarkdown(contentDir)
 			sourcePath: rel,
 			title: String(fm.data.title ?? parsed.stem),
 			description: fm.data.description ? String(fm.data.description) : undefined,
-			order: typeof fm.data.order === 'number' ? fm.data.order : 99,
 			markdown: fm.content.replace(/^\uFEFF/, ''),
 		};
 	})
@@ -156,7 +138,6 @@ const docs = files.map((f) => {
 		stem: f.stem,
 		title: f.title,
 		description: f.description,
-		order: f.order,
 		html,
 		headings: extractHeadings(html),
 		sourcePath: f.sourcePath,
@@ -166,21 +147,35 @@ const docs = files.map((f) => {
 
 const nav = { en: [], 'zh-CN': [] };
 for (const locale of localeSuffixes) {
-	const scoped = docs.filter((d) => d.locale === locale);
-	for (const key of navKeys) {
-		const items = scoped
-			.filter((d) => navGroupKey(d.stem) === key)
-			.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
-			.map((d) => ({ stem: d.stem, title: d.title }));
+	const byStem = new Map(docs.filter((d) => d.locale === locale).map((d) => [d.stem, d]));
+	for (const entry of navSpec) {
+		if (!entry.pages) {
+			const doc = byStem.get(entry.key);
+			if (!doc) continue;
+			nav[locale].push({ type: 'page', stem: doc.stem, title: doc.title });
+			continue;
+		}
+		const items = [];
+		for (const page of entry.pages) {
+			const stem = page.includes('/') ? page : `${entry.key}/${page}`;
+			const doc = byStem.get(stem);
+			if (!doc) continue;
+			items.push({ stem: doc.stem, title: doc.title });
+		}
 		if (items.length === 0) continue;
-		nav[locale].push({ key, label: navLabels[locale][key], items });
+		nav[locale].push({
+			type: 'group',
+			key: entry.key,
+			label: entry.labels[locale] ?? entry.labels.en ?? entry.key,
+			items,
+		});
 	}
 }
 
 const payload = {
 	docs,
 	nav,
-	homeStem: 'intro/welcome',
+	homeStem,
 };
 
 fs.mkdirSync(generatedDir, { recursive: true });

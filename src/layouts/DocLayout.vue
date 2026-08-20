@@ -12,7 +12,7 @@ import { closePagefindModal, startPagefindLoader } from '../chrome/pagefind-load
 import { closeDocRailIfOpen } from '../chrome/shell-ui/doc-rail-drawer';
 import { mountDocChrome, syncDocChromeAfterNavigation, unmountDocChrome } from '../chrome/shell-ui';
 import { shellUi } from '../i18n';
-import { docHref, docPath, findDoc, type GeneratedDocs, type NavGroup, type TocHeading } from '../lib/docData';
+import { docHref, docPath, findDoc, type GeneratedDocs, type RailEntry, type TocHeading } from '../lib/docData';
 import { appI18nLocales, localeHtmlLang, type AppLocale } from '../lib/locales';
 import generated from '../generated/docs.json';
 
@@ -23,7 +23,7 @@ const props = defineProps<{
 	title: string;
 	description?: string;
 	currentStem?: string;
-	sidebarGroups: NavGroup[];
+	rail: RailEntry[];
 	breadcrumbs: { label: string; href?: string }[];
 	headings: TocHeading[];
 	mdViewHref?: string;
@@ -139,7 +139,7 @@ watch(
 						<RailNavSections
 							:locale="locale"
 							id-prefix="doc"
-							:sidebar-groups="sidebarGroups"
+							:rail="rail"
 							:rail-nav-aria="t.railNavAria"
 							:current-stem="currentStem"
 						/>
@@ -176,7 +176,7 @@ watch(
 
 		<div class="sheet" :data-doc-has-toc="tocItems.length > 0 ? '1' : undefined">
 			<div class="bar" data-pagefind-ignore>
-				<nav class="breadcrumbs" :aria-label="t.breadcrumbsAria">
+				<nav v-if="breadcrumbs.length" class="breadcrumbs" :aria-label="t.breadcrumbsAria">
 					<ol class="breadcrumbs__list">
 						<li v-for="(c, i) in breadcrumbs" :key="i" class="breadcrumbs__item">
 							<RouterLink

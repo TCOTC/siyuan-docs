@@ -1,5 +1,5 @@
 import type { AppLocale } from './locales';
-import type { NavGroupKey } from './docMeta';
+import { HOME_STEM } from './docMeta';
 
 export type TocHeading = {
 	depth: number;
@@ -12,7 +12,6 @@ export type DocRecord = {
 	stem: string;
 	title: string;
 	description?: string;
-	order: number;
 	html: string;
 	headings: TocHeading[];
 	sourcePath: string;
@@ -24,20 +23,34 @@ export type NavItem = {
 	title: string;
 };
 
+export type RailPage = {
+	type: 'page';
+	stem: string;
+	title: string;
+};
+
 export type NavGroup = {
-	key: NavGroupKey;
+	type: 'group';
+	key: string;
 	label: string;
 	items: NavItem[];
 };
 
+export type RailEntry = RailPage | NavGroup;
+
 export type GeneratedDocs = {
 	docs: DocRecord[];
-	nav: Record<AppLocale, NavGroup[]>;
+	nav: Record<AppLocale, RailEntry[]>;
 	homeStem: string;
 };
 
-/** Vue Router 的 `to`（不含 `BASE_URL`） */
+export function railGroupContaining(entries: RailEntry[], stem: string): NavGroup | undefined {
+	return entries.find((e): e is NavGroup => e.type === 'group' && e.items.some((i) => i.stem === stem));
+}
+
+/** Vue Router 的 `to`（不含 `BASE_URL`）；首页 `home` 对应语言根路径 */
 export function docPath(locale: AppLocale, stem: string): string {
+	if (stem === HOME_STEM) return `/${locale}/`;
 	return `/${locale}/${stem}/`;
 }
 
@@ -46,10 +59,11 @@ export function docHref(locale: AppLocale, stem: string, base = import.meta.env.
 	return `${prefix}${docPath(locale, stem)}`;
 }
 
-/** 从 `/:locale/:path(.*)` 取出文档 stem（去掉末尾斜杠） */
+/** 从 `/:locale` 或 `/:locale/:path(.*)` 取出文档 stem（空路径即首页） */
 export function stemFromRouteParam(pathParam: unknown): string {
 	const raw = Array.isArray(pathParam) ? pathParam.join('/') : String(pathParam ?? '');
-	return raw.replace(/\/+$/, '');
+	const stem = raw.replace(/\/+$/, '');
+	return stem === '' ? HOME_STEM : stem;
 }
 
 export function githubBlobUrl(sourcePath: string): string {
