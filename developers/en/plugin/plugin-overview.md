@@ -39,7 +39,7 @@ SiYuan reads fixed filenames from the package:
 | --- | --- | --- |
 | **`index.js`** | Yes | Bundled output (webpack, esbuild, etc.); injected and executed in the frontend |
 | **`index.css`** | No | Injected when present |
-| **`plugin.json`** | Strongly recommended | Local and marketplace metadata, compatibility checks |
+| **`plugin.json`** | Strongly recommended | Local and marketplace manifest (`Package` metadata), compatibility checks |
 | **`i18n/*.json`** | No | Plugin UI strings |
 
 The entry file is **always `index.js`**; there is **no** `main` field in `plugin.json`.

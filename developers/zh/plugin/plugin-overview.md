@@ -39,7 +39,7 @@ order: 20
 | --- | --- | --- |
 | **`index.js`** | 是 | webpack / esbuild 等打包产物；加载后注入前端执行 |
 | **`index.css`** | 否 | 存在则一并注入 |
-| **`plugin.json`** | 强烈建议 | 本地与集市元数据、兼容性判断 |
+| **`plugin.json`** | 强烈建议 | 本地与集市清单（`Package` 元数据）、兼容性判断 |
 | **`i18n/*.json`** | 否 | 插件界面文案 |
 
 入口文件名**固定为 `index.js`**，**不在** `plugin.json` 里配置 `main`。

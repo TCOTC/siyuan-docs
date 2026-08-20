@@ -4,7 +4,7 @@ description: icon.json, directory layout, and when to use icon packs
 order: 60
 ---
 
-An **icon pack** bundles icon assets under a fixed folder and describes them with **`icon.json`**. Users pick it in SiYuan appearance settings alongside built-in sets.
+An **icon pack** bundles icon assets under a fixed folder; the manifest file **`icon.json`** declares **Package** metadata. Users pick it in SiYuan appearance settings alongside built-in sets.
 
 ## Workspace path
 

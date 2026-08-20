@@ -4,7 +4,7 @@ description: 安装目录、template.json 与在文档中插入
 order: 70
 ---
 
-**模板**（Template）包用于在编辑时通过「斜杆菜单 → 模板」等入口，将一段**预置内容**插入到当前文档。内容文件放在工作空间 `data/templates` 下，由 `template.json` 描述元数据。
+**模板**（Template）包用于在编辑时通过「斜杆菜单 → 模板」等入口，将一段**预置内容**插入到当前文档。内容文件放在工作空间 `data/templates` 下，由清单文件 `template.json` 声明 `Package` 元数据。
 
 ## 工作空间路径
 
