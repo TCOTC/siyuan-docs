@@ -650,7 +650,7 @@ html[data-device='apple'] .rail-scroll {
 			margin-bottom: 0;
 		}
 
-		&[data-state='closed'] &__chev {
+		&[data-state='closed'] .rail-nav__chev {
 			transform: rotate(-90deg);
 		}
 	}

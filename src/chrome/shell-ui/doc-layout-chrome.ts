@@ -1,6 +1,6 @@
 import { DOC_SCROLL_SESSION_PREFIX } from '../../lib/docScrollSession';
 import { safeSessionSet } from '../safe-storage';
-import { syncRailScrollEdges, tocSync } from '../doc-reading-sync';
+import { tocSync } from '../doc-reading-sync';
 import { setRailScrollBootSuppress } from '../doc-window-runtime';
 
 function scheduleEndDocRailScrollBoot(): void {
@@ -24,7 +24,7 @@ function scheduleEndDocRailScrollBoot(): void {
 	window.setTimeout(finish, 2500);
 }
 
-/** 文档页面包屑回顶、侧栏滚动 boot 结束、侧栏分组折叠 */
+/** 文档页面包屑回顶、侧栏滚动 boot 结束 */
 export function mountDocLayoutChrome(): void {
 	/* 点击面包屑当前页标题（.breadcrumbs__current）：回文档开头，与同页 href 刷新区分 */
 	const contentHeadEl = document.querySelector('.bar');
@@ -76,21 +76,4 @@ export function mountDocLayoutChrome(): void {
 		);
 	}
 	scheduleEndDocRailScrollBoot();
-
-	const docRailNav = document.querySelector('.rail-nav');
-	if (docRailNav) {
-		docRailNav.addEventListener('click', (e) => {
-			const btn = e.target instanceof Element ? e.target.closest('.rail-nav__trigger') : null;
-			if (!btn || !docRailNav.contains(btn)) return;
-			const expanded = btn.getAttribute('aria-expanded') === 'true';
-			const next = !expanded;
-			btn.setAttribute('aria-expanded', next ? 'true' : 'false');
-			const panelId = btn.getAttribute('aria-controls');
-			const navPanel = panelId ? document.getElementById(panelId) : null;
-			const section = btn.closest('.rail-nav__section');
-			if (navPanel) navPanel.hidden = !next;
-			if (section) section.setAttribute('data-state', next ? 'open' : 'closed');
-			requestAnimationFrame(() => syncRailScrollEdges());
-		});
-	}
 }
