@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Languages } from '@lucide/vue';
 import { RouterLink } from 'vue-router';
+import AnchoredHint from './AnchoredHint.vue';
 import {
 	appLocalesForPresentation,
 	langSwitcherOptionLabel,
@@ -30,7 +31,7 @@ function onLocaleClick(loc: AppLocale): void {
 
 <template>
 	<div class="lang-switch" data-header-menu="lang">
-		<div class="hint" data-anchored-floating-hint>
+		<AnchoredHint :text="t.langSwitcherHint">
 			<button
 				type="button"
 				class="icon-btn"
@@ -44,10 +45,7 @@ function onLocaleClick(loc: AppLocale): void {
 			>
 				<Languages class="lang-switch__icon" :size="18" aria-hidden="true" />
 			</button>
-			<div class="hint__layer" data-floating-hint-layer role="tooltip">
-				<span class="hint__txt">{{ t.langSwitcherHint }}</span>
-			</div>
-		</div>
+		</AnchoredHint>
 		<ul
 			class="copy-split__panel lang-switch__panel"
 			id="lang-switch-panel"

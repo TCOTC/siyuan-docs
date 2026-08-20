@@ -1,5 +1,5 @@
 /**
- * 占位与 Pagefind 宿主分时挂载，避免双按钮。
+ * 占位与 Pagefind 宿主分时挂载，避免同一槽内双按钮。
  * bundle 路径来自参数或 `<meta name="pagefind-bundle">`。
  */
 let idleScheduled = false;
@@ -33,6 +33,12 @@ function mountModalTriggers(): void {
 		ph?.parentNode?.removeChild(ph);
 	}
 	markPagefindUiReady();
+}
+
+/** 已加载时补挂缺失的 trigger（切页后 v-once 槽位通常仍在） */
+export function ensurePagefindTriggers(): void {
+	if (!pagefindReady || !customElements.get('pagefind-modal-trigger')) return;
+	mountModalTriggers();
 }
 
 export function closePagefindModal(): void {

@@ -308,7 +308,7 @@ body.doc-layout .shell {
 	}
 }
 
-/* 窄屏顶栏：由脚本将 #tool-float 迁入侧栏（次序：brand → 本槽 → actions） */
+/* 窄屏顶栏：#tool-float 由 Teleport 挂到侧栏槽（次序：brand → 本槽 → actions） */
 .tool-slot--rail {
 	display: none;
 	flex: 1;
@@ -445,9 +445,9 @@ pagefind-modal-trigger.pf-trigger-wrap {
 }
 
 /*
- * 搜索触发器：与主题 / 复制一致，由外层 .hint + [data-floating-hint-layer] 显示提示；
+ * 搜索触发器：与主题 / 复制一致，由外层 .hint + .hint__layer 显示提示；
  * Pagefind 使用 hide-shortcut，不再渲染 .pf-trigger-shortcut。
- * [data-anchored-floating-hint] 由 anchored-floating-hint.ts 在悬停延迟后把提示层挂到 body 并 position:fixed；
+ * AnchoredHint 在悬停延迟后把提示层 Teleport 到 body 并 position:fixed；
  * 不再用 CSS :hover 显示提示层，避免 Pagefind 绑定前提示留在工具栏内被裁切。
  */
 .hint {
@@ -498,7 +498,7 @@ pagefind-modal-trigger.pf-trigger-wrap {
 			transform 0.12s ease,
 			visibility 0s linear 0.12s !important;
 
-		/* 由 anchored-floating-hint.ts 挂到 body 时，不再处于锚点 :hover 子树内；延迟在脚本内完成，此处仅短过渡 */
+		/* Teleport 到 body 后不再处于锚点 :hover 子树内；延迟在 AnchoredHint 内完成，此处仅短过渡 */
 		&.js-floating-hint--anchored-open {
 			opacity: 1 !important;
 			visibility: visible !important;
@@ -534,7 +534,7 @@ pagefind-modal-trigger.pf-trigger-wrap {
 	}
 }
 
-/* 可见性由 anchored-floating-hint.ts 在延迟后添加 .js-floating-hint--anchored-open，不用 :hover 显示（见上文注释） */
+/* 可见性由 AnchoredHint 在延迟后添加 .js-floating-hint--anchored-open，不用 :hover 显示（见上文注释） */
 
 .pagefind-dev-hint {
 	margin: 0;
@@ -991,11 +991,7 @@ pagefind-modal-trigger.pf-trigger-wrap {
 	}
 }
 
-/* 搜索 + 主题 + 复制：宽屏参与主栏顶栏 flex；窄屏整块挂到侧栏占位（Shell 内联脚本 appendChild） */
-.tool-slot--bar {
-	display: contents;
-}
-
+/* 搜索 + 主题 + 复制：宽屏在 .bar__act 内参与 flex；窄屏 Teleport 到侧栏占位 */
 .tool-float {
 	display: flex;
 	align-items: center;
@@ -1003,12 +999,8 @@ pagefind-modal-trigger.pf-trigger-wrap {
 	flex-shrink: 0;
 }
 
-/* <750px：主栏顶栏仅面包屑与汉堡；搜索 / 主题 / 复制 经 #tool-float 移入侧栏抽屉顶栏（无 LOGO） */
+/* <750px：主栏顶栏仅面包屑与汉堡；搜索 / 主题 / 复制 经 #tool-float Teleport 入侧栏抽屉顶栏（无 LOGO） */
 @media (width < 750px) {
-	body.doc-layout .tool-slot--bar {
-		display: none !important;
-	}
-
 	/* 与语言切换等相邻时由 margin-left 分缝；仅汉堡时避免再缩进，与已补偿的 bar 右内边距配合 */
 	body.doc-layout .rail-menu-trigger {
 		margin-left: 0;
@@ -1634,7 +1626,7 @@ body.doc-rail-open .rail-menu-trigger__bar {
 			font-weight: inherit;
 		}
 
-		/* 代码块右上角复制（由 shell-ui 注入 .code-block-copy；悬浮/focus 时显示，不占文档流） */
+		/* 代码块右上角复制（由 mountCodeBlockCopy 注入 .code-block-copy；悬浮/focus 时显示，不占文档流） */
 		.code-block-copy {
 			position: absolute;
 			top: var(--sp-2);

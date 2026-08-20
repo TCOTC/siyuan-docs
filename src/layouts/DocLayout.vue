@@ -8,14 +8,12 @@ import LangSwitcher from '../components/LangSwitcher.vue';
 import PagefindToolbarTrigger from '../components/PagefindToolbarTrigger.vue';
 import RailNavSections from '../components/RailNavSections.vue';
 import ThemeToggleHint from '../components/ThemeToggleHint.vue';
-import { onMediaQueryChange } from '../chrome/media-query';
-import { closePagefindModal, startPagefindLoader } from '../chrome/pagefind-loader';
-import {
-	scheduleTocSyncSoon,
-	scrollActiveRailNavIntoView,
-	syncRailScrollEdges,
-} from '../chrome/doc-reading-sync';
-import { mountDocChrome, syncDocChromeAfterNavigation, unmountDocChrome } from '../chrome/shell-ui';
+import { useMediaQuery } from '../composables/useMediaQuery';
+import { useRailScroll } from '../composables/useRailScroll';
+import { useTocInPage } from '../composables/useTocInPage';
+import { closePagefindModal, ensurePagefindTriggers, startPagefindLoader } from '../lib/pagefind';
+import { scrollActiveRailNavIntoView, syncRailScrollEdges } from '../lib/railScroll';
+import { resetTocSyncState, scheduleTocSyncSoon, tocSync } from '../lib/tocSync';
 import { shellUi } from '../i18n';
 import { docHref, docPath, findDoc, type GeneratedDocs, type RailEntry, type TocHeading } from '../lib/docData';
 import { appI18nLocales, localeHtmlLang, type AppLocale } from '../lib/locales';
@@ -68,6 +66,16 @@ const siteTitle = computed(() =>
 type HeaderMenu = 'lang' | 'copy' | null;
 const headerMenu = ref<HeaderMenu>(null);
 const railOpen = ref(false);
+const slotRail = ref<HTMLElement | null>(null);
+const railScrollEl = ref<HTMLElement | null>(null);
+const railScrollClip = ref<HTMLElement | null>(null);
+const railAside = ref<HTMLElement | null>(null);
+const tocListEl = ref<HTMLElement | null>(null);
+const mainEl = ref<HTMLElement | null>(null);
+const toolbarWide = useMediaQuery('(min-width: 750px)', true);
+const desktopRail = useMediaQuery('(width >= 850px)', true);
+useRailScroll(railScrollEl, railScrollClip, railAside);
+useTocInPage(tocListEl, mainEl);
 let layoutAbort: AbortController | null = null;
 
 function toggleHeaderMenu(name: Exclude<HeaderMenu, null>): void {
@@ -149,14 +157,18 @@ watch(railOpen, (open) => {
 	document.body.style.overflow = open ? 'hidden' : '';
 	if (!open) return;
 	window.requestAnimationFrame(() => {
-		scrollActiveRailNavIntoView();
-		syncRailScrollEdges();
+		scrollActiveRailNavIntoView(railScrollEl.value);
+		syncRailScrollEdges(railScrollEl.value, railScrollClip.value);
 	});
 });
 
+watch(desktopRail, (wide) => {
+	if (wide) setRailOpen(false);
+});
+
 onMounted(() => {
-	mountDocChrome();
 	startPagefindLoader(pagefindBundle.value);
+	scrollActiveRailNavIntoView(railScrollEl.value);
 	layoutAbort = new AbortController();
 	const { signal } = layoutAbort;
 	document.addEventListener(
@@ -178,13 +190,6 @@ onMounted(() => {
 		},
 		{ signal },
 	);
-	onMediaQueryChange(
-		window.matchMedia('(width >= 850px)'),
-		(e) => {
-			if (e.matches) setRailOpen(false);
-		},
-		signal,
-	);
 });
 
 onUnmounted(() => {
@@ -192,22 +197,23 @@ onUnmounted(() => {
 	layoutAbort = null;
 	document.body.classList.remove('doc-rail-open');
 	document.body.style.overflow = '';
-	unmountDocChrome();
 });
 
 watch(
 	() => [props.locale, props.currentStem ?? '', props.notFound === true] as const,
 	async () => {
 		if (import.meta.env.SSR) return;
-		await nextTick();
-		closePagefindModal();
+		resetTocSyncState();
 		closeHeaderMenu();
 		setRailOpen(false);
-		syncDocChromeAfterNavigation();
-		const main = document.getElementById('main-content');
-		if (main instanceof HTMLElement) {
-			main.focus({ preventScroll: true });
-		}
+		await nextTick();
+		closePagefindModal();
+		ensurePagefindTriggers();
+		tocSync();
+		requestAnimationFrame(() => {
+			tocSync();
+		});
+		mainEl.value?.focus({ preventScroll: true });
 	},
 );
 </script>
@@ -223,6 +229,7 @@ watch(
 			@click="setRailOpen(false)"
 		/>
 		<aside
+			ref="railAside"
 			class="rail"
 			id="doc-rail"
 			:aria-label="t.docNavAria"
@@ -241,7 +248,7 @@ watch(
 					<span class="brand-lockup__divider" aria-hidden="true" />
 					<span class="brand-lockup__text">{{ t.railSiteLabel }}</span>
 				</RouterLink>
-				<div id="tool-slot-rail" class="tool-slot tool-slot--rail"></div>
+				<div ref="slotRail" id="tool-slot-rail" class="tool-slot tool-slot--rail"></div>
 				<div class="rail-header__actions">
 					<div class="rail-header__search-slot">
 						<PagefindToolbarTrigger :search-hint="t.searchHint" :search-open-aria="t.searchOpenAria" />
@@ -249,8 +256,14 @@ watch(
 				</div>
 			</header>
 			<div class="rail-body">
-				<div class="rail-scroll-clip" data-rail-scroll-clip data-edge-top="0" data-edge-bottom="1">
-					<div class="rail-scroll">
+				<div
+					ref="railScrollClip"
+					class="rail-scroll-clip"
+					data-rail-scroll-clip
+					data-edge-top="0"
+					data-edge-bottom="1"
+				>
+					<div ref="railScrollEl" class="rail-scroll">
 						<RailNavSections
 							:locale="locale"
 							id-prefix="doc"
@@ -329,7 +342,7 @@ watch(
 					</ol>
 				</nav>
 				<div class="bar__act">
-					<div id="tool-slot-bar" class="tool-slot tool-slot--bar">
+					<Teleport defer :disabled="toolbarWide || !slotRail" :to="slotRail ?? 'body'">
 						<div id="tool-float" class="tool-float">
 							<div class="bar__search bar__search--drawer" data-pagefind-ignore>
 								<PagefindToolbarTrigger :search-hint="t.searchHint" :search-open-aria="t.searchOpenAria" />
@@ -354,7 +367,7 @@ watch(
 								/>
 							</div>
 						</div>
-					</div>
+					</Teleport>
 					<button
 						type="button"
 						class="rail-menu-trigger"
@@ -374,12 +387,12 @@ watch(
 			</div>
 			<div class="read" :class="{ 'read--toc': tocItems.length > 0 }">
 				<div class="read-cluster">
-					<main id="main-content" class="read-main" tabindex="-1" data-pagefind-body>
+					<main ref="mainEl" id="main-content" class="read-main" tabindex="-1" data-pagefind-body>
 						<slot />
 					</main>
 					<aside v-show="tocItems.length > 0" class="toc" :aria-label="t.tocAsideAria" data-pagefind-ignore>
 						<div class="toc__inner">
-							<ul class="toc__list" id="doc-toc-list" style="--top: 0px; --height: 0px">
+							<ul ref="tocListEl" class="toc__list" id="doc-toc-list" style="--top: 0px; --height: 0px">
 								<li v-for="h in tocItems" :key="h.slug" :class="`toc-depth-${h.depth}`">
 									<a :href="`#${h.slug}`">{{ h.text }}</a>
 								</li>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, watch } from 'vue';
+import { computed, nextTick, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import NotFoundArticle from '../components/NotFoundArticle.vue';
 import DocLayout from '../layouts/DocLayout.vue';
@@ -14,6 +14,7 @@ import {
 } from '../lib/docData';
 import { defaultLocale, type AppLocale } from '../lib/locales';
 import { normalizeLocale } from '../lib/localePreference';
+import { mountCodeBlockCopy } from '../lib/codeBlockCopy';
 import { clearPageMarkdown, setPageMarkdown } from '../lib/pageMarkdown';
 
 const data = generated as GeneratedDocs;
@@ -41,6 +42,16 @@ watch(
 	(md) => {
 		if (import.meta.env.SSR) return;
 		setPageMarkdown(md);
+	},
+	{ immediate: true },
+);
+
+watch(
+	() => [doc.value?.html ?? '', locale.value] as const,
+	async () => {
+		if (import.meta.env.SSR) return;
+		await nextTick();
+		mountCodeBlockCopy(locale.value);
 	},
 	{ immediate: true },
 );

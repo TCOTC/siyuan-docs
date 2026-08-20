@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onUnmounted, ref } from 'vue';
 import { ChevronDown, Copy, Check, X } from '@lucide/vue';
+import AnchoredHint from './AnchoredHint.vue';
 import type { ShellUi } from '../i18n/types';
 import { copyPageMarkdown } from '../lib/pageMarkdown';
 
@@ -47,7 +48,7 @@ onUnmounted(() => {
 
 <template>
 	<div class="copy-split" data-header-menu="copy">
-		<div class="hint hint--grow" data-anchored-floating-hint>
+		<AnchoredHint class="hint--grow" :text="t.copyPageHint">
 			<button
 				type="button"
 				class="copy-split__main"
@@ -72,10 +73,7 @@ onUnmounted(() => {
 					</span>
 				</span>
 			</button>
-			<div class="hint__layer" data-floating-hint-layer role="tooltip">
-				<span class="hint__txt">{{ t.copyPageHint }}</span>
-			</div>
-		</div>
+		</AnchoredHint>
 		<span class="copy-split__divider" aria-hidden="true" />
 		<div class="copy-split__menu">
 			<button

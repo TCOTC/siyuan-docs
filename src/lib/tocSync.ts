@@ -1,27 +1,6 @@
 /**
- * 侧栏滚动边缘与本页目录同步。
+ * 本页目录：阅读线高亮、指示条与大纲滚动同步。
  */
-
-/** 脚本自动滚动侧栏目录时的嵌套深度；> 0 时不短暂显示滚动条 */
-let programmaticRailScrollDepth = 0;
-
-function bumpProgrammaticRailScrollDepth(): void {
-	programmaticRailScrollDepth += 1;
-}
-
-function scheduleReleaseProgrammaticRailScrollDepth(): void {
-	queueMicrotask(() => {
-		requestAnimationFrame(() => {
-			requestAnimationFrame(() => {
-				programmaticRailScrollDepth = Math.max(0, programmaticRailScrollDepth - 1);
-			});
-		});
-	});
-}
-
-function isProgrammaticRailScroll(): boolean {
-	return programmaticRailScrollDepth > 0;
-}
 
 /** 避免正文滚动时每个 rAF 都重算大纲 scrollTop；仅在高亮集合变化时自动滚大纲 */
 let tocActiveHeadSig = '';
@@ -43,6 +22,13 @@ function stopTocRailMotionRaf(): void {
 		tocRailMotionRaf = 0;
 	}
 	tocRailMotionBusy = false;
+}
+
+/** 切页后当作冷启动，避免指示条从上一页位置滑入 */
+export function resetTocSyncState(): void {
+	tocActiveHeadSig = '';
+	tocSyncLastViewportH = 0;
+	stopTocRailMotionRaf();
 }
 
 function easeOutCubic(t: number): number {
@@ -193,70 +179,6 @@ function measureTocListIndicatorFromLiNodes(
  */
 function setTocListIndicatorFromLiNodes(tocList: HTMLElement, liNodes: HTMLElement[]): void {
 	applyTocListIndicatorPx(tocList, measureTocListIndicatorFromLiNodes(tocList, liNodes));
-}
-
-export function syncRailScrollEdges(): void {
-	const railScrollEl = document.querySelector('.rail-scroll');
-	const railScrollClip = document.querySelector('[data-rail-scroll-clip]');
-	if (!railScrollEl || !railScrollClip) return;
-	const el = railScrollEl;
-	const maxScroll = Math.max(0, el.scrollHeight - el.clientHeight);
-	const canScroll = maxScroll > 2;
-	const st = el.scrollTop;
-	const atTop = st <= 1;
-	const atBottom = st >= maxScroll - 1;
-	railScrollClip.setAttribute('data-edge-top', canScroll && !atTop ? '1' : '0');
-	railScrollClip.setAttribute('data-edge-bottom', canScroll && !atBottom ? '1' : '0');
-}
-
-/** 程序化滚动期间不点亮侧栏滚动条 */
-export function shouldSuppressRailScrollbarTransient(): boolean {
-	return isProgrammaticRailScroll();
-}
-
-/**
- * 仅操作 `.rail-scroll` 的 scrollTop，避免 `scrollIntoView` 连带滚动页面主栏或其它祖先。
- * 目录末尾项会钳制到 maxScroll，保证当前链接落在可视区内。
- */
-function applyRailActiveNavScroll(rail: HTMLElement, target: HTMLElement): void {
-	const maxScroll = Math.max(0, rail.scrollHeight - rail.clientHeight);
-	if (maxScroll <= 0 || rail.clientHeight <= 0) return;
-	bumpProgrammaticRailScrollDepth();
-	try {
-		const rr = rail.getBoundingClientRect();
-		const tr = target.getBoundingClientRect();
-		const yCenterInContent = rail.scrollTop + (tr.top - rr.top) + tr.height / 2;
-		let nextTop = yCenterInContent - rail.clientHeight / 2;
-		nextTop = Math.min(Math.max(0, nextTop), maxScroll);
-		rail.scrollTop = nextTop;
-	} finally {
-		scheduleReleaseProgrammaticRailScrollDepth();
-	}
-}
-
-/**
- * 将侧栏文档目录中当前页链接滚入 `.rail-scroll` 可视区域（尽量居中；双语文档栈仅处理可见的一项）。
- * 进入文档时的初定位由 `mountDocChrome` 尽早执行；此处供窄屏打开抽屉等后续场景。
- */
-export function scrollActiveRailNavIntoView(): void {
-	const railScroll = document.querySelector('.rail-scroll');
-	if (!(railScroll instanceof HTMLElement)) return;
-	let target: HTMLElement | null = null;
-	for (const el of railScroll.querySelectorAll('.rail-nav__link.is-active')) {
-		if (!(el instanceof HTMLElement)) continue;
-		const r = el.getBoundingClientRect();
-		if (r.width > 0 && r.height > 0) {
-			target = el;
-			break;
-		}
-	}
-	if (!target) return;
-	const activeLink = target;
-	const run = (): void => {
-		applyRailActiveNavScroll(railScroll, activeLink);
-	};
-	run();
-	requestAnimationFrame(run);
 }
 
 /** 阅读线：相对顶栏底边下移量占阅读区高度比例（取 clamp），线越靠上越晚切换到下一节 */

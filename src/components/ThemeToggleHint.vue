@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import { Sun, Moon } from '@lucide/vue';
+import AnchoredHint from './AnchoredHint.vue';
 import { bindThemeSync, toggleTheme } from '../lib/theme';
 
 defineProps<{
@@ -22,7 +23,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-	<div class="hint" data-anchored-floating-hint>
+	<AnchoredHint :text="themeToggleHint">
 		<button
 			type="button"
 			class="icon-btn"
@@ -34,8 +35,5 @@ onUnmounted(() => {
 			<Sun class="theme-icon theme-icon--sun" :size="18" />
 			<Moon class="theme-icon theme-icon--moon" :size="18" />
 		</button>
-		<div class="hint__layer" data-floating-hint-layer role="tooltip">
-			<span class="hint__txt">{{ themeToggleHint }}</span>
-		</div>
-	</div>
+	</AnchoredHint>
 </template>

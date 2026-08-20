@@ -2,7 +2,7 @@
 import { ChevronDown } from '@lucide/vue';
 import { reactive } from 'vue';
 import { RouterLink } from 'vue-router';
-import { syncRailScrollEdges } from '../chrome/doc-reading-sync';
+import { syncRailScrollEdges } from '../lib/railScroll';
 import { docPath, railGroupContaining, type RailEntry } from '../lib/docData';
 import type { AppLocale } from '../lib/locales';
 

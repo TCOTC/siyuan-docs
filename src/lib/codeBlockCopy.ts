@@ -1,28 +1,16 @@
-import { zhCNCodeBlockCopyUi } from '../../i18n/zh-CN';
-import { enCodeBlockCopyUi } from '../../i18n/en';
-import type { CodeBlockCopyUi } from '../../i18n/types';
-import { defaultLocale, type AppLocale } from '../../lib/locales';
-import { normalizeLocale } from '../../lib/localePreference';
+import { zhCNCodeBlockCopyUi } from '../i18n/zh-CN';
+import { enCodeBlockCopyUi } from '../i18n/en';
+import type { CodeBlockCopyUi } from '../i18n/types';
+import { defaultLocale, type AppLocale } from './locales';
 
 const CODE_COPY_I18N: Record<AppLocale, CodeBlockCopyUi> = {
 	'zh-CN': zhCNCodeBlockCopyUi,
 	en: enCodeBlockCopyUi,
 };
 
-/** 优先 `data-doc-locale`，否则取 `<html lang>`；非站内语言则回退 `defaultLocale` */
-function localeForCodeBlockCopy(): AppLocale {
-	const dataLoc = document.documentElement.getAttribute('data-doc-locale');
-	if (dataLoc) {
-		const loc = normalizeLocale(dataLoc);
-		if (loc) return loc;
-	}
-	const lang = (document.documentElement.getAttribute('lang') || '').trim();
-	return normalizeLocale(lang) ?? defaultLocale;
-}
-
-/** 为 `.prose pre` 注入代码块复制按钮 */
-export function mountCodeBlockCopy(): void {
-	const { copyAria, copiedAria, failedAria } = CODE_COPY_I18N[localeForCodeBlockCopy()];
+/** 为 `.prose pre` 注入代码块复制按钮；locale 由文档页传入 */
+export function mountCodeBlockCopy(locale: AppLocale): void {
+	const { copyAria, copiedAria, failedAria } = CODE_COPY_I18N[locale] ?? CODE_COPY_I18N[defaultLocale];
 	const copySvg =
 		'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
 	const checkSvg =
