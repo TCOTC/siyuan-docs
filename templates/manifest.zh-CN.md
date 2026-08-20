@@ -1,14 +1,13 @@
 ---
 title: template.json 说明
 description: 模板包清单字段
-order: 71
 ---
 
 `template.json` 与其它集市包一样遵循 **`Package`** 元数据结构（字段含义见 [集市包总览](../../bazaar/overview)）。
 
 ## 字段说明
 
-与 [插件清单](../../plugin/plugin-manifest) 相比：
+与 [插件清单](../plugin/manifest) 相比：
 
 - **不需要** `modes`（主题）、**不需要** `backends` / `frontends`（插件）。
 - **需要** 通用字段：`name`、`author`、`url`、`version`、`displayName`、`description`、`readme`、`keywords` 等。

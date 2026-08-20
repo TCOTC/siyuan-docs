@@ -1,7 +1,6 @@
 ---
 title: plugin.json 说明
 description: 插件清单字段与运行环境约束
-order: 22
 ---
 
 `plugin.json` 位于插件包根目录，描述插件名称、版本、最低思源版本、适用的后端/前端环境，以及集市展示所需的文案与链接。下面字段说明与官方插件示例仓库保持一致；若你的思源版本较旧，请以当时客户端解析逻辑为准。
@@ -95,4 +94,4 @@ order: 22
 
 ## 下一步
 
-- [前端 Plugin API](./plugin-frontend-api)。
+- [前端 Plugin API](./frontend-api)。

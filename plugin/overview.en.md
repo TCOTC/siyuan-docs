@@ -1,7 +1,6 @@
 ---
 title: Plugin development overview
 description: Plugin runtime, load chain, and lifecycle
-order: 20
 ---
 
 SiYuan **plugins** are also called **Petals**: JavaScript running in the **SiYuan client UI process**, talking to the **local HTTP API** via **`fetchPost`** and similar APIs to extend the editor, commands, and UI.
@@ -92,6 +91,6 @@ There are also optional overrides such as **`updateProtyleToolbar`**, **`updateC
 
 ## Next steps
 
-1. [Quick start](./plugin-quickstart)
-2. [plugin.json](./plugin-manifest)
-3. [Frontend Plugin API](./plugin-frontend-api)
+1. [Quick start](./quickstart)
+2. [plugin.json](./manifest)
+3. [Frontend Plugin API](./frontend-api)

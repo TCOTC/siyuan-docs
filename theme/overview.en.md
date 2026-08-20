@@ -1,7 +1,6 @@
 ---
 title: Theme development overview
 description: Theme package location, differences from plugins, and how themes load
-order: 30
 ---
 
 SiYuan **themes** change how the app looks: colors, fonts, spacing, radius, mainly via **CSS** (optional scripts are discussed below). Themes do not change the notebook data model; for interactive logic and the **HTTP API**, build a **plugin**.
@@ -34,7 +33,7 @@ At startup SiYuan scans each theme subfolder for **`theme.json`** and groups the
 
 ## Style entry
 
-The usual filename is **`theme.css`** (built-in `daylight` and `midnight` use it). Variables are mostly prefixed **`--b3-`**; see [Styling and CSS variables](./theme-styling).
+The usual filename is **`theme.css`** (built-in `daylight` and `midnight` use it). Variables are mostly prefixed **`--b3-`**; see [Styling and CSS variables](./styling).
 
 ---
 
@@ -52,5 +51,5 @@ Themes own the visual system: **CSS variables + `.b3-*` component classes**. Whe
 
 ## Next steps
 
-- [theme.json](./theme-manifest)
-- [Styling and CSS variables](./theme-styling)
+- [theme.json](./manifest)
+- [Styling and CSS variables](./styling)

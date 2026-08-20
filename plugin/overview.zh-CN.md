@@ -1,7 +1,6 @@
 ---
 title: 插件开发概览
 description: 插件的运行环境、加载链路与生命周期
-order: 20
 ---
 
 思源**插件**也称为 **Petal**（花瓣）：运行在**思源客户端界面进程**里的 JavaScript，通过 **`fetchPost`** 等与**本地 HTTP API**交互，扩展编辑器、命令与界面。
@@ -92,6 +91,6 @@ order: 20
 
 ## 下一步阅读
 
-1. [快速上手](./plugin-quickstart)
-2. [plugin.json](./plugin-manifest)
-3. [前端 Plugin API](./plugin-frontend-api)
+1. [快速上手](./quickstart)
+2. [plugin.json](./manifest)
+3. [前端 Plugin API](./frontend-api)

@@ -1,7 +1,6 @@
 ---
 title: icon.json 说明
 description: 图标包清单与集市字段
-order: 61
 ---
 
 `icon.json` 与 [集市包总览](../bazaar/overview) 中的通用 `Package` 字段一致。

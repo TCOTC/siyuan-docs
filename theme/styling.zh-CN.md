@@ -1,7 +1,6 @@
 ---
 title: 样式与 CSS 变量
 description: 主题如何通过 --b3- 变量覆盖界面
-order: 32
 ---
 
 思源界面大量使用 **CSS 自定义属性**。内置亮色 **`app/appearance/themes/daylight/theme.css`** 与暗色 **`midnight/theme.css`** 定义同一套 **`--b3-*`** 变量名；暗夜配色通过覆盖变量实现。第三方主题应**优先改变量**，避免复制大量组件私有选择器。

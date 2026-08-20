@@ -1,7 +1,6 @@
 ---
 title: Widget development
 description: widget.json, static assets, and iframe embedding
-order: 80
 ---
 
 **Widgets** embed in the editor document as an **`iframe`**. Sources are static files under **`{workspace}/data/widgets/<widget-name>/`**; SiYuan serves that folder at **`/widgets/`**.

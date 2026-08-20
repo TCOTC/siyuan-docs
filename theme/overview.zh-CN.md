@@ -1,7 +1,6 @@
 ---
 title: 主题开发概览
 description: 主题包位置、与插件的区别及加载方式
-order: 30
 ---
 
 思源**主题**用于覆盖界面外观：颜色、字体、间距、圆角等，主要通过 **CSS**（及可选脚本，见下文）实现。主题不改变笔记本数据模型；需要交互逻辑、调用 **HTTP API** 时应编写**插件**。
@@ -34,7 +33,7 @@ appearance/themes/my-theme/
 
 ## 样式入口
 
-常见文件名为 **`theme.css`**（内置 `daylight`、`midnight` 使用此名）。变量命名大量使用 **`--b3-`** 前缀，见 [样式与 CSS 变量](./theme-styling)。
+常见文件名为 **`theme.css`**（内置 `daylight`、`midnight` 使用此名）。变量命名大量使用 **`--b3-`** 前缀，见 [样式与 CSS 变量](./styling)。
 
 ---
 
@@ -52,5 +51,5 @@ appearance/themes/my-theme/
 
 ## 下一步
 
-- [theme.json](./theme-manifest)
-- [样式与 CSS 变量](./theme-styling)
+- [theme.json](./manifest)
+- [样式与 CSS 变量](./styling)

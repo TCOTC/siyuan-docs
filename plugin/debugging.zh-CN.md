@@ -1,7 +1,6 @@
 ---
 title: 调试与排错
 description: 开发者工具、常见报错与排查顺序
-order: 26
 ---
 
 ## 打开开发者工具
@@ -41,7 +40,7 @@ order: 26
 
 - 插件请求应指向 **`127.0.0.1:<端口>`**（或你的 Docker 映射）。
 - 若返回 **401**，检查 **`Authorization: Token …`** 是否在 `fetchPost` 封装中自动带上（部分接口需要）。
-- **`code !== 0`** 时阅读 **`msg`**，对照 [HTTP API 与数据规范](./plugin-http-api) 与 `API_zh_CN.md`。
+- **`code !== 0`** 时阅读 **`msg`**，对照 [HTTP API 与数据规范](./http-api) 与 `API_zh_CN.md`。
 
 ---
 

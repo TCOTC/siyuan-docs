@@ -1,7 +1,6 @@
 ---
 title: 挂件开发
 description: widget.json、静态资源与 iframe 嵌入
-order: 80
 ---
 
 **挂件**（Widget）以 **`iframe`** 形式嵌入在编辑器文档中，源码来自工作空间 **`data/widgets/<挂件名>/`** 下的静态文件；思源将该目录映射到 URL **`/widgets/`**。

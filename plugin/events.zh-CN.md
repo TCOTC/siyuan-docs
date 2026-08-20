@@ -1,7 +1,6 @@
 ---
 title: 事件参考（eventBus）
 description: TEventBus 事件名与使用说明
-order: 27
 ---
 
 插件通过 **`this.eventBus`** 订阅思源内部广播（实现见 **`app/src/plugin/EventBus.ts`**）。事件名字符串类型 **`TEventBus`** 定义在 **`app/src/types/index.d.ts`**。下列分组便于查阅，**以源码为准**；若升级后类型有增减，请直接对比仓库中的 `index.d.ts`。

@@ -1,10 +1,9 @@
 ---
 title: 快速上手
 description: 从模板仓库到本地启用插件
-order: 21
 ---
 
-本章给出一条可重复执行的「最短路径」，细节与字段说明分散在 [plugin.json](./plugin-manifest)、[前端 API](./plugin-frontend-api) 等章节。
+本章给出一条可重复执行的「最短路径」，细节与字段说明分散在 [plugin.json](./manifest)、[前端 API](./frontend-api) 等章节。
 
 ---
 
@@ -86,7 +85,7 @@ export default class MyPlugin extends Plugin {
 pnpm run build
 ```
 
-生成 **`package.zip`**（文件名以示例仓库为准），用于 [打包与发布](./plugin-packaging)。
+生成 **`package.zip`**（文件名以示例仓库为准），用于 [打包与发布](./packaging)。
 
 ---
 
@@ -98,4 +97,4 @@ pnpm run build
 | 启用后立即消失 | `minAppVersion` 过高或 **backend/frontend** 不匹配 |
 | 改代码不生效 | 是否重新编译；是否禁用再启用插件 |
 
-更多排错步骤见 [调试与排错](./plugin-debugging)。
+更多排错步骤见 [调试与排错](./debugging)。

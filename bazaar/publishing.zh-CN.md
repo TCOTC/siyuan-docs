@@ -1,7 +1,6 @@
 ---
 title: 发布与版本
 description: package.zip、GitHub Release 与上架注意事项
-order: 41
 ---
 
 本章描述几乎所有集市包**共通**的发布动作；各类包 zip 内文件清单仍以对应章节为准。
@@ -47,5 +46,5 @@ order: 41
 
 ## 相关链接
 
-- 插件打包细节：[插件 · 打包与发布](../plugin/plugin-packaging)
-- HTTP API 文档：[HTTP API 与数据规范](../plugin/plugin-http-api)
+- 插件打包细节：[插件 · 打包与发布](../plugin/packaging)
+- HTTP API 文档：[HTTP API 与数据规范](../plugin/http-api)

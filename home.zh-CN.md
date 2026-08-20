@@ -1,7 +1,6 @@
 ---
-title: 开发者文档
+title: 首页
 description: 面向思源笔记插件、集市包与主题作者的完整入口
-order: 0
 ---
 
 本手册面向需要为**思源笔记**开发**插件、主题、图标包、模板包、挂件**，或需要查阅**本地 HTTP API**（见官方仓库 `API.md`）的开发者。行文上遵循清晰标题、表格化字段说明、可运行的代码示例（可参考本站摘录的技术写作原则：`reference/write/software-documentation-guide/`）。
@@ -16,39 +15,39 @@ order: 0
 
 | 页面 | 说明 |
 | --- | --- |
-| [如何阅读与贡献本文档](./docs-style) | 写作约定与章节结构 |
-| [集市包总览](../bazaar/overview) | **五类**集市包、路径、通用 `Package` 字段 |
-| [发布与版本](../bazaar/publishing) | `package.zip`、GitHub Release、上架注意 |
+| [如何阅读与贡献本文档](./intro/docs-style) | 写作约定与章节结构 |
+| [集市包总览](./bazaar/overview) | **五类**集市包、路径、通用 `Package` 字段 |
+| [发布与版本](./bazaar/publishing) | `package.zip`、GitHub Release、上架注意 |
 
 ### 插件（Petal）
 
 | 页面 | 说明 |
 | --- | --- |
-| [插件开发概览](../plugin/plugin-overview) | 运行环境、`index.js` 加载链、生命周期 |
-| [快速上手](../plugin/plugin-quickstart) | 模板仓库、`pnpm`、本地调试 |
-| [plugin.json](../plugin/plugin-manifest) | 清单与环境字段 |
-| [前端 Plugin API](../plugin/plugin-frontend-api) | `Plugin` 类、命令、Dock、存储、`fetchPost` |
-| [HTTP API 与数据规范](../plugin/plugin-http-api) | HTTP、鉴权、`/api/file/*`、日记属性 |
-| [调试与排错](../plugin/plugin-debugging) | 控制台、常见报错 |
-| [事件参考](../plugin/plugin-events) | **`TEventBus`** 事件表 |
-| [打包与发布](../plugin/plugin-packaging) | zip、Release |
+| [插件开发概览](./plugin/overview) | 运行环境、`index.js` 加载链、生命周期 |
+| [快速上手](./plugin/quickstart) | 模板仓库、`pnpm`、本地调试 |
+| [plugin.json](./plugin/manifest) | 清单与环境字段 |
+| [前端 Plugin API](./plugin/frontend-api) | `Plugin` 类、命令、Dock、存储、`fetchPost` |
+| [HTTP API 与数据规范](./plugin/http-api) | HTTP、鉴权、`/api/file/*`、日记属性 |
+| [调试与排错](./plugin/debugging) | 控制台、常见报错 |
+| [事件参考](./plugin/events) | **`TEventBus`** 事件表 |
+| [打包与发布](./plugin/packaging) | zip、Release |
 
 ### 主题
 
 | 页面 | 说明 |
 | --- | --- |
-| [主题概览](../theme/theme-overview) | `appearance/themes`、与插件区别 |
-| [theme.json](../theme/theme-manifest) | `modes`、清单字段 |
-| [样式与 CSS 变量](../theme/theme-styling) | `--b3-*` 变量与定制步骤 |
+| [主题概览](./theme/overview) | `appearance/themes`、与插件区别 |
+| [theme.json](./theme/manifest) | `modes`、清单字段 |
+| [样式与 CSS 变量](./theme/styling) | `--b3-*` 变量与定制步骤 |
 
 ### 图标包 · 模板 · 挂件
 
 | 页面 | 说明 |
 | --- | --- |
-| [图标包](../icons/overview) | `appearance/icons`、`icon.json` |
-| [模板包](../templates/overview) | `data/templates`、`/api/template/render` |
-| [模板语法](../templates/authoring) | `.action{}` Go 模板 |
-| [挂件](../widgets/overview) | `data/widgets`、`/widgets/` iframe |
+| [图标包](./icons/overview) | `appearance/icons`、`icon.json` |
+| [模板包](./templates/overview) | `data/templates`、`/api/template/render` |
+| [模板语法](./templates/authoring) | `.action{}` Go 模板 |
+| [挂件](./widgets/overview) | `data/widgets`、`/widgets/` iframe |
 
 ---
 

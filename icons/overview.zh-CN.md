@@ -1,7 +1,6 @@
 ---
 title: 图标包开发
 description: icon.json、目录位置与使用场景
-order: 60
 ---
 
 图标包（Icon pack）将一套图标资源放在固定目录，由清单文件 **`icon.json`** 声明 `Package` 元数据。用户可在思源外观设置里选用（与内置方案并列）。

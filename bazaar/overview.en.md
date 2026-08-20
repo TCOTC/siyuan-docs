@@ -1,7 +1,6 @@
 ---
 title: Marketplace packages overview
 description: Five package types, install paths, and shared metadata
-order: 40
 ---
 
 SiYuan’s **marketplace** distributes several kinds of **extension packages**. All share the same **`Package`** metadata (JSON maps to in-app structs—see the open-source repo), then install into different folders with different manifest filenames.
@@ -41,9 +40,9 @@ Theme-only:
 
 | Field | Meaning |
 | --- | --- |
-| `modes` | Array of `light` and/or `dark`; see [Theme manifest](../theme/theme-manifest) |
+| `modes` | Array of `light` and/or `dark`; see [Theme manifest](../theme/manifest) |
 
-Plugin-only (excerpt; full table in [plugin.json](../plugin/plugin-manifest)):
+Plugin-only (excerpt; full table in [plugin.json](../plugin/manifest)):
 
 | Field | Meaning |
 | --- | --- |
@@ -63,4 +62,4 @@ Indexing and publishing may change; **do not** treat this page as the only listi
 ## Next steps
 
 - [Publishing and versions](./publishing)
-- Per-type docs: [Plugins](../plugin/plugin-overview), [Themes](../theme/theme-overview), [Icon packs](../icons/overview), [Templates](../templates/overview), [Widgets](../widgets/overview)
+- Per-type docs: [Plugins](../plugin/overview), [Themes](../theme/overview), [Icon packs](../icons/overview), [Templates](../templates/overview), [Widgets](../widgets/overview)

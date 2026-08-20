@@ -1,0 +1,51 @@
+# 侧栏顺序。根级文档写 `- home`；分组写各语言标题，再列 `pages`（文件名不含语言后缀与 `.md`）。
+- home
+- intro:
+  en: Introduction
+  zh-CN: 入门
+  pages:
+    - docs-style
+- bazaar:
+  en: Marketplace
+  zh-CN: 集市与发布
+  pages:
+    - overview
+    - publishing
+- plugin:
+  en: Plugins
+  zh-CN: 插件
+  pages:
+    - overview
+    - quickstart
+    - manifest
+    - frontend-api
+    - http-api
+    - packaging
+    - debugging
+    - events
+- theme:
+  en: Themes
+  zh-CN: 主题
+  pages:
+    - overview
+    - manifest
+    - styling
+- icons:
+  en: Icon packs
+  zh-CN: 图标
+  pages:
+    - overview
+    - manifest
+- templates:
+  en: Templates
+  zh-CN: 模板
+  pages:
+    - overview
+    - manifest
+    - authoring
+- widgets:
+  en: Widgets
+  zh-CN: 挂件
+  pages:
+    - overview
+    - manifest

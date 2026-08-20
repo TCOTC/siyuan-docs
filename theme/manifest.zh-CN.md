@@ -1,7 +1,6 @@
 ---
 title: theme.json 说明
 description: 主题清单字段与模式
-order: 31
 ---
 
 每个主题在自身目录下提供 **`theme.json`**，供客户端与集市识别包信息。内置示例见思源仓库 **`app/appearance/themes/daylight/theme.json`** 与 **`midnight/theme.json`**。
@@ -46,4 +45,4 @@ order: 31
 
 打包体积、图标与预览图要求可参考集市发布说明；**请勿以本文作为集市校验的唯一依据**，发布前对照官方当前要求。
 
-下一步：[样式与 CSS 变量](./theme-styling)。
+下一步：[样式与 CSS 变量](./styling)。

@@ -1,7 +1,6 @@
 ---
 title: 打包与发布
 description: package.zip 内容、GitHub Release 与上架检查清单
-order: 25
 ---
 
 ## 1. 构建命令
@@ -57,4 +56,4 @@ pnpm run build
 - [ ] 当前环境的 **`backends` / `frontends`** 与 `plugin.json` 声明一致。
 - [ ] 禁用再启用插件后无控制台报错。
 
-更多运行时问题见 [调试与排错](./plugin-debugging)。
+更多运行时问题见 [调试与排错](./debugging)。

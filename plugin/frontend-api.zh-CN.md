@@ -1,7 +1,6 @@
 ---
 title: 前端 Plugin API
 description: Plugin 基类、命令、界面扩展、存储与事件总线
-order: 23
 ---
 
 思源前端在 npm 上发布包名 **`siyuan`**（社区常称 **Petal** 类型定义来源）。插件在工程里 `import { Plugin, … } from "siyuan"`，与主程序使用同一套类型时，将 `siyuan` 的版本固定在与目标思源兼容的范围。
@@ -247,13 +246,13 @@ fetchPost("/api/notebook/lsNotebooks", {}, (response) => {
 });
 ```
 
-带 Token、统一错误格式等约定见 [HTTP API 与数据规范](./plugin-http-api)。
+带 Token、统一错误格式等约定见 [HTTP API 与数据规范](./http-api)。
 
 ---
 
 ## 12. 事件总线 `this.eventBus`
 
-API：**`on`**、**`once`**、**`off`**、**`emit`**（见 `EventBus.ts`）。事件名字符串集合为 **`TEventBus`**，完整列表见 [插件 · 事件参考](./plugin-events)。
+API：**`on`**、**`once`**、**`off`**、**`emit`**（见 `EventBus.ts`）。事件名字符串集合为 **`TEventBus`**，完整列表见 [插件 · 事件参考](./events)。
 
 ```ts
 const onSync = (e: CustomEvent) => {
@@ -277,7 +276,7 @@ this.eventBus.off("sync-end", onSync);
 
 | 主题 | 文档 |
 | --- | --- |
-| 清单字段 | [plugin.json](./plugin-manifest) |
-| HTTP 与文件规范 | [HTTP API 与数据规范](./plugin-http-api) |
-| 调试与排错 | [调试与排错](./plugin-debugging) |
-| 事件名一览 | [事件参考](./plugin-events) |
+| 清单字段 | [plugin.json](./manifest) |
+| HTTP 与文件规范 | [HTTP API 与数据规范](./http-api) |
+| 调试与排错 | [调试与排错](./debugging) |
+| 事件名一览 | [事件参考](./events) |

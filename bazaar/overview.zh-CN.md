@@ -1,7 +1,6 @@
 ---
 title: 集市包总览
 description: 五类集市包、安装路径与通用元数据
-order: 40
 ---
 
 思源「集市」分发多种**扩展包**。各类包使用统一的 **`Package`** 元数据（JSON 与程序内结构对应，见开源仓库），再按类型放入不同目录、使用不同清单文件名。
@@ -41,9 +40,9 @@ order: 40
 
 | 字段 | 含义 |
 | --- | --- |
-| `modes` | 字符串数组，元素为 `light` 和/或 `dark`，见 [主题 manifest](../theme/theme-manifest) |
+| `modes` | 字符串数组，元素为 `light` 和/或 `dark`，见 [主题 manifest](../theme/manifest) |
 
-插件专有（节选，完整见 [plugin.json](../plugin/plugin-manifest)）：
+插件专有（节选，完整见 [plugin.json](../plugin/manifest)）：
 
 | 字段 | 含义 |
 | --- | --- |
@@ -63,4 +62,4 @@ order: 40
 ## 下一步
 
 - [发布与版本](./publishing)
-- 各类包详细说明：[插件](../plugin/plugin-overview)、[主题](../theme/theme-overview)、[图标包](../icons/overview)、[模板](../templates/overview)、[挂件](../widgets/overview)
+- 各类包详细说明：[插件](../plugin/overview)、[主题](../theme/overview)、[图标包](../icons/overview)、[模板](../templates/overview)、[挂件](../widgets/overview)

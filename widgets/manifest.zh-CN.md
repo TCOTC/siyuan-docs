@@ -1,7 +1,6 @@
 ---
 title: widget.json 说明
 description: 挂件包清单与发布物
-order: 81
 ---
 
 `widget.json` 与其它集市包一致，使用 **`Package`** 元数据结构（与清单 JSON 字段一一对应，见开源仓库中类型定义）。

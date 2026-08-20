@@ -1,7 +1,6 @@
 ---
 title: Template pack development
 description: Install path, template.json, and inserting into documents
-order: 70
 ---
 
 **Template** packs insert **preset content** into the current document from editor entry points such as **Slash menu → Templates**. Content files live under `data/templates` in the workspace; the manifest file `template.json` declares **Package** metadata.

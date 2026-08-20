@@ -1,7 +1,6 @@
 ---
 title: 如何阅读与贡献本文档
 description: 技术写作原则与本仓库文档约定
-order: 1
 ---
 
 思源开发者文档面向「要能动手做出集市包、插件与主题」的读者，写法上对齐业界常见的技术文档实践（可参考本站 `reference/write/software-documentation-guide/` 下摘录的 [Docs principles](https://www.writethedocs.org/guide/writing/docs-principles/) 等资料）。
@@ -16,7 +15,8 @@ order: 1
 
 ## 本文档的结构
 
-- **入门**：导航与官方仓库索引。
+- **首页**：导航与官方仓库索引。
+- **入门**：写作约定与章节结构。
 - **插件**：从清单、构建、前端 `Plugin` API 到 **HTTP** 接口。
 - **主题**：`theme.json`、`theme.css` 与 CSS 变量。
 - **集市与发布**：五类集市包共通的 `Package` 元数据、清单文件、安装路径与发布物。

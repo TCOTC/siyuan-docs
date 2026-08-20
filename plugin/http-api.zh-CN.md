@@ -1,7 +1,6 @@
 ---
 title: HTTP API 与数据规范
 description: 本地请求约定、鉴权、文件读写与日记属性
-order: 24
 ---
 
 思源通过**本地 HTTP 服务**提供 **API**（默认 **`http://127.0.0.1:6806`**，端口可随用户设置变化）。插件与其它前端代码应通过 **`fetchPost`** 等封装访问，**不要**在渲染进程用 Node **`fs`** 直接改 `{工作空间}/data`。
@@ -85,7 +84,7 @@ curl -X POST http://127.0.0.1:6806/api/notebook/lsNotebooks \
 
 | 能力 | 文档 |
 | --- | --- |
-| `fetchPost`、UI 组件 | [前端 Plugin API](./plugin-frontend-api) |
+| `fetchPost`、UI 组件 | [前端 Plugin API](./frontend-api) |
 | 插件存储封装 | 同上「数据存储」一节 |
 
 ---

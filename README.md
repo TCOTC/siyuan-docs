@@ -8,6 +8,8 @@
 
 语言写在文件名后缀里，目录按主题分，不按网页 URL 分：
 
+- `home.en.md` → `/en/`
+- `home.zh-CN.md` → `/zh-CN/`
 - `bazaar/overview.en.md` → `/en/bazaar/overview`
 - `bazaar/overview.zh-CN.md` → `/zh-CN/bazaar/overview`
 
@@ -21,11 +23,21 @@
 ---
 title: 页面标题
 description: 可选摘要
-order: 0
 ---
 ```
 
-`order` 越小在侧栏越靠前。
+侧栏顺序与分组标题写在仓库根目录的 [`nav.yml`](nav.yml)。根级文档写成 `- home`；分组写成：
+
+```yaml
+- plugin:
+  en: Plugins
+  zh-CN: 插件
+  pages:
+    - overview
+    - quickstart
+```
+
+不使用 frontmatter `order`。未列入 `nav.yml` 的页面仍可打开，只是不出现在侧栏。
 
 ## 相对链接
 

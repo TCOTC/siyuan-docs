@@ -1,7 +1,6 @@
 ---
 title: 模板语法与创作
 description: .action{} 模板、可用变量与调试建议
-order: 72
 ---
 
 思源使用 **Go `text/template`** 处理模板 Markdown，分隔符为 **`.action{`** 与 **`}`**（实现细节见主仓库模板渲染相关源码）。
@@ -40,5 +39,5 @@ order: 72
 
 ## 延伸阅读
 
-- HTTP API 总表：[HTTP API 与数据规范](../../plugin/plugin-http-api)
+- HTTP API 总表：[HTTP API 与数据规范](../plugin/http-api)
 - 模板包结构：[模板包开发](./overview)
