@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ChevronDown } from '@lucide/vue';
 import { computed, reactive, watch } from 'vue';
+import { RouterLink } from 'vue-router';
 import { syncRailScrollEdges } from '../chrome/doc-reading-sync';
-import { docHref, type NavGroup } from '../lib/docData';
+import { docPath, type NavGroup } from '../lib/docData';
 import { navGroupKeyFromStem } from '../lib/docMeta';
 import type { AppLocale } from '../lib/locales';
 
@@ -70,13 +71,15 @@ function toggleGroup(key: string): void {
 				>
 					<ul class="rail-nav__list">
 						<li v-for="item in group.items" :key="item.stem">
-							<a
+							<RouterLink
 								class="rail-nav__link"
 								:class="{ 'is-active': item.stem === currentStem }"
-								:href="docHref(locale, item.stem)"
+								:to="docPath(locale, item.stem)"
+								active-class=""
+								exact-active-class=""
 							>
 								{{ item.title }}
-							</a>
+							</RouterLink>
 						</li>
 					</ul>
 				</div>

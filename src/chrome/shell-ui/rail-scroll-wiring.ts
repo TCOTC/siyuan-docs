@@ -2,7 +2,7 @@ import { shouldSuppressRailScrollbarTransient, syncRailScrollEdges } from '../do
 
 const RAIL_SCROLLBAR_HIDE_MS = 1000;
 
-function wireRailScrollbarOnScroll(el: Element | null): void {
+function wireRailScrollbarOnScroll(el: Element | null, signal: AbortSignal): void {
 	if (!el) return;
 	const scrollEl = el;
 	let hideTimer: number | null = null;
@@ -15,23 +15,30 @@ function wireRailScrollbarOnScroll(el: Element | null): void {
 			scrollEl.classList.remove('rail-scrollbar--visible');
 		}, RAIL_SCROLLBAR_HIDE_MS);
 	}
-	scrollEl.addEventListener('scroll', showRailScrollbarTransient, { passive: true });
+	scrollEl.addEventListener('scroll', showRailScrollbarTransient, { passive: true, signal });
 }
 
 /** 侧栏滚动条边缘数据属性与滚动时短暂显示滚动条 */
-export function mountRailScrollWiring(): void {
+export function mountRailScrollWiring(signal: AbortSignal): void {
 	const railScrollEl = document.querySelector('.rail-scroll');
 	const railScrollClip = document.querySelector('[data-rail-scroll-clip]');
 	if (railScrollEl && railScrollClip) {
-		railScrollEl.addEventListener('scroll', () => syncRailScrollEdges(), { passive: true });
-		window.addEventListener('resize', () => syncRailScrollEdges(), { passive: true });
+		railScrollEl.addEventListener('scroll', () => syncRailScrollEdges(), { passive: true, signal });
+		window.addEventListener('resize', () => syncRailScrollEdges(), { passive: true, signal });
 		const roRailScroll = new ResizeObserver(() => syncRailScrollEdges());
 		roRailScroll.observe(railScrollEl);
+		signal.addEventListener(
+			'abort',
+			() => {
+				roRailScroll.disconnect();
+			},
+			{ once: true },
+		);
 		syncRailScrollEdges();
 	}
-	wireRailScrollbarOnScroll(railScrollEl);
+	wireRailScrollbarOnScroll(railScrollEl, signal);
 	const railScrollAside = document.getElementById('doc-rail');
 	if (railScrollAside && railScrollAside !== railScrollEl) {
-		wireRailScrollbarOnScroll(railScrollAside);
+		wireRailScrollbarOnScroll(railScrollAside, signal);
 	}
 }

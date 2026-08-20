@@ -41,11 +41,11 @@ async function copyMainAsMarkdown(): Promise<boolean> {
 }
 
 /** 整页 Markdown 复制按钮与 `.js-copy-page-md` 委托 */
-export function mountCopyPageMarkdown(): CopyPageMarkdownControls {
-	const copyPageMdBtn = document.getElementById('copy-page-md');
+export function mountCopyPageMarkdown(signal: AbortSignal): CopyPageMarkdownControls {
 	let copyFeedbackTimer: number | undefined;
 
 	function flashCopyPageMdFeedback(success: boolean): void {
+		const copyPageMdBtn = document.getElementById('copy-page-md');
 		if (!copyPageMdBtn) return;
 		copyPageMdBtn.classList.remove('copy-split__main--success', 'copy-split__main--error');
 		copyPageMdBtn.classList.add(success ? 'copy-split__main--success' : 'copy-split__main--error');
@@ -61,11 +61,15 @@ export function mountCopyPageMarkdown(): CopyPageMarkdownControls {
 		});
 	}
 
-	for (const el of document.querySelectorAll('.js-copy-page-md')) {
-		el.addEventListener('click', () => {
+	document.addEventListener(
+		'click',
+		(e: MouseEvent) => {
+			const t = e.target;
+			if (!(t instanceof Element) || !t.closest('.js-copy-page-md')) return;
 			triggerWithFeedback();
-		});
-	}
+		},
+		{ signal },
+	);
 
 	return { triggerWithFeedback };
 }

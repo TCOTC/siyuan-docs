@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { detectRootLocale } from '../lib/localePreference';
-import { docHref } from '../lib/docData';
 import generated from '../generated/docs.json';
-import type { GeneratedDocs } from '../lib/docData';
+import { docPath, type GeneratedDocs } from '../lib/docData';
 
 const data = generated as GeneratedDocs;
+const router = useRouter();
 
 onMounted(() => {
 	const locale = detectRootLocale();
-	window.location.replace(docHref(locale, data.homeStem));
+	void router.replace(docPath(locale, data.homeStem));
 });
 </script>
 

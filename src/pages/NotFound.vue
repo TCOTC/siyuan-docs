@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import NotFoundArticle from '../components/NotFoundArticle.vue';
 import DocLayout from '../layouts/DocLayout.vue';
 import generated from '../generated/docs.json';
 import { shellUi } from '../i18n';
-import { docHref, type GeneratedDocs } from '../lib/docData';
+import type { GeneratedDocs } from '../lib/docData';
 import { detectLocale } from '../lib/localePreference';
 import type { AppLocale } from '../lib/locales';
 
@@ -25,13 +26,6 @@ const nav = data.nav[locale] ?? [];
 		:home-stem="data.homeStem"
 		not-found
 	>
-		<article class="prose not-found-doc" data-pagefind-ignore>
-			<p class="not-found__code" aria-hidden="true">404</p>
-			<h1>{{ t.heading }}</h1>
-			<p>{{ t.body }}</p>
-			<p class="not-found__actions">
-				<a class="btn" :href="docHref(locale, data.homeStem)">{{ t.button }}</a>
-			</p>
-		</article>
+		<NotFoundArticle :locale="locale" :home-stem="data.homeStem" :t="t" />
 	</DocLayout>
 </template>

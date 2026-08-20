@@ -4,6 +4,7 @@
  */
 import { bindAnchoredFloatingHints } from './anchored-floating-hint';
 import { runDocShellBootstrap } from './doc-shell-bootstrap';
+import { startPagefindLoader } from './pagefind-loader';
 import { scrollActiveRailNavIntoView, tocSync } from './doc-reading-sync';
 import { mountCodeBlockCopy } from './shell-ui/code-block-copy';
 import { mountCopyPageMarkdown } from './shell-ui/copy-page-markdown';
@@ -15,35 +16,48 @@ import { mountRailScrollWiring } from './shell-ui/rail-scroll-wiring';
 import { mountShellThemeAndLocale } from './shell-ui/theme-and-locale';
 import { mountTocInPage } from './shell-ui/toc-in-page';
 
-let chromeDidMount = false;
+let chromeAbort: AbortController | null = null;
+
+/** 站内切页后：同步 TOC / 侧栏高亮、为新正文注入代码复制、重绑浮动提示与搜索按钮 */
+export function syncDocChromeAfterNavigation(): void {
+	tocSync();
+	scrollActiveRailNavIntoView();
+	mountCodeBlockCopy();
+	bindAnchoredFloatingHints();
+	startPagefindLoader();
+}
+
+export function unmountDocChrome(): void {
+	chromeAbort?.abort();
+	chromeAbort = null;
+}
 
 export function mountDocChrome(): void {
-	if (chromeDidMount) {
-		tocSync();
-		scrollActiveRailNavIntoView();
-		mountCodeBlockCopy();
-		bindAnchoredFloatingHints();
+	if (chromeAbort && !chromeAbort.signal.aborted) {
+		syncDocChromeAfterNavigation();
 		return;
 	}
-	chromeDidMount = true;
+	unmountDocChrome();
+	chromeAbort = new AbortController();
+	const { signal } = chromeAbort;
 
 	if (document.body.classList.contains('doc-layout')) {
 		runDocShellBootstrap();
 		scrollActiveRailNavIntoView();
 	}
 
-	mountShellThemeAndLocale();
-	mountDocToolbarSlot();
-	const copyPage = mountCopyPageMarkdown();
-	mountHeaderMenus(copyPage);
-	mountDocRailDrawer();
-	mountRailScrollWiring();
+	mountShellThemeAndLocale(signal);
+	mountDocToolbarSlot(signal);
+	const copyPage = mountCopyPageMarkdown(signal);
+	mountHeaderMenus(copyPage, signal);
+	mountDocRailDrawer(signal);
+	mountRailScrollWiring(signal);
 
 	if (document.body.classList.contains('doc-layout')) {
-		mountDocLayoutChrome();
+		mountDocLayoutChrome(signal);
 	}
 
-	mountTocInPage();
+	mountTocInPage(signal);
 	mountCodeBlockCopy();
 	bindAnchoredFloatingHints();
 }

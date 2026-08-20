@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, watch } from 'vue';
+import { RouterLink } from 'vue-router';
 import { useHead } from '@unhead/vue';
 import BrandLogo from '../components/BrandLogo.vue';
 import CopyPageMarkdownToolbar from '../components/CopyPageMarkdownToolbar.vue';
@@ -7,10 +8,11 @@ import LangSwitcher from '../components/LangSwitcher.vue';
 import PagefindToolbarTrigger from '../components/PagefindToolbarTrigger.vue';
 import RailNavSections from '../components/RailNavSections.vue';
 import ThemeToggleHint from '../components/ThemeToggleHint.vue';
-import { mountDocChrome } from '../chrome/shell-ui';
-import { startPagefindLoader } from '../chrome/pagefind-loader';
+import { closePagefindModal, startPagefindLoader } from '../chrome/pagefind-loader';
+import { closeDocRailIfOpen } from '../chrome/shell-ui/doc-rail-drawer';
+import { mountDocChrome, syncDocChromeAfterNavigation, unmountDocChrome } from '../chrome/shell-ui';
 import { shellUi } from '../i18n';
-import { docHref, findDoc, type GeneratedDocs, type NavGroup, type TocHeading } from '../lib/docData';
+import { docHref, docPath, findDoc, type GeneratedDocs, type NavGroup, type TocHeading } from '../lib/docData';
 import { appI18nLocales, localeHtmlLang, type AppLocale } from '../lib/locales';
 import generated from '../generated/docs.json';
 
@@ -29,17 +31,25 @@ const props = defineProps<{
 	notFound?: boolean;
 }>();
 
+function localeDocStem(locale: AppLocale, stem: string, homeStem: string): string {
+	return findDoc(docsData.docs, locale, stem) ? stem : homeStem;
+}
+
 function localeDocHref(locale: AppLocale, stem: string, homeStem: string): string {
-	return docHref(locale, findDoc(docsData.docs, locale, stem) ? stem : homeStem);
+	return docHref(locale, localeDocStem(locale, stem, homeStem));
+}
+
+function localeDocPath(locale: AppLocale, stem: string, homeStem: string): string {
+	return docPath(locale, localeDocStem(locale, stem, homeStem));
 }
 
 const t = computed(() => shellUi(props.locale));
 const tocItems = computed(() => props.headings.filter((h) => h.depth >= 2 && h.depth <= 4));
-const docHomeHref = computed(() => docHref(props.locale, props.homeStem));
+const docHomePath = computed(() => docPath(props.locale, props.homeStem));
 const hrefByLocale = computed(() => {
 	const stem = props.currentStem ?? props.homeStem;
 	return Object.fromEntries(
-		appI18nLocales.map((l) => [l, localeDocHref(l, stem, props.homeStem)] as const),
+		appI18nLocales.map((l) => [l, localeDocPath(l, stem, props.homeStem)] as const),
 	) as Record<AppLocale, string>;
 });
 const pagefindBundle = computed(() => {
@@ -78,6 +88,25 @@ onMounted(() => {
 	mountDocChrome();
 	startPagefindLoader();
 });
+
+onUnmounted(() => {
+	unmountDocChrome();
+});
+
+watch(
+	() => [props.locale, props.currentStem ?? '', props.notFound === true] as const,
+	async () => {
+		if (import.meta.env.SSR) return;
+		await nextTick();
+		closePagefindModal();
+		closeDocRailIfOpen();
+		syncDocChromeAfterNavigation();
+		const main = document.getElementById('main-content');
+		if (main instanceof HTMLElement) {
+			main.focus({ preventScroll: true });
+		}
+	},
+);
 </script>
 
 <template>
@@ -87,11 +116,16 @@ onMounted(() => {
 		<div class="rail-backdrop" id="rail-backdrop" aria-hidden="true" />
 		<aside class="rail" id="doc-rail" :aria-label="t.docNavAria" data-pagefind-ignore>
 			<header class="rail-header">
-				<a class="brand-lockup brand-lockup--rail" :href="docHomeHref">
+				<RouterLink
+					class="brand-lockup brand-lockup--rail"
+					:to="docHomePath"
+					active-class=""
+					exact-active-class=""
+				>
 					<BrandLogo />
 					<span class="brand-lockup__divider" aria-hidden="true" />
 					<span class="brand-lockup__text">{{ t.railSiteLabel }}</span>
-				</a>
+				</RouterLink>
 				<div id="tool-slot-rail" class="tool-slot tool-slot--rail"></div>
 				<div class="rail-header__actions">
 					<div class="rail-header__search-slot">
@@ -116,9 +150,14 @@ onMounted(() => {
 				<div class="rail-footer">
 					<ul class="rail-footer__links">
 						<li>
-							<a :class="{ 'is-current': currentStem === homeStem }" :href="docHomeHref">{{
-								t.railFooterDocs
-							}}</a>
+							<RouterLink
+								:class="{ 'is-current': currentStem === homeStem }"
+								:to="docHomePath"
+								active-class=""
+								exact-active-class=""
+							>
+								{{ t.railFooterDocs }}
+							</RouterLink>
 						</li>
 						<li>
 							<a href="https://github.com/siyuan-note/bazaar" target="_blank" rel="noopener noreferrer">{{
@@ -140,8 +179,17 @@ onMounted(() => {
 				<nav class="breadcrumbs" :aria-label="t.breadcrumbsAria">
 					<ol class="breadcrumbs__list">
 						<li v-for="(c, i) in breadcrumbs" :key="i" class="breadcrumbs__item">
+							<RouterLink
+								v-if="c.href && i !== breadcrumbs.length - 1"
+								class="breadcrumbs__link"
+								:to="c.href"
+								active-class=""
+								exact-active-class=""
+							>
+								{{ c.label }}
+							</RouterLink>
 							<a
-								v-if="c.href"
+								v-else-if="c.href"
 								class="breadcrumbs__link"
 								:class="{ breadcrumbs__current: i === breadcrumbs.length - 1 }"
 								:href="c.href"
@@ -192,11 +240,11 @@ onMounted(() => {
 				</div>
 			</div>
 			<div class="read" :class="{ 'read--toc': tocItems.length > 0 }">
-				<div v-if="tocItems.length > 0" class="read-cluster">
+				<div class="read-cluster">
 					<main id="main-content" class="read-main" tabindex="-1" data-pagefind-body>
 						<slot />
 					</main>
-					<aside class="toc" :aria-label="t.tocAsideAria" data-pagefind-ignore>
+					<aside v-show="tocItems.length > 0" class="toc" :aria-label="t.tocAsideAria" data-pagefind-ignore>
 						<div class="toc__inner">
 							<ul class="toc__list" id="doc-toc-list" style="--top: 0px; --height: 0px">
 								<li v-for="h in tocItems" :key="h.slug" :class="`toc-depth-${h.depth}`">
@@ -206,9 +254,6 @@ onMounted(() => {
 						</div>
 					</aside>
 				</div>
-				<main v-else id="main-content" class="read-main" tabindex="-1" data-pagefind-body>
-					<slot />
-				</main>
 			</div>
 		</div>
 	</div>

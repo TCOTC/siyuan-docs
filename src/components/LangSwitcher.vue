@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Languages } from '@lucide/vue';
+import { RouterLink } from 'vue-router';
 import {
 	appLocalesForPresentation,
 	langSwitcherOptionLabel,
@@ -43,17 +44,19 @@ defineProps<{
 			:aria-label="t.langSwitcherAria"
 		>
 			<li v-for="loc in appLocalesForPresentation()" :key="loc" role="presentation">
-				<a
+				<RouterLink
 					role="menuitem"
 					class="copy-split__panel-item lang-switch__panel-item"
-					:href="hrefByLocale[loc]"
+					:to="hrefByLocale[loc]"
 					:hreflang="localeHtmlLang[loc]"
 					:lang="localeHtmlLang[loc]"
 					:data-lang-locale="loc"
 					:aria-current="locale === loc ? 'page' : undefined"
+					active-class=""
+					exact-active-class=""
 				>
 					<span class="copy-split__panel-item__title">{{ langSwitcherOptionLabel[loc] }}</span>
-				</a>
+				</RouterLink>
 			</li>
 		</ul>
 	</div>

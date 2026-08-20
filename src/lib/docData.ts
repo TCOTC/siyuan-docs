@@ -36,9 +36,20 @@ export type GeneratedDocs = {
 	homeStem: string;
 };
 
+/** Vue Router 的 `to`（不含 `BASE_URL`） */
+export function docPath(locale: AppLocale, stem: string): string {
+	return `/${locale}/${stem}/`;
+}
+
 export function docHref(locale: AppLocale, stem: string, base = import.meta.env.BASE_URL): string {
 	const prefix = base.endsWith('/') ? base.slice(0, -1) : base;
-	return `${prefix}/${locale}/${stem}/`;
+	return `${prefix}${docPath(locale, stem)}`;
+}
+
+/** 从 `/:locale/:path(.*)` 取出文档 stem（去掉末尾斜杠） */
+export function stemFromRouteParam(pathParam: unknown): string {
+	const raw = Array.isArray(pathParam) ? pathParam.join('/') : String(pathParam ?? '');
+	return raw.replace(/\/+$/, '');
 }
 
 export function githubBlobUrl(sourcePath: string): string {

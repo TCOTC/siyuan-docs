@@ -1,7 +1,7 @@
 import { onMediaQueryChange } from '../media-query';
 
 /** 文档工具条在顶栏槽与侧栏槽之间随断点移动（未满 750px 时挂抽屉顶栏） */
-export function mountDocToolbarSlot(): void {
+export function mountDocToolbarSlot(signal: AbortSignal): void {
 	const floater = document.getElementById('tool-float');
 	const slotHead = document.getElementById('tool-slot-bar');
 	const slotRail = document.getElementById('tool-slot-rail');
@@ -25,5 +25,5 @@ export function mountDocToolbarSlot(): void {
 		}
 	}
 	placeDocToolbar();
-	onMediaQueryChange(mqDocToolbar, placeDocToolbar);
+	onMediaQueryChange(mqDocToolbar, placeDocToolbar, signal);
 }

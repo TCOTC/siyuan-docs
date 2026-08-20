@@ -1,53 +1,72 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { computed, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import NotFound from './NotFound.vue';
+import NotFoundArticle from '../components/NotFoundArticle.vue';
 import DocLayout from '../layouts/DocLayout.vue';
 import generated from '../generated/docs.json';
 import { shellUi } from '../i18n';
-import { docHref, findDoc, githubBlobUrl, type GeneratedDocs, type TocHeading } from '../lib/docData';
+import {
+	docPath,
+	findDoc,
+	githubBlobUrl,
+	stemFromRouteParam,
+	type GeneratedDocs,
+} from '../lib/docData';
 import { navGroupKeyFromStem } from '../lib/docMeta';
 import { defaultLocale, type AppLocale } from '../lib/locales';
 import { normalizeLocale } from '../lib/localePreference';
 
+type DocPageWindow = Window & { __DOC_PAGE_MARKDOWN__?: string };
+
 const data = generated as GeneratedDocs;
 const route = useRoute();
-
-const locale = (normalizeLocale(String(route.params.locale ?? '')) ?? defaultLocale) as AppLocale;
-const stem = String(route.params.path ?? '').replace(/\/+$/, '');
-const doc = findDoc(data.docs, locale, stem);
-const t = shellUi(locale);
-const nav = data.nav[locale] ?? [];
 const homeStem = data.homeStem;
-const groupKey = navGroupKeyFromStem(stem);
-const breadcrumbs = [
-	{ label: t.navGroup.intro, href: docHref(locale, homeStem) },
-	{ label: t.navGroup[groupKey] },
-	{ label: doc?.title ?? t.crumbLabel },
-];
 
-onMounted(() => {
-	(window as Window & { __DOC_PAGE_MARKDOWN__?: string }).__DOC_PAGE_MARKDOWN__ = doc?.markdown ?? '';
+const locale = computed(
+	() => (normalizeLocale(String(route.params.locale ?? '')) ?? defaultLocale) as AppLocale,
+);
+const stem = computed(() => stemFromRouteParam(route.params.path));
+const doc = computed(() => findDoc(data.docs, locale.value, stem.value));
+const t = computed(() => shellUi(locale.value));
+const nav = computed(() => data.nav[locale.value] ?? []);
+const breadcrumbs = computed(() => {
+	if (!doc.value) return [{ label: t.value.crumbLabel }];
+	const groupKey = navGroupKeyFromStem(stem.value);
+	return [
+		{ label: t.value.navGroup.intro, href: docPath(locale.value, homeStem) },
+		{ label: t.value.navGroup[groupKey] },
+		{ label: doc.value.title },
+	];
 });
+
+watch(
+	() => doc.value?.markdown ?? '',
+	(md) => {
+		if (import.meta.env.SSR) return;
+		(window as DocPageWindow).__DOC_PAGE_MARKDOWN__ = md;
+	},
+	{ immediate: true },
+);
+
 onUnmounted(() => {
-	delete (window as Window & { __DOC_PAGE_MARKDOWN__?: string }).__DOC_PAGE_MARKDOWN__;
+	delete (window as DocPageWindow).__DOC_PAGE_MARKDOWN__;
 });
 </script>
 
 <template>
 	<DocLayout
-		v-if="doc"
 		:locale="locale"
-		:title="doc.title"
-		:description="doc.description"
-		:current-stem="doc.stem"
+		:title="doc?.title ?? t.shellTitle"
+		:description="doc ? doc.description : t.shellDescription"
+		:current-stem="doc?.stem"
 		:sidebar-groups="nav"
 		:breadcrumbs="breadcrumbs"
-		:headings="(doc.headings as TocHeading[])"
-		:md-view-href="githubBlobUrl(doc.sourcePath)"
+		:headings="doc?.headings ?? []"
+		:md-view-href="doc ? githubBlobUrl(doc.sourcePath) : undefined"
 		:home-stem="homeStem"
+		:not-found="!doc"
 	>
 		<article v-if="doc" class="prose" v-html="doc.html" />
+		<NotFoundArticle v-else :locale="locale" :home-stem="homeStem" :t="t" />
 	</DocLayout>
-	<NotFound v-else />
 </template>

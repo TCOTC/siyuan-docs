@@ -25,33 +25,41 @@ function applySystemThemeIfUnpinned(): void {
 }
 
 /** 主题切换、跨标签 storage 同步、语言链接写入 locale 偏好 */
-export function mountShellThemeAndLocale(): void {
+export function mountShellThemeAndLocale(signal: AbortSignal): void {
 	const mqColorScheme = window.matchMedia('(prefers-color-scheme: dark)');
-	onMediaQueryChange(mqColorScheme, applySystemThemeIfUnpinned);
+	onMediaQueryChange(mqColorScheme, applySystemThemeIfUnpinned, signal);
 
-	window.addEventListener('storage', (e: StorageEvent) => {
-		if (e.key !== THEME_STORAGE_KEY) return;
-		const v = e.newValue;
-		if (v === 'light' || v === 'dark') {
-			document.documentElement.setAttribute('data-theme', v);
-		} else {
-			document.documentElement.setAttribute('data-theme', getSystemTheme());
-		}
-	});
+	window.addEventListener(
+		'storage',
+		(e: StorageEvent) => {
+			if (e.key !== THEME_STORAGE_KEY) return;
+			const v = e.newValue;
+			if (v === 'light' || v === 'dark') {
+				document.documentElement.setAttribute('data-theme', v);
+			} else {
+				document.documentElement.setAttribute('data-theme', getSystemTheme());
+			}
+		},
+		{ signal },
+	);
 
-	for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')) {
-		btn.addEventListener('click', () => {
-			setTheme(getTheme() === 'dark' ? 'light' : 'dark');
-		});
-	}
-
-	for (const a of document.querySelectorAll<HTMLAnchorElement>('a[data-lang-locale]')) {
-		a.addEventListener('click', () => {
+	document.addEventListener(
+		'click',
+		(e: MouseEvent) => {
+			const t = e.target;
+			if (!(t instanceof Element)) return;
+			if (t.closest('[data-theme-toggle]')) {
+				setTheme(getTheme() === 'dark' ? 'light' : 'dark');
+				return;
+			}
+			const a = t.closest('a[data-lang-locale]');
+			if (!a) return;
 			const loc = a.getAttribute('data-lang-locale');
 			const normalized = loc ? normalizeLocale(loc) : null;
 			if (normalized) {
 				safeLocalSet('siyuan-docs-locale', normalized);
 			}
-		});
-	}
+		},
+		{ signal },
+	);
 }

@@ -3,6 +3,7 @@
 export function onMediaQueryChange(
 	mql: MediaQueryList,
 	handler: (event: MediaQueryListEvent) => void,
+	signal?: AbortSignal,
 ): void {
-	mql.addEventListener('change', handler);
+	mql.addEventListener('change', handler, signal ? { signal } : undefined);
 }

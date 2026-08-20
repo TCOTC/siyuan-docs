@@ -3,7 +3,7 @@ import { safeSessionSet } from '../safe-storage';
 import { tocSync } from '../doc-reading-sync';
 import { setRailScrollBootSuppress } from '../doc-window-runtime';
 
-function scheduleEndDocRailScrollBoot(): void {
+function scheduleEndDocRailScrollBoot(signal: AbortSignal): void {
 	let ended = false;
 	const finish = (): void => {
 		if (ended) return;
@@ -18,14 +18,14 @@ function scheduleEndDocRailScrollBoot(): void {
 		document.readyState === 'complete'
 			? Promise.resolve()
 			: new Promise<void>((resolve) => {
-					window.addEventListener('load', () => resolve(), { once: true });
+					window.addEventListener('load', () => resolve(), { once: true, signal });
 				});
 	void Promise.all([loadPromise, document.fonts.ready]).then(finish).catch(finish);
 	window.setTimeout(finish, 2500);
 }
 
 /** 文档页面包屑回顶、侧栏滚动 boot 结束 */
-export function mountDocLayoutChrome(): void {
+export function mountDocLayoutChrome(signal: AbortSignal): void {
 	/* 点击面包屑当前页标题（.breadcrumbs__current）：回文档开头，与同页 href 刷新区分 */
 	const contentHeadEl = document.querySelector('.bar');
 	if (contentHeadEl instanceof HTMLElement) {
@@ -72,8 +72,8 @@ export function mountDocLayoutChrome(): void {
 					tocSync();
 				}, 64);
 			},
-			{ passive: false },
+			{ passive: false, signal },
 		);
 	}
-	scheduleEndDocRailScrollBoot();
+	scheduleEndDocRailScrollBoot(signal);
 }
