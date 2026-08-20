@@ -10,8 +10,11 @@ import ThemeToggleHint from '../components/ThemeToggleHint.vue';
 import { mountDocChrome } from '../chrome/shell-ui';
 import { startPagefindLoader } from '../chrome/pagefind-loader';
 import { shellUi } from '../i18n';
-import { docHref, type NavGroup, type TocHeading } from '../lib/docData';
+import { docHref, findDoc, type GeneratedDocs, type NavGroup, type TocHeading } from '../lib/docData';
 import { appI18nLocales, localeHtmlLang, type AppLocale } from '../lib/locales';
+import generated from '../generated/docs.json';
+
+const docsData = generated as GeneratedDocs;
 
 const props = defineProps<{
 	locale: AppLocale;
@@ -26,12 +29,18 @@ const props = defineProps<{
 	notFound?: boolean;
 }>();
 
+function localeDocHref(locale: AppLocale, stem: string, homeStem: string): string {
+	return docHref(locale, findDoc(docsData.docs, locale, stem) ? stem : homeStem);
+}
+
 const t = computed(() => shellUi(props.locale));
 const tocItems = computed(() => props.headings.filter((h) => h.depth >= 2 && h.depth <= 4));
 const docHomeHref = computed(() => docHref(props.locale, props.homeStem));
 const hrefByLocale = computed(() => {
 	const stem = props.currentStem ?? props.homeStem;
-	return Object.fromEntries(appI18nLocales.map((l) => [l, docHref(l, stem)])) as Record<AppLocale, string>;
+	return Object.fromEntries(
+		appI18nLocales.map((l) => [l, localeDocHref(l, stem, props.homeStem)] as const),
+	) as Record<AppLocale, string>;
 });
 const pagefindBundle = computed(() => {
 	const base = import.meta.env.BASE_URL;
@@ -60,7 +69,7 @@ useHead({
 		...appI18nLocales.map((loc) => ({
 			rel: 'alternate',
 			hreflang: localeHtmlLang[loc],
-			href: docHref(loc, props.currentStem ?? props.homeStem),
+			href: localeDocHref(loc, props.currentStem ?? props.homeStem, props.homeStem),
 		})),
 	],
 });

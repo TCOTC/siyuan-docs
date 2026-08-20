@@ -29,7 +29,7 @@ type outPayload struct {
 func newDocsLute() *lute.Lute {
 	eng := lute.New()
 	eng.SetHeadingID(true)
-	eng.SetHeadingAnchor(true)
+	eng.SetHeadingAnchor(false)
 	eng.SetFootnotes(true)
 	eng.SetGFMStrikethrough(true)
 	eng.SetYamlFrontMatter(false)
