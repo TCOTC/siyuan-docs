@@ -1,15 +1,22 @@
 /**
  * 占位与 Pagefind 宿主分时挂载，避免双按钮。
- * bundle 路径来自 `<meta name="pagefind-bundle">`。
+ * bundle 路径来自参数或 `<meta name="pagefind-bundle">`。
  */
-let loaderStarted = false;
-let pagefindScriptLoaded = false;
-let uiReadyMarked = false;
+let idleScheduled = false;
+let pointerBound = false;
+let loadInFlight = false;
+let pagefindReady = false;
+let resolvedBundle = '';
 
 function markPagefindUiReady(): void {
-	if (uiReadyMarked) return;
-	uiReadyMarked = true;
 	document.documentElement.setAttribute('data-pagefind-ui-ready', '');
+}
+
+function bundlePath(explicit?: string): string {
+	if (explicit) return explicit;
+	if (resolvedBundle) return resolvedBundle;
+	const meta = document.querySelector('meta[name="pagefind-bundle"]');
+	return meta?.getAttribute('content') ?? '';
 }
 
 function mountModalTriggers(): void {
@@ -43,48 +50,93 @@ export function closePagefindModal(): void {
 	modal.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 }
 
-export function startPagefindLoader(): void {
-	if (pagefindScriptLoaded && customElements.get('pagefind-modal-trigger')) {
+function finishLoadSuccess(): void {
+	pagefindReady = true;
+	loadInFlight = false;
+	mountModalTriggers();
+}
+
+function finishLoadFailure(): void {
+	loadInFlight = false;
+	pagefindReady = false;
+}
+
+function loadPagefind(): void {
+	if (pagefindReady && customElements.get('pagefind-modal-trigger')) {
 		mountModalTriggers();
 		return;
 	}
-	if (loaderStarted) return;
-	const meta = document.querySelector('meta[name="pagefind-bundle"]');
-	const bundle = meta?.getAttribute('content');
+	if (loadInFlight) return;
+	const bundle = bundlePath();
 	if (!bundle) return;
-	loaderStarted = true;
+	resolvedBundle = bundle;
+	loadInFlight = true;
 
 	const cssHref = `${bundle}pagefind-component-ui.css`;
 	const jsSrc = `${bundle}pagefind-component-ui.js`;
 
-	function loadPagefind(): void {
-		if (pagefindScriptLoaded) return;
-		pagefindScriptLoaded = true;
+	if (!document.querySelector(`link[href="${cssHref}"]`)) {
 		const link = document.createElement('link');
 		link.rel = 'stylesheet';
 		link.href = cssHref;
 		document.head.appendChild(link);
-		const script = document.createElement('script');
-		script.type = 'module';
-		script.src = jsSrc;
-		script.onload = (): void => {
-			void customElements.whenDefined('pagefind-modal-trigger').then(mountModalTriggers).catch(mountModalTriggers);
-		};
-		document.head.appendChild(script);
 	}
 
-	const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1));
-	ric(
-		() => {
-			loadPagefind();
-		},
-		{ timeout: 2000 },
-	);
+	if (customElements.get('pagefind-modal-trigger')) {
+		finishLoadSuccess();
+		return;
+	}
 
+	const existing = document.querySelector(`script[src="${jsSrc}"]`);
+	if (existing) {
+		const defined = customElements.whenDefined('pagefind-modal-trigger');
+		const timeout = new Promise<never>((_, reject) => {
+			window.setTimeout(() => reject(new Error('pagefind-ui')), 4000);
+		});
+		void Promise.race([defined, timeout]).then(finishLoadSuccess).catch(finishLoadFailure);
+		return;
+	}
+
+	const script = document.createElement('script');
+	script.type = 'module';
+	script.src = jsSrc;
+	script.onload = (): void => {
+		const defined = customElements.whenDefined('pagefind-modal-trigger');
+		const timeout = new Promise<never>((_, reject) => {
+			window.setTimeout(() => reject(new Error('pagefind-ui')), 4000);
+		});
+		void Promise.race([defined, timeout]).then(finishLoadSuccess).catch(finishLoadFailure);
+	};
+	script.onerror = finishLoadFailure;
+	document.head.appendChild(script);
+}
+
+export function startPagefindLoader(explicitBundle?: string): void {
+	const bundle = bundlePath(explicitBundle);
+	if (bundle) resolvedBundle = bundle;
+
+	if (pagefindReady && customElements.get('pagefind-modal-trigger')) {
+		mountModalTriggers();
+		return;
+	}
+	if (!resolvedBundle) return;
+
+	if (!idleScheduled) {
+		idleScheduled = true;
+		const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1));
+		ric(
+			() => {
+				loadPagefind();
+			},
+			{ timeout: 2000 },
+		);
+	}
+
+	if (pointerBound) return;
+	pointerBound = true;
 	document.addEventListener(
 		'pointerdown',
 		(e: PointerEvent) => {
-			if (pagefindScriptLoaded) return;
 			const el = e.target;
 			if (!(el instanceof Element)) return;
 			if (el.closest('.pf-search-placeholder, .pf-trigger-stack, [data-pf-trigger-mount]')) {

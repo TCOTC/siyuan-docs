@@ -308,7 +308,7 @@ body.doc-layout .shell {
 	}
 }
 
-/* 窄屏顶栏：由脚本将 #tool-float 迁入侧栏（次序与 Shell：brand → 本槽 → actions） */
+/* 窄屏顶栏：由脚本将 #tool-float 迁入侧栏（次序：brand → 本槽 → actions） */
 .tool-slot--rail {
 	display: none;
 	flex: 1;
@@ -608,10 +608,6 @@ pagefind-modal-trigger.pf-trigger-wrap {
 			}
 		}
 	}
-}
-
-html[data-device='apple'] .rail-scroll {
-	padding-right: var(--scrollbar-track);
 }
 
 /* 与侧栏背景同色，仅在有可滚动内容且未顶/底时显隐；pointer-events: none 不挡点击 */

@@ -1,9 +1,7 @@
 import { appI18nLocales, defaultLocale, type AppLocale } from './locales';
+import { safeLocalGet, safeLocalSet } from './safeStorage';
 
-export function isSiteLocale(value: unknown): value is AppLocale {
-	if (typeof value !== 'string') return false;
-	return normalizeLocale(value) != null;
-}
+const LOCALE_STORAGE_KEY = 'siyuan-docs-locale';
 
 export function normalizeLocale(value: string): AppLocale | null {
 	const trimmed = value.trim();
@@ -15,7 +13,7 @@ export function normalizeLocale(value: string): AppLocale | null {
 	return null;
 }
 
-export function stripBase(pathname: string, baseStr: string): string {
+function stripBase(pathname: string, baseStr: string): string {
 	const b = baseStr.replace(/\/$/, '');
 	if (!b) return pathname;
 	if (pathname.startsWith(b)) {
@@ -25,23 +23,23 @@ export function stripBase(pathname: string, baseStr: string): string {
 	return pathname;
 }
 
-export function localeFromPath(pathname: string, baseStr: string): AppLocale | null {
+function localeFromPath(pathname: string, baseStr: string): AppLocale | null {
 	let p = stripBase(pathname, baseStr);
 	if (!p.startsWith('/')) p = `/${p}`;
 	const seg = p.split('/').filter(Boolean)[0];
 	return seg ? normalizeLocale(seg) : null;
 }
 
-export function localeFromStorage(): AppLocale | null {
-	try {
-		const v = localStorage.getItem('siyuan-docs-locale');
-		return v ? normalizeLocale(v) : null;
-	} catch {
-		return null;
-	}
+function localeFromStorage(): AppLocale | null {
+	const v = safeLocalGet(LOCALE_STORAGE_KEY);
+	return v ? normalizeLocale(v) : null;
 }
 
-export function localeFromNavigator(): AppLocale | null {
+export function persistLocalePreference(locale: AppLocale): void {
+	safeLocalSet(LOCALE_STORAGE_KEY, locale);
+}
+
+function localeFromNavigator(): AppLocale | null {
 	try {
 		const list = navigator.languages?.length ? navigator.languages : [navigator.language];
 		for (const raw of list) {

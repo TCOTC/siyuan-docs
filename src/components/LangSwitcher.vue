@@ -7,28 +7,40 @@ import {
 	localeHtmlLang,
 	type AppLocale,
 } from '../lib/locales';
+import { persistLocalePreference } from '../lib/localePreference';
 import type { ShellUi } from '../i18n/types';
 
 defineProps<{
 	locale: AppLocale;
 	hrefByLocale: Record<AppLocale, string>;
 	t: ShellUi;
+	open: boolean;
 }>();
+
+const emit = defineEmits<{
+	toggle: [];
+	close: [];
+}>();
+
+function onLocaleClick(loc: AppLocale): void {
+	persistLocalePreference(loc);
+	emit('close');
+}
 </script>
 
 <template>
-	<div class="lang-switch" data-lang-switch>
+	<div class="lang-switch" data-header-menu="lang">
 		<div class="hint" data-anchored-floating-hint>
 			<button
 				type="button"
 				class="icon-btn"
 				id="lang-switch-btn"
-				data-lang-menu-btn
 				data-floating-hint-anchor
-				aria-expanded="false"
+				:aria-expanded="open ? 'true' : 'false'"
 				aria-haspopup="menu"
 				aria-controls="lang-switch-panel"
 				:aria-label="t.langSwitcherAria"
+				@click="emit('toggle')"
 			>
 				<Languages class="lang-switch__icon" :size="18" aria-hidden="true" />
 			</button>
@@ -40,7 +52,8 @@ defineProps<{
 			class="copy-split__panel lang-switch__panel"
 			id="lang-switch-panel"
 			role="menu"
-			hidden
+			:hidden="!open"
+			:class="{ 'is-open': open }"
 			:aria-label="t.langSwitcherAria"
 		>
 			<li v-for="loc in appLocalesForPresentation()" :key="loc" role="presentation">
@@ -50,10 +63,10 @@ defineProps<{
 					:to="hrefByLocale[loc]"
 					:hreflang="localeHtmlLang[loc]"
 					:lang="localeHtmlLang[loc]"
-					:data-lang-locale="loc"
 					:aria-current="locale === loc ? 'page' : undefined"
 					active-class=""
 					exact-active-class=""
+					@click="onLocaleClick(loc)"
 				>
 					<span class="copy-split__panel-item__title">{{ langSwitcherOptionLabel[loc] }}</span>
 				</RouterLink>

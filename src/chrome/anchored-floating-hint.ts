@@ -118,8 +118,7 @@ function placeToButton(btn: Element, layer: HTMLElement): void {
 
 function bindRoot(root: Element): void {
 	const btn = resolveHintAnchor(root);
-	const layer = (root.querySelector('[data-floating-hint-layer]') ||
-		root.querySelector('.pf-trigger-shortcut')) as HTMLElement | null;
+	const layer = root.querySelector('[data-floating-hint-layer]') as HTMLElement | null;
 	if (!btn || !layer) return;
 
 	const prev = rootBindings.get(root);

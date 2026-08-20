@@ -18,11 +18,6 @@ export type DocRecord = {
 	markdown: string;
 };
 
-export type NavItem = {
-	stem: string;
-	title: string;
-};
-
 export type RailPage = {
 	type: 'page';
 	stem: string;
@@ -33,7 +28,7 @@ export type NavGroup = {
 	type: 'group';
 	key: string;
 	label: string;
-	items: NavItem[];
+	items: { stem: string; title: string }[];
 };
 
 export type RailEntry = RailPage | NavGroup;
@@ -60,7 +55,7 @@ export function docHref(locale: AppLocale, stem: string, base = import.meta.env.
 }
 
 /** 站内纯文本 Markdown：`/{locale}/{stem}/` 对应 `/{locale}/{stem}.md`，首页为 `/{locale}.md` */
-export function docMarkdownPath(locale: AppLocale, stem: string): string {
+function docMarkdownPath(locale: AppLocale, stem: string): string {
 	if (stem === HOME_STEM) return `/${locale}.md`;
 	return `/${locale}/${stem}.md`;
 }
@@ -79,8 +74,4 @@ export function stemFromRouteParam(pathParam: unknown): string {
 
 export function findDoc(docs: DocRecord[], locale: AppLocale, stem: string): DocRecord | undefined {
 	return docs.find((d) => d.locale === locale && d.stem === stem);
-}
-
-export function siblingDoc(docs: DocRecord[], locale: AppLocale, stem: string): DocRecord | undefined {
-	return findDoc(docs, locale, stem);
 }

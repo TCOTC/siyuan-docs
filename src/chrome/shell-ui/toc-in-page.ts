@@ -1,7 +1,6 @@
-import { consumeShellBootstrapRanTocSync } from '../doc-shell-toc-handshake';
-import { tocSync } from '../doc-reading-sync';
+import { scheduleTocSyncSoon, tocSync } from '../doc-reading-sync';
 
-/** 本页目录与正文滚动同步、hash 变化与 load 后再同步 */
+/** 本页目录与正文滚动同步；首帧 tocSync 由 mountDocChrome 已执行 */
 export function mountTocInPage(signal: AbortSignal): void {
 	const tocList = document.getElementById('doc-toc-list');
 	const docMainEl = document.getElementById('main-content');
@@ -16,14 +15,6 @@ export function mountTocInPage(signal: AbortSignal): void {
 			tocSync();
 		});
 	}
-	function tocScheduleSoon(): void {
-		tocSchedule();
-		requestAnimationFrame(() => {
-			tocSchedule();
-		});
-		setTimeout(tocSchedule, 0);
-		setTimeout(tocSchedule, 64);
-	}
 	function tocBindScrollTargets(fn: () => void): void {
 		const docScrollRoot = mainContent.closest('.read');
 		docScrollRoot?.addEventListener('scroll', fn, { passive: true, signal });
@@ -32,20 +23,17 @@ export function mountTocInPage(signal: AbortSignal): void {
 	}
 	tocBindScrollTargets(tocSchedule);
 	window.addEventListener('resize', tocSchedule, { passive: true, signal });
-	window.addEventListener('hashchange', tocScheduleSoon, { passive: true, signal });
+	window.addEventListener('hashchange', scheduleTocSyncSoon, { passive: true, signal });
 	tocList.addEventListener(
 		'click',
 		(e) => {
 			const t = e.target;
 			const a = t instanceof Element ? t.closest('a[href^="#"]') : null;
 			if (!a || !tocList.contains(a)) return;
-			tocScheduleSoon();
+			scheduleTocSyncSoon();
 		},
 		{ signal },
 	);
-	if (!consumeShellBootstrapRanTocSync()) {
-		tocSchedule();
-	}
 	window.addEventListener(
 		'load',
 		() => {

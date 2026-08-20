@@ -1,13 +1,27 @@
 /**
- * 侧栏滚动边缘与本页目录同步（与首帧 bootstrap 共用，避免与 shell-ui 重复实现分叉）。
+ * 侧栏滚动边缘与本页目录同步。
  */
 
-import {
-	bumpProgrammaticRailScrollDepth,
-	isProgrammaticRailScroll,
-	isRailScrollBootSuppress,
-	scheduleReleaseProgrammaticRailScrollDepth,
-} from './doc-window-runtime';
+/** 脚本自动滚动侧栏目录时的嵌套深度；> 0 时不短暂显示滚动条 */
+let programmaticRailScrollDepth = 0;
+
+function bumpProgrammaticRailScrollDepth(): void {
+	programmaticRailScrollDepth += 1;
+}
+
+function scheduleReleaseProgrammaticRailScrollDepth(): void {
+	queueMicrotask(() => {
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => {
+				programmaticRailScrollDepth = Math.max(0, programmaticRailScrollDepth - 1);
+			});
+		});
+	});
+}
+
+function isProgrammaticRailScroll(): boolean {
+	return programmaticRailScrollDepth > 0;
+}
 
 /** 避免正文滚动时每个 rAF 都重算大纲 scrollTop；仅在高亮集合变化时自动滚大纲 */
 let tocActiveHeadSig = '';
@@ -195,16 +209,16 @@ export function syncRailScrollEdges(): void {
 	railScrollClip.setAttribute('data-edge-bottom', canScroll && !atBottom ? '1' : '0');
 }
 
-/** 程序化滚动或首屏 boot（见 `doc-rail-scroll-boot`）期间不点亮侧栏滚动条 */
+/** 程序化滚动期间不点亮侧栏滚动条 */
 export function shouldSuppressRailScrollbarTransient(): boolean {
-	return isProgrammaticRailScroll() || isRailScrollBootSuppress();
+	return isProgrammaticRailScroll();
 }
 
 /**
  * 仅操作 `.rail-scroll` 的 scrollTop，避免 `scrollIntoView` 连带滚动页面主栏或其它祖先。
  * 目录末尾项会钳制到 maxScroll，保证当前链接落在可视区内。
  */
-export function applyRailActiveNavScroll(rail: HTMLElement, target: HTMLElement): void {
+function applyRailActiveNavScroll(rail: HTMLElement, target: HTMLElement): void {
 	const maxScroll = Math.max(0, rail.scrollHeight - rail.clientHeight);
 	if (maxScroll <= 0 || rail.clientHeight <= 0) return;
 	bumpProgrammaticRailScrollDepth();
@@ -222,7 +236,7 @@ export function applyRailActiveNavScroll(rail: HTMLElement, target: HTMLElement)
 
 /**
  * 将侧栏文档目录中当前页链接滚入 `.rail-scroll` 可视区域（尽量居中；双语文档栈仅处理可见的一项）。
- * 进入文档时的初定位由 `Shell.astro` 内联脚本尽早执行；此处供窄屏打开抽屉等后续场景。
+ * 进入文档时的初定位由 `mountDocChrome` 尽早执行；此处供窄屏打开抽屉等后续场景。
  */
 export function scrollActiveRailNavIntoView(): void {
 	const railScroll = document.querySelector('.rail-scroll');
@@ -326,7 +340,7 @@ export function tocSync(): void {
 	const viewportChanged = tocSyncLastViewportH > 0 && vph > 0 && vph !== tocSyncLastViewportH;
 	tocSyncLastViewportH = vph;
 
-	/* 首帧（含 sessionStorage 恢复滚动后 deferred 的第一次 tocSync）：轨道与指示条直接到位，避免从顶滑入 */
+	/* 首帧第一次 tocSync：轨道与指示条直接到位，避免从顶滑入 */
 	const coldStartTocRailLayout = tocActiveHeadSig === '';
 	const sigChanged = sig !== tocActiveHeadSig;
 	if (sigChanged) tocActiveHeadSig = sig;
@@ -380,4 +394,18 @@ export function tocSync(): void {
 			tocRail.scrollTop = toScroll;
 		}
 	}
+}
+
+/** hash 变化、面包屑回顶等：连打几次以跟上平滑滚动与布局 */
+export function scheduleTocSyncSoon(): void {
+	tocSync();
+	requestAnimationFrame(() => {
+		tocSync();
+	});
+	window.setTimeout(() => {
+		tocSync();
+	}, 0);
+	window.setTimeout(() => {
+		tocSync();
+	}, 64);
 }

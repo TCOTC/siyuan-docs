@@ -9,7 +9,7 @@ const CODE_COPY_I18N: Record<AppLocale, CodeBlockCopyUi> = {
 	en: enCodeBlockCopyUi,
 };
 
-/** 与 Shell、`not-found-locale-head-sync` 一致：优先 `data-doc-locale`，否则取 `<html lang>` 的主语言段；非站内语言则回退 `defaultLocale` */
+/** 优先 `data-doc-locale`，否则取 `<html lang>`；非站内语言则回退 `defaultLocale` */
 function localeForCodeBlockCopy(): AppLocale {
 	const dataLoc = document.documentElement.getAttribute('data-doc-locale');
 	if (dataLoc) {

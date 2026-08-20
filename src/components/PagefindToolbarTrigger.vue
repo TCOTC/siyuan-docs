@@ -7,7 +7,7 @@ defineProps<{
 
 <template>
 	<div class="hint hint--pf" data-anchored-floating-hint>
-		<div class="pf-trigger-stack" data-pf-trigger-mount>
+		<div class="pf-trigger-stack" data-pf-trigger-mount v-once>
 			<button type="button" class="pf-trigger-btn pf-search-placeholder" :aria-label="searchOpenAria">
 				<span class="pf-trigger-icon" aria-hidden="true"></span>
 			</button>

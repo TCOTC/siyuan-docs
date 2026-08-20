@@ -1,19 +1,12 @@
 /**
- * 文档页壳层：主题、工具条、复制与菜单、侧栏与 TOC、代码块复制。
- * 由 Vue 在挂载后调用，不再作为独立 IIFE 入口。
+ * 文档页仍需命令式处理的壳层：工具条搬家、侧栏滚动条、TOC 同步、代码块复制、浮动提示。
  */
 import { bindAnchoredFloatingHints } from './anchored-floating-hint';
-import { runDocShellBootstrap } from './doc-shell-bootstrap';
 import { startPagefindLoader } from './pagefind-loader';
-import { scrollActiveRailNavIntoView, tocSync } from './doc-reading-sync';
+import { scrollActiveRailNavIntoView, syncRailScrollEdges, tocSync } from './doc-reading-sync';
 import { mountCodeBlockCopy } from './shell-ui/code-block-copy';
-import { mountCopyPageMarkdown } from './shell-ui/copy-page-markdown';
-import { mountDocLayoutChrome } from './shell-ui/doc-layout-chrome';
-import { mountDocRailDrawer } from './shell-ui/doc-rail-drawer';
 import { mountDocToolbarSlot } from './shell-ui/doc-toolbar-slot';
-import { mountHeaderMenus } from './shell-ui/header-menus';
 import { mountRailScrollWiring } from './shell-ui/rail-scroll-wiring';
-import { mountShellThemeAndLocale } from './shell-ui/theme-and-locale';
 import { mountTocInPage } from './shell-ui/toc-in-page';
 
 let chromeAbort: AbortController | null = null;
@@ -31,6 +24,18 @@ export function unmountDocChrome(): void {
 	chromeAbort = null;
 }
 
+function runDocShellBootstrap(): void {
+	syncRailScrollEdges();
+	const tocListBoot = document.getElementById('doc-toc-list');
+	const docMainBoot = document.getElementById('main-content');
+	if (tocListBoot && docMainBoot?.classList.contains('read-main')) {
+		tocSync();
+	}
+	requestAnimationFrame(() => {
+		syncRailScrollEdges();
+	});
+}
+
 export function mountDocChrome(): void {
 	if (chromeAbort && !chromeAbort.signal.aborted) {
 		syncDocChromeAfterNavigation();
@@ -40,22 +45,10 @@ export function mountDocChrome(): void {
 	chromeAbort = new AbortController();
 	const { signal } = chromeAbort;
 
-	if (document.body.classList.contains('doc-layout')) {
-		runDocShellBootstrap();
-		scrollActiveRailNavIntoView();
-	}
-
-	mountShellThemeAndLocale(signal);
+	runDocShellBootstrap();
+	scrollActiveRailNavIntoView();
 	mountDocToolbarSlot(signal);
-	const copyPage = mountCopyPageMarkdown(signal);
-	mountHeaderMenus(copyPage, signal);
-	mountDocRailDrawer(signal);
 	mountRailScrollWiring(signal);
-
-	if (document.body.classList.contains('doc-layout')) {
-		mountDocLayoutChrome(signal);
-	}
-
 	mountTocInPage(signal);
 	mountCodeBlockCopy();
 	bindAnchoredFloatingHints();

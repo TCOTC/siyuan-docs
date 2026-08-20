@@ -14,8 +14,7 @@ import {
 } from '../lib/docData';
 import { defaultLocale, type AppLocale } from '../lib/locales';
 import { normalizeLocale } from '../lib/localePreference';
-
-type DocPageWindow = Window & { __DOC_PAGE_MARKDOWN__?: string };
+import { clearPageMarkdown, setPageMarkdown } from '../lib/pageMarkdown';
 
 const data = generated as GeneratedDocs;
 const route = useRoute();
@@ -41,13 +40,13 @@ watch(
 	() => doc.value?.markdown ?? '',
 	(md) => {
 		if (import.meta.env.SSR) return;
-		(window as DocPageWindow).__DOC_PAGE_MARKDOWN__ = md;
+		setPageMarkdown(md);
 	},
 	{ immediate: true },
 );
 
 onUnmounted(() => {
-	delete (window as DocPageWindow).__DOC_PAGE_MARKDOWN__;
+	clearPageMarkdown();
 });
 </script>
 

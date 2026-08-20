@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useHead } from '@unhead/vue';
 import BrandLogo from '../components/BrandLogo.vue';
@@ -8,8 +8,13 @@ import LangSwitcher from '../components/LangSwitcher.vue';
 import PagefindToolbarTrigger from '../components/PagefindToolbarTrigger.vue';
 import RailNavSections from '../components/RailNavSections.vue';
 import ThemeToggleHint from '../components/ThemeToggleHint.vue';
+import { onMediaQueryChange } from '../chrome/media-query';
 import { closePagefindModal, startPagefindLoader } from '../chrome/pagefind-loader';
-import { closeDocRailIfOpen } from '../chrome/shell-ui/doc-rail-drawer';
+import {
+	scheduleTocSyncSoon,
+	scrollActiveRailNavIntoView,
+	syncRailScrollEdges,
+} from '../chrome/doc-reading-sync';
 import { mountDocChrome, syncDocChromeAfterNavigation, unmountDocChrome } from '../chrome/shell-ui';
 import { shellUi } from '../i18n';
 import { docHref, docPath, findDoc, type GeneratedDocs, type RailEntry, type TocHeading } from '../lib/docData';
@@ -60,13 +65,67 @@ const siteTitle = computed(() =>
 	props.title === t.value.siteName ? props.title : `${props.title} – ${t.value.siteName}`,
 );
 
+type HeaderMenu = 'lang' | 'copy' | null;
+const headerMenu = ref<HeaderMenu>(null);
+const railOpen = ref(false);
+let layoutAbort: AbortController | null = null;
+
+function toggleHeaderMenu(name: Exclude<HeaderMenu, null>): void {
+	headerMenu.value = headerMenu.value === name ? null : name;
+}
+
+function closeHeaderMenu(): void {
+	headerMenu.value = null;
+}
+
+function setRailOpen(open: boolean): void {
+	if (railOpen.value === open) return;
+	railOpen.value = open;
+}
+
+function onRailClick(e: MouseEvent): void {
+	const t = e.target;
+	if (t instanceof Element && t.closest('a[href]')) {
+		setRailOpen(false);
+	}
+}
+
+function onBreadcrumbsClick(e: MouseEvent): void {
+	if (e.defaultPrevented || e.button !== 0) return;
+	if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+	const t = e.target;
+	if (!(t instanceof Element)) return;
+	const hit = t.closest('a.breadcrumbs__current, span.breadcrumbs__current');
+	if (!hit) return;
+	let sameDoc = hit instanceof HTMLSpanElement;
+	if (hit instanceof HTMLAnchorElement) {
+		try {
+			const u = new URL(hit.getAttribute('href') ?? '', location.href);
+			sameDoc = u.pathname === location.pathname && u.search === location.search;
+		} catch {
+			sameDoc = false;
+		}
+	}
+	if (!sameDoc) return;
+	if (hit instanceof HTMLAnchorElement) e.preventDefault();
+	try {
+		if (location.hash) {
+			history.replaceState(null, '', location.pathname + location.search);
+		}
+	} catch {
+		/* ignore */
+	}
+	window.scrollTo({ top: 0, behavior: 'smooth' });
+	scheduleTocSyncSoon();
+}
+
 useHead({
 	htmlAttrs: {
 		lang: () => localeHtmlLang[props.locale],
 		'data-doc-locale': () => props.locale,
 	},
 	bodyAttrs: {
-		class: 'doc-layout',
+		class: () => (railOpen.value ? 'doc-layout doc-rail-open' : 'doc-layout'),
 	},
 	title: () => siteTitle.value,
 	meta: () => [
@@ -84,12 +143,55 @@ useHead({
 	],
 });
 
+watch(railOpen, (open) => {
+	if (import.meta.env.SSR) return;
+	document.body.classList.toggle('doc-rail-open', open);
+	document.body.style.overflow = open ? 'hidden' : '';
+	if (!open) return;
+	window.requestAnimationFrame(() => {
+		scrollActiveRailNavIntoView();
+		syncRailScrollEdges();
+	});
+});
+
 onMounted(() => {
 	mountDocChrome();
-	startPagefindLoader();
+	startPagefindLoader(pagefindBundle.value);
+	layoutAbort = new AbortController();
+	const { signal } = layoutAbort;
+	document.addEventListener(
+		'click',
+		(e: MouseEvent) => {
+			const t = e.target;
+			if (!(t instanceof Element)) return;
+			if (t.closest('[data-header-menu]')) return;
+			closeHeaderMenu();
+		},
+		{ signal },
+	);
+	document.addEventListener(
+		'keydown',
+		(e: KeyboardEvent) => {
+			if (e.key !== 'Escape' || e.defaultPrevented) return;
+			closeHeaderMenu();
+			setRailOpen(false);
+		},
+		{ signal },
+	);
+	onMediaQueryChange(
+		window.matchMedia('(width >= 850px)'),
+		(e) => {
+			if (e.matches) setRailOpen(false);
+		},
+		signal,
+	);
 });
 
 onUnmounted(() => {
+	layoutAbort?.abort();
+	layoutAbort = null;
+	document.body.classList.remove('doc-rail-open');
+	document.body.style.overflow = '';
 	unmountDocChrome();
 });
 
@@ -99,7 +201,8 @@ watch(
 		if (import.meta.env.SSR) return;
 		await nextTick();
 		closePagefindModal();
-		closeDocRailIfOpen();
+		closeHeaderMenu();
+		setRailOpen(false);
 		syncDocChromeAfterNavigation();
 		const main = document.getElementById('main-content');
 		if (main instanceof HTMLElement) {
@@ -113,8 +216,20 @@ watch(
 	<a class="skip-link" href="#main-content">{{ t.skipToContent }}</a>
 	<pagefind-config :bundle-path="pagefindBundle" :lang="locale" />
 	<div class="shell">
-		<div class="rail-backdrop" id="rail-backdrop" aria-hidden="true" />
-		<aside class="rail" id="doc-rail" :aria-label="t.docNavAria" data-pagefind-ignore>
+		<div
+			class="rail-backdrop"
+			id="rail-backdrop"
+			:aria-hidden="railOpen ? 'false' : 'true'"
+			@click="setRailOpen(false)"
+		/>
+		<aside
+			class="rail"
+			id="doc-rail"
+			:aria-label="t.docNavAria"
+			:aria-modal="railOpen ? 'true' : undefined"
+			data-pagefind-ignore
+			@click="onRailClick"
+		>
 			<header class="rail-header">
 				<RouterLink
 					class="brand-lockup brand-lockup--rail"
@@ -176,7 +291,12 @@ watch(
 
 		<div class="sheet" :data-doc-has-toc="tocItems.length > 0 ? '1' : undefined">
 			<div class="bar" data-pagefind-ignore>
-				<nav v-if="breadcrumbs.length" class="breadcrumbs" :aria-label="t.breadcrumbsAria">
+				<nav
+					v-if="breadcrumbs.length"
+					class="breadcrumbs"
+					:aria-label="t.breadcrumbsAria"
+					@click="onBreadcrumbsClick"
+				>
 					<ol class="breadcrumbs__list">
 						<li v-for="(c, i) in breadcrumbs" :key="i" class="breadcrumbs__item">
 							<RouterLink
@@ -214,10 +334,24 @@ watch(
 							<div class="bar__search bar__search--drawer" data-pagefind-ignore>
 								<PagefindToolbarTrigger :search-hint="t.searchHint" :search-open-aria="t.searchOpenAria" />
 							</div>
-							<LangSwitcher :locale="locale" :href-by-locale="hrefByLocale" :t="t" />
+							<LangSwitcher
+								:locale="locale"
+								:href-by-locale="hrefByLocale"
+								:t="t"
+								:open="headerMenu === 'lang'"
+								@toggle="toggleHeaderMenu('lang')"
+								@close="closeHeaderMenu"
+							/>
 							<div class="bar__desk">
 								<ThemeToggleHint :theme-toggle-aria="t.themeToggleAria" :theme-toggle-hint="t.themeToggleHint" />
-								<CopyPageMarkdownToolbar v-if="!notFound && mdViewHref" :md-view-href="mdViewHref" :t="t" />
+								<CopyPageMarkdownToolbar
+									v-if="!notFound && mdViewHref"
+									:md-view-href="mdViewHref"
+									:open="headerMenu === 'copy'"
+									:t="t"
+									@toggle="toggleHeaderMenu('copy')"
+									@close="closeHeaderMenu"
+								/>
 							</div>
 						</div>
 					</div>
@@ -225,11 +359,10 @@ watch(
 						type="button"
 						class="rail-menu-trigger"
 						id="rail-menu-toggle"
-						aria-expanded="false"
+						:aria-expanded="railOpen ? 'true' : 'false'"
 						aria-controls="doc-rail"
-						:aria-label="t.railMenuOpenAria"
-						:data-aria-when-open="t.railMenuCloseAria"
-						:data-aria-when-closed="t.railMenuOpenAria"
+						:aria-label="railOpen ? t.railMenuCloseAria : t.railMenuOpenAria"
+						@click="setRailOpen(!railOpen)"
 					>
 						<span class="rail-menu-trigger__icon" aria-hidden="true">
 							<span class="rail-menu-trigger__bar"></span>

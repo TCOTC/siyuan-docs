@@ -5,14 +5,7 @@ export function mountDocToolbarSlot(signal: AbortSignal): void {
 	const floater = document.getElementById('tool-float');
 	const slotHead = document.getElementById('tool-slot-bar');
 	const slotRail = document.getElementById('tool-slot-rail');
-	if (
-		!floater ||
-		!slotHead ||
-		!slotRail ||
-		!document.body.classList.contains('doc-layout')
-	) {
-		return;
-	}
+	if (!floater || !slotHead || !slotRail) return;
 	const toolbarFloater = floater;
 	const toolbarSlotHead = slotHead;
 	const toolbarSlotRail = slotRail;
