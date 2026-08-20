@@ -8,8 +8,8 @@
 
 语言写在文件名后缀里，目录按主题分，不按网页 URL 分：
 
-- `home.en.md` → `/en/`
-- `home.zh-CN.md` → `/zh-CN/`
+- `index.en.md` → `/en/`
+- `index.zh-CN.md` → `/zh-CN/`
 - `bazaar/overview.en.md` → `/en/bazaar/overview`
 - `bazaar/overview.zh-CN.md` → `/zh-CN/bazaar/overview`
 
@@ -26,7 +26,7 @@ description: 可选摘要
 ---
 ```
 
-侧栏顺序与分组标题写在仓库根目录的 [`nav.yml`](nav.yml)。根级文档写成 `- home`；分组写成：
+侧栏顺序与分组标题写在仓库根目录的 [`nav.yml`](nav.yml)。根级文档写成 `- index`；分组写成：
 
 ```yaml
 - plugin:

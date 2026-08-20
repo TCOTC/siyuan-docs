@@ -1,5 +1,5 @@
-# 侧栏顺序。根级文档写 `- home`；分组写各语言标题，再列 `pages`（文件名不含语言后缀与 `.md`）。
-- home
+# 侧栏顺序。根级文档写 `- index`；分组写各语言标题，再列 `pages`（文件名不含语言后缀与 `.md`）。
+- index
 - intro:
   en: Introduction
   zh-CN: 入门
