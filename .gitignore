@@ -1,9 +1,7 @@
 node_modules/
 dist/
 .vite/
-content/
 tmp/
-src/generated/docs.json
 public/en/
 public/zh-CN/
 public/en.md

@@ -14,7 +14,7 @@ import { mountDocChrome, syncDocChromeAfterNavigation, unmountDocChrome } from '
 import { shellUi } from '../i18n';
 import { docHref, docPath, findDoc, type GeneratedDocs, type RailEntry, type TocHeading } from '../lib/docData';
 import { appI18nLocales, localeHtmlLang, type AppLocale } from '../lib/locales';
-import generated from '../generated/docs.json';
+import generated from '#docs';
 
 const docsData = generated as GeneratedDocs;
 
@@ -61,10 +61,10 @@ const siteTitle = computed(() =>
 );
 
 useHead({
-	htmlAttrs: () => ({
-		lang: localeHtmlLang[props.locale],
-		'data-doc-locale': props.locale,
-	}),
+	htmlAttrs: {
+		lang: () => localeHtmlLang[props.locale],
+		'data-doc-locale': () => props.locale,
+	},
 	bodyAttrs: {
 		class: 'doc-layout',
 	},
@@ -77,7 +77,7 @@ useHead({
 		{ rel: 'icon', type: 'image/svg+xml', href: `${import.meta.env.BASE_URL}favicon.svg` },
 		{ rel: 'icon', href: `${import.meta.env.BASE_URL}favicon.ico`, sizes: 'any' },
 		...appI18nLocales.map((loc) => ({
-			rel: 'alternate',
+			rel: 'alternate' as const,
 			hreflang: localeHtmlLang[loc],
 			href: localeDocHref(loc, props.currentStem ?? props.homeStem, props.homeStem),
 		})),

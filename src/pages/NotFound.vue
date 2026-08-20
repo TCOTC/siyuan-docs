@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import NotFoundArticle from '../components/NotFoundArticle.vue';
 import DocLayout from '../layouts/DocLayout.vue';
-import generated from '../generated/docs.json';
+import generated from '#docs';
 import { shellUi } from '../i18n';
 import type { GeneratedDocs } from '../lib/docData';
 import { detectLocale } from '../lib/localePreference';

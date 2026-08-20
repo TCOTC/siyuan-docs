@@ -11,6 +11,11 @@ declare module '*.json' {
 	export default value;
 }
 
+declare module '#docs' {
+	const value: unknown;
+	export default value;
+}
+
 declare namespace JSX {
 	interface IntrinsicElements {
 		'pagefind-config': Record<string, unknown>;

@@ -2,6 +2,9 @@
 	"name": "siyuan-docs-site",
 	"private": true,
 	"type": "module",
+	"imports": {
+		"#docs": "./tmp/docs.json"
+	},
 	"version": "0.0.1",
 	"packageManager": "pnpm@11.22.0",
 	"engines": {

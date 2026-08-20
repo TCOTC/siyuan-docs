@@ -3,7 +3,7 @@ import { computed, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import NotFoundArticle from '../components/NotFoundArticle.vue';
 import DocLayout from '../layouts/DocLayout.vue';
-import generated from '../generated/docs.json';
+import generated from '#docs';
 import { shellUi } from '../i18n';
 import {
 	docMarkdownHref,

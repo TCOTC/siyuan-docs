@@ -1,4 +1,4 @@
-module github.com/TCOTC/siyuan-docs/tools/md2html
+module github.com/TCOTC/siyuan-docs/scripts/md2html
 
 go 1.26
 

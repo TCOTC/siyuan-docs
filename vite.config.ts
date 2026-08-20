@@ -5,11 +5,11 @@ import path from 'node:path';
 import 'vite-ssg';
 
 const siteBase = process.env.SITE_BASE || '/';
+const docsJsonPath = path.join(process.cwd(), 'tmp', 'docs.json');
 
 function includedDocRoutes(): string[] {
-	const jsonPath = path.join(process.cwd(), 'src/generated/docs.json');
-	if (!fs.existsSync(jsonPath)) return ['/'];
-	const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as {
+	if (!fs.existsSync(docsJsonPath)) return ['/'];
+	const data = JSON.parse(fs.readFileSync(docsJsonPath, 'utf8')) as {
 		docs: { locale: string; stem: string }[];
 		homeStem: string;
 	};
@@ -62,6 +62,11 @@ function markdownPlainTextPlugin(): Plugin {
 
 export default defineConfig({
 	base: siteBase.endsWith('/') ? siteBase : `${siteBase}/`,
+	resolve: {
+		alias: {
+			'#docs': docsJsonPath,
+		},
+	},
 	plugins: [
 		vue({
 			template: {

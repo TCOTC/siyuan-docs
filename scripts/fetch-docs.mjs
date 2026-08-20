@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { parseNavYml } from './parse-nav-yml.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const dest = path.join(root, 'content');
+const dest = path.join(root, 'tmp', 'content');
 const localeSuffixes = ['en', 'zh-CN'];
 
 fs.rmSync(dest, { recursive: true, force: true });
@@ -102,4 +102,4 @@ execSync(`git archive --format=tar origin/main ${archivePaths.join(' ')} -o "${t
 });
 execSync(`tar -xf "${tarPath}" -C "${dest}"`, { cwd: root, stdio: 'inherit' });
 fs.rmSync(tarPath, { force: true });
-console.log('[fetch-docs] extracted origin/main docs into content/');
+console.log('[fetch-docs] extracted origin/main docs into tmp/content/');

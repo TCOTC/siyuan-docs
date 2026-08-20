@@ -2,7 +2,7 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { detectRootLocale } from '../lib/localePreference';
-import generated from '../generated/docs.json';
+import generated from '#docs';
 import { docPath, type GeneratedDocs } from '../lib/docData';
 
 const data = generated as GeneratedDocs;

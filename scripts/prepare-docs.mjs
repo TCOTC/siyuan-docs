@@ -6,8 +6,9 @@ import matter from 'gray-matter';
 import { parseNavYml } from './parse-nav-yml.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const contentDir = path.join(root, 'content');
-const generatedDir = path.join(root, 'src', 'generated');
+const tmpDir = path.join(root, 'tmp');
+const contentDir = path.join(tmpDir, 'content');
+const docsJsonPath = path.join(tmpDir, 'docs.json');
 const localeSuffixes = ['en', 'zh-CN'];
 const homeStem = 'home';
 
@@ -112,8 +113,8 @@ if (files.length === 0) {
 const input = {
 	files: files.map((f) => ({ id: f.id, markdown: f.markdown })),
 };
-const toolDir = path.join(root, 'tools', 'md2html');
-const built = path.join(root, 'tmp', process.platform === 'win32' ? 'md2html.exe' : 'md2html');
+const toolDir = path.join(root, 'scripts', 'md2html');
+const built = path.join(tmpDir, process.platform === 'win32' ? 'md2html.exe' : 'md2html');
 fs.mkdirSync(path.dirname(built), { recursive: true });
 const build = spawnSync('go', ['build', '-o', built, '.'], { cwd: toolDir, stdio: 'inherit' });
 if (build.status !== 0) process.exit(build.status ?? 1);
@@ -178,8 +179,8 @@ const payload = {
 	homeStem,
 };
 
-fs.mkdirSync(generatedDir, { recursive: true });
-fs.writeFileSync(path.join(generatedDir, 'docs.json'), `${JSON.stringify(payload, null, '\t')}\n`);
+fs.mkdirSync(tmpDir, { recursive: true });
+fs.writeFileSync(docsJsonPath, `${JSON.stringify(payload, null, '\t')}\n`);
 
 const publicDir = path.join(root, 'public');
 for (const loc of localeSuffixes) {
@@ -196,4 +197,4 @@ for (const doc of docs) {
 	fs.writeFileSync(abs, body, 'utf8');
 }
 
-console.log(`[prepare-docs] wrote ${docs.length} pages and public markdown`);
+console.log(`[prepare-docs] wrote ${docs.length} pages to tmp/docs.json and public markdown`);
