@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ChevronDown } from '@lucide/vue';
-import { computed, reactive, watch } from 'vue';
+import { computed, reactive } from 'vue';
 import { RouterLink } from 'vue-router';
 import { syncRailScrollEdges } from '../chrome/doc-reading-sync';
 import { docPath, type NavGroup } from '../lib/docData';
@@ -19,18 +19,11 @@ const currentGroupKey = computed(() =>
 	props.currentStem ? navGroupKeyFromStem(props.currentStem) : undefined,
 );
 
-/** 各分组开合；随当前文档路径重置，之后以用户点击为准 */
+/** 各分组开合；仅在打开页面时按当前文档路径展开，之后以用户点击为准 */
 const expandedByKey = reactive<Record<string, boolean>>({});
-
-watch(
-	currentGroupKey,
-	(current) => {
-		for (const group of props.sidebarGroups) {
-			expandedByKey[group.key] = group.key === current;
-		}
-	},
-	{ immediate: true },
-);
+for (const group of props.sidebarGroups) {
+	expandedByKey[group.key] = group.key === currentGroupKey.value;
+}
 
 function isExpanded(key: string): boolean {
 	return expandedByKey[key] === true;

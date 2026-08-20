@@ -18,10 +18,9 @@ import { mountTocInPage } from './shell-ui/toc-in-page';
 
 let chromeAbort: AbortController | null = null;
 
-/** 站内切页后：同步 TOC / 侧栏高亮、为新正文注入代码复制、重绑浮动提示与搜索按钮 */
+/** 站内切页后：同步 TOC、为新正文注入代码复制、重绑浮动提示与搜索按钮 */
 export function syncDocChromeAfterNavigation(): void {
 	tocSync();
-	scrollActiveRailNavIntoView();
 	mountCodeBlockCopy();
 	bindAnchoredFloatingHints();
 	startPagefindLoader();
