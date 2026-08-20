@@ -1,4 +1,5 @@
-import { safeLocalGet, safeLocalSet } from './safeStorage';
+import { onMounted, onUnmounted } from 'vue';
+import { safeLocalGet, safeLocalSet } from '../lib/safeStorage';
 
 const THEME_STORAGE_KEY = 'siyuan-docs-theme';
 
@@ -18,7 +19,7 @@ function setTheme(next: DocsTheme): void {
 	safeLocalSet(THEME_STORAGE_KEY, next);
 }
 
-export function toggleTheme(): void {
+function toggleTheme(): void {
 	setTheme(getTheme() === 'dark' ? 'light' : 'dark');
 }
 
@@ -29,7 +30,7 @@ function applySystemThemeIfUnpinned(): void {
 }
 
 /** 跟随系统配色，并同步其它标签页对主题键的修改 */
-export function bindThemeSync(signal: AbortSignal): void {
+function bindThemeSync(signal: AbortSignal): void {
 	const mq = window.matchMedia('(prefers-color-scheme: dark)');
 	mq.addEventListener('change', applySystemThemeIfUnpinned, { signal });
 	window.addEventListener(
@@ -45,4 +46,15 @@ export function bindThemeSync(signal: AbortSignal): void {
 		},
 		{ signal },
 	);
+}
+
+export function useTheme(): { toggleTheme: () => void } {
+	const ac = new AbortController();
+	onMounted(() => {
+		bindThemeSync(ac.signal);
+	});
+	onUnmounted(() => {
+		ac.abort();
+	});
+	return { toggleTheme };
 }

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, nextTick, onUnmounted, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import NotFoundArticle from '../components/NotFoundArticle.vue';
 import DocLayout from '../layouts/DocLayout.vue';
 import generated from '#docs';
+import { useCodeBlockCopy } from '../composables/useCodeBlockCopy';
 import { shellUi } from '../i18n';
 import {
 	docMarkdownHref,
@@ -14,8 +15,6 @@ import {
 } from '../lib/docData';
 import { defaultLocale, type AppLocale } from '../lib/locales';
 import { normalizeLocale } from '../lib/localePreference';
-import { mountCodeBlockCopy } from '../lib/codeBlockCopy';
-import { clearPageMarkdown, setPageMarkdown } from '../lib/pageMarkdown';
 
 const data = generated as GeneratedDocs;
 const route = useRoute();
@@ -33,28 +32,12 @@ const breadcrumbs = computed(() => {
 	return [...(group ? [{ label: group.label }] : []), { label: doc.value.title }];
 });
 
-watch(
-	() => doc.value?.markdown ?? '',
-	(md) => {
-		if (import.meta.env.SSR) return;
-		setPageMarkdown(md);
-	},
-	{ immediate: true },
+const articleEl = ref<HTMLElement | null>(null);
+useCodeBlockCopy(
+	articleEl,
+	locale,
+	computed(() => doc.value?.html ?? ''),
 );
-
-watch(
-	() => [doc.value?.html ?? '', locale.value] as const,
-	async () => {
-		if (import.meta.env.SSR) return;
-		await nextTick();
-		mountCodeBlockCopy(locale.value);
-	},
-	{ immediate: true },
-);
-
-onUnmounted(() => {
-	clearPageMarkdown();
-});
 </script>
 
 <template>
@@ -66,10 +49,11 @@ onUnmounted(() => {
 		:rail="nav"
 		:breadcrumbs="breadcrumbs"
 		:headings="doc?.headings ?? []"
+		:markdown="doc?.markdown"
 		:md-view-href="doc ? docMarkdownHref(locale, doc.stem) : undefined"
 		:not-found="!doc"
 	>
-		<article v-if="doc" class="prose" v-html="doc.html" />
+		<article v-if="doc" ref="articleEl" class="prose" v-html="doc.html" />
 		<NotFoundArticle v-else :locale="locale" :t="t" />
 	</DocLayout>
 </template>

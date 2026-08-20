@@ -2,7 +2,7 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { detectRootLocale } from '../lib/localePreference';
-import { docPath } from '../lib/docData';
+import { docPath } from '../lib/docPath';
 
 const router = useRouter();
 

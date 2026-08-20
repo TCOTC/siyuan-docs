@@ -3,9 +3,9 @@ import { onUnmounted, ref } from 'vue';
 import { ChevronDown, Copy, Check, X } from '@lucide/vue';
 import AnchoredHint from './AnchoredHint.vue';
 import type { ShellUi } from '../i18n/types';
-import { copyPageMarkdown } from '../lib/pageMarkdown';
 
-defineProps<{
+const props = defineProps<{
+	markdown: string;
 	mdViewHref: string;
 	open: boolean;
 	t: Pick<
@@ -38,7 +38,15 @@ function flashCopyFeedback(success: boolean): void {
 
 function copyWithFeedback(): void {
 	emit('close');
-	void copyPageMarkdown().then(flashCopyFeedback);
+	const text = props.markdown.trim();
+	if (!text) {
+		flashCopyFeedback(false);
+		return;
+	}
+	void navigator.clipboard.writeText(text).then(
+		() => flashCopyFeedback(true),
+		() => flashCopyFeedback(false),
+	);
 }
 
 onUnmounted(() => {

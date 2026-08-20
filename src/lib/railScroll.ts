@@ -27,8 +27,8 @@ export function syncRailScrollEdges(
 	railScrollEl?: Element | null,
 	railScrollClip?: Element | null,
 ): void {
-	const el = railScrollEl ?? document.querySelector('.rail-scroll');
-	const clip = railScrollClip ?? document.querySelector('[data-rail-scroll-clip]');
+	const el = railScrollEl;
+	const clip = railScrollClip;
 	if (!el || !clip) return;
 	const maxScroll = Math.max(0, el.scrollHeight - el.clientHeight);
 	const canScroll = maxScroll > 2;
@@ -69,7 +69,7 @@ function applyRailActiveNavScroll(rail: HTMLElement, target: HTMLElement): void 
  * 进入文档时的初定位由布局挂载尽早执行；此处供窄屏打开抽屉等后续场景。
  */
 export function scrollActiveRailNavIntoView(railScrollEl?: HTMLElement | null): void {
-	const railScroll = railScrollEl ?? document.querySelector('.rail-scroll');
+	const railScroll = railScrollEl;
 	if (!(railScroll instanceof HTMLElement)) return;
 	let target: HTMLElement | null = null;
 	for (const el of railScroll.querySelectorAll('.rail-nav__link.is-active')) {

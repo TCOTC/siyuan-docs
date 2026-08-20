@@ -1,25 +1,14 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
 import { Sun, Moon } from '@lucide/vue';
 import AnchoredHint from './AnchoredHint.vue';
-import { bindThemeSync, toggleTheme } from '../lib/theme';
+import { useTheme } from '../composables/useTheme';
 
 defineProps<{
 	themeToggleAria: string;
 	themeToggleHint: string;
 }>();
 
-let themeAbort: AbortController | null = null;
-
-onMounted(() => {
-	themeAbort = new AbortController();
-	bindThemeSync(themeAbort.signal);
-});
-
-onUnmounted(() => {
-	themeAbort?.abort();
-	themeAbort = null;
-});
+const { toggleTheme } = useTheme();
 </script>
 
 <template>

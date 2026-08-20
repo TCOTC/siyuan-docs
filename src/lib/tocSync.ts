@@ -116,13 +116,12 @@ function collectTocActiveLiNodes(tocList: HTMLElement): HTMLElement[] {
 }
 
 function computeTocRailTargetScrollTopForCenteredHeads(
+	tocRail: HTMLElement,
 	tocList: HTMLElement,
 	activeHeadEls: HTMLElement[],
 ): number | null {
 	if (activeHeadEls.length === 0) return null;
 	if (!window.matchMedia('(min-width: 1000px)').matches) return null;
-	const tocRail = document.querySelector('.toc');
-	if (!(tocRail instanceof HTMLElement)) return null;
 	if (tocRail.getBoundingClientRect().height < 1) return null;
 
 	const midIdx = Math.floor((activeHeadEls.length - 1) / 2);
@@ -189,9 +188,7 @@ const TOC_READING_LINE_MIN_PX = 48;
 /**
  * 当前阅读节：取「标题顶边 ≤ 阅读线」的最后一个标题（单节高亮），避免区间与视口求交时相邻节同时命中或边界过早切换。
  */
-export function tocSync(): void {
-	const tocList = document.getElementById('doc-toc-list');
-	const docMainEl = document.getElementById('main-content');
+export function tocSync(tocList?: HTMLElement | null, docMainEl?: HTMLElement | null): void {
 	if (!tocList || !docMainEl || !docMainEl.classList.contains('read-main')) return;
 	const tocLinks = tocList.querySelectorAll('a[href^="#"]');
 	const idWanted: Record<string, boolean> = {};
@@ -267,7 +264,7 @@ export function tocSync(): void {
 	const sigChanged = sig !== tocActiveHeadSig;
 	if (sigChanged) tocActiveHeadSig = sig;
 
-	const tocRailEl = document.querySelector('.toc');
+	const tocRailEl = tocList.closest('.toc');
 	const wide = window.matchMedia('(min-width: 1000px)').matches;
 	const tocRail = tocRailEl instanceof HTMLElement ? tocRailEl : null;
 
@@ -276,7 +273,7 @@ export function tocSync(): void {
 	if (tocRail && wide) {
 		if (activeHeadEls.length > 0 && (sigChanged || viewportChanged)) {
 			shouldSeekRail = true;
-			const c = computeTocRailTargetScrollTopForCenteredHeads(tocList, activeHeadEls);
+			const c = computeTocRailTargetScrollTopForCenteredHeads(tocRail, tocList, activeHeadEls);
 			toScroll = c ?? tocRail.scrollTop;
 		} else if (sigChanged && activeHeadEls.length === 0) {
 			shouldSeekRail = true;
@@ -316,18 +313,4 @@ export function tocSync(): void {
 			tocRail.scrollTop = toScroll;
 		}
 	}
-}
-
-/** hash 变化、面包屑回顶等：连打几次以跟上平滑滚动与布局 */
-export function scheduleTocSyncSoon(): void {
-	tocSync();
-	requestAnimationFrame(() => {
-		tocSync();
-	});
-	window.setTimeout(() => {
-		tocSync();
-	}, 0);
-	window.setTimeout(() => {
-		tocSync();
-	}, 64);
 }

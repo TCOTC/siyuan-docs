@@ -9,21 +9,12 @@ import PagefindToolbarTrigger from '../components/PagefindToolbarTrigger.vue';
 import RailNavSections from '../components/RailNavSections.vue';
 import ThemeToggleHint from '../components/ThemeToggleHint.vue';
 import { useMediaQuery } from '../composables/useMediaQuery';
+import { usePagefind } from '../composables/usePagefind';
 import { useRailScroll } from '../composables/useRailScroll';
 import { useTocInPage } from '../composables/useTocInPage';
-import { closePagefindModal, ensurePagefindTriggers, startPagefindLoader } from '../lib/pagefind';
-import { scrollActiveRailNavIntoView, syncRailScrollEdges } from '../lib/railScroll';
-import { resetTocSyncState, scheduleTocSyncSoon, tocSync } from '../lib/tocSync';
 import { shellUi } from '../i18n';
-import {
-	HOME_STEM,
-	docHref,
-	docPath,
-	findDoc,
-	type GeneratedDocs,
-	type RailEntry,
-	type TocHeading,
-} from '../lib/docData';
+import { docHref, findDoc, type GeneratedDocs, type RailEntry, type TocHeading } from '../lib/docData';
+import { HOME_STEM, docPath } from '../lib/docPath';
 import { appI18nLocales, localeHtmlLang, type AppLocale } from '../lib/locales';
 import generated from '#docs';
 
@@ -37,6 +28,7 @@ const props = defineProps<{
 	rail: RailEntry[];
 	breadcrumbs: { label: string; href?: string }[];
 	headings: TocHeading[];
+	markdown?: string;
 	mdViewHref?: string;
 	notFound?: boolean;
 }>();
@@ -81,8 +73,13 @@ const tocListEl = ref<HTMLElement | null>(null);
 const mainEl = ref<HTMLElement | null>(null);
 const toolbarWide = useMediaQuery('(min-width: 750px)', true);
 const desktopRail = useMediaQuery('(width >= 850px)', true);
-useRailScroll(railScrollEl, railScrollClip, railAside);
-useTocInPage(tocListEl, mainEl);
+const { syncRailScrollEdges, scrollActiveRailNavIntoView } = useRailScroll(
+	railScrollEl,
+	railScrollClip,
+	railAside,
+);
+const { tocSync, scheduleTocSyncSoon, resetTocSyncState } = useTocInPage(tocListEl, mainEl);
+const { closePagefindModal, ensurePagefindTriggers } = usePagefind(pagefindBundle);
 let layoutAbort: AbortController | null = null;
 
 function toggleHeaderMenu(name: Exclude<HeaderMenu, null>): void {
@@ -164,8 +161,8 @@ watch(railOpen, (open) => {
 	document.body.style.overflow = open ? 'hidden' : '';
 	if (!open) return;
 	window.requestAnimationFrame(() => {
-		scrollActiveRailNavIntoView(railScrollEl.value);
-		syncRailScrollEdges(railScrollEl.value, railScrollClip.value);
+		scrollActiveRailNavIntoView();
+		syncRailScrollEdges();
 	});
 });
 
@@ -174,8 +171,7 @@ watch(desktopRail, (wide) => {
 });
 
 onMounted(() => {
-	startPagefindLoader(pagefindBundle.value);
-	scrollActiveRailNavIntoView(railScrollEl.value);
+	scrollActiveRailNavIntoView();
 	layoutAbort = new AbortController();
 	const { signal } = layoutAbort;
 	document.addEventListener(
@@ -277,6 +273,7 @@ watch(
 							:rail="rail"
 							:rail-nav-aria="t.railNavAria"
 							:current-stem="currentStem"
+							@expand-change="syncRailScrollEdges"
 						/>
 					</div>
 					<div class="rail-scroll__edge rail-scroll__edge--top" aria-hidden="true" />
@@ -366,6 +363,7 @@ watch(
 								<ThemeToggleHint :theme-toggle-aria="t.themeToggleAria" :theme-toggle-hint="t.themeToggleHint" />
 								<CopyPageMarkdownToolbar
 									v-if="!notFound && mdViewHref"
+									:markdown="markdown ?? ''"
 									:md-view-href="mdViewHref"
 									:open="headerMenu === 'copy'"
 									:t="t"

@@ -1,8 +1,6 @@
 import type { AppLocale } from './locales';
 import { HOME_STEM, docPath, withBase } from './docPath';
 
-export { HOME_STEM, docPath };
-
 export type TocHeading = {
 	depth: number;
 	slug: string;

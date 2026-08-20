@@ -1,7 +1,8 @@
 import { onMounted, onUnmounted, type Ref } from 'vue';
 import {
+	scrollActiveRailNavIntoView as applyActiveRailNavScroll,
 	shouldSuppressRailScrollbarTransient,
-	syncRailScrollEdges,
+	syncRailScrollEdges as applyRailScrollEdges,
 } from '../lib/railScroll';
 
 const RAIL_SCROLLBAR_HIDE_MS = 1000;
@@ -27,14 +28,25 @@ export function useRailScroll(
 	railScroll: Ref<HTMLElement | null>,
 	railClip: Ref<HTMLElement | null>,
 	railAside: Ref<HTMLElement | null>,
-): void {
+): {
+	syncRailScrollEdges: () => void;
+	scrollActiveRailNavIntoView: () => void;
+} {
+	function syncRailScrollEdges(): void {
+		applyRailScrollEdges(railScroll.value, railClip.value);
+	}
+
+	function scrollActiveRailNavIntoView(): void {
+		applyActiveRailNavScroll(railScroll.value);
+	}
+
 	const ac = new AbortController();
 	onMounted(() => {
 		const { signal } = ac;
 		const scrollEl = railScroll.value;
 		const clipEl = railClip.value;
 		if (scrollEl && clipEl) {
-			const sync = (): void => syncRailScrollEdges(scrollEl, clipEl);
+			const sync = (): void => applyRailScrollEdges(scrollEl, clipEl);
 			scrollEl.addEventListener('scroll', sync, { passive: true, signal });
 			window.addEventListener('resize', sync, { passive: true, signal });
 			const roRailScroll = new ResizeObserver(sync);
@@ -57,4 +69,5 @@ export function useRailScroll(
 	onUnmounted(() => {
 		ac.abort();
 	});
+	return { syncRailScrollEdges, scrollActiveRailNavIntoView };
 }

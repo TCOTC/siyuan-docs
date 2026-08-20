@@ -1,15 +1,23 @@
+import { onUnmounted, toValue, watch, type MaybeRefOrGetter, type Ref } from 'vue';
 import { zhCNCodeBlockCopyUi } from '../i18n/zh-CN';
 import { enCodeBlockCopyUi } from '../i18n/en';
 import type { CodeBlockCopyUi } from '../i18n/types';
-import { defaultLocale, type AppLocale } from './locales';
+import { defaultLocale, type AppLocale } from '../lib/locales';
 
 const CODE_COPY_I18N: Record<AppLocale, CodeBlockCopyUi> = {
 	'zh-CN': zhCNCodeBlockCopyUi,
 	en: enCodeBlockCopyUi,
 };
 
-/** 为 `.prose pre` 注入代码块复制按钮；locale 由文档页传入 */
-export function mountCodeBlockCopy(locale: AppLocale): void {
+function unmountCodeBlockCopy(root: HTMLElement): void {
+	for (const btn of root.querySelectorAll('.code-block-copy')) {
+		btn.remove();
+	}
+}
+
+/** 为文章内 `pre` 注入复制按钮；正文来自 v-html，按钮只能命令式挂载 */
+function mountCodeBlockCopy(root: HTMLElement, locale: AppLocale): void {
+	unmountCodeBlockCopy(root);
 	const { copyAria, copiedAria, failedAria } = CODE_COPY_I18N[locale] ?? CODE_COPY_I18N[defaultLocale];
 	const copySvg =
 		'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
@@ -65,8 +73,7 @@ export function mountCodeBlockCopy(locale: AppLocale): void {
 			void navigator.clipboard.writeText(text).then(flashSuccess).catch(flashError);
 		});
 	}
-	for (const pre of document.querySelectorAll<HTMLElement>('.prose pre')) {
-		if (pre.querySelector('.code-block-copy')) continue;
+	for (const pre of root.querySelectorAll<HTMLElement>('pre')) {
 		const btn = document.createElement('button');
 		btn.type = 'button';
 		btn.className = 'icon-btn code-block-copy';
@@ -78,4 +85,25 @@ export function mountCodeBlockCopy(locale: AppLocale): void {
 		wireCopyButton(btn, pre);
 		pre.appendChild(btn);
 	}
+}
+
+export function useCodeBlockCopy(
+	root: Ref<HTMLElement | null>,
+	locale: MaybeRefOrGetter<AppLocale>,
+	contentKey: MaybeRefOrGetter<string>,
+): void {
+	watch(
+		[root, () => toValue(locale), () => toValue(contentKey)],
+		() => {
+			if (import.meta.env.SSR) return;
+			const el = root.value;
+			if (!el) return;
+			mountCodeBlockCopy(el, toValue(locale));
+		},
+		{ flush: 'post', immediate: true },
+	);
+	onUnmounted(() => {
+		const el = root.value;
+		if (el) unmountCodeBlockCopy(el);
+	});
 }

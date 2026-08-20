@@ -14,6 +14,4 @@ export const localeHtmlLang = {
 	'zh-CN': 'zh-CN',
 } as const satisfies Record<AppLocale, string>;
 
-export function appLocalesForPresentation(): readonly AppLocale[] {
-	return [...appI18nLocales].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-}
+export const appLocalesForPresentation: readonly AppLocale[] = [...appI18nLocales].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));

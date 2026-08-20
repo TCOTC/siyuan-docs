@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router';
-import { docPath } from '../lib/docData';
+import { docPath } from '../lib/docPath';
 import type { AppLocale } from '../lib/locales';
 import type { ShellUi } from '../i18n/types';
 

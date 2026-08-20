@@ -2,8 +2,8 @@
 import { ChevronDown } from '@lucide/vue';
 import { reactive } from 'vue';
 import { RouterLink } from 'vue-router';
-import { syncRailScrollEdges } from '../lib/railScroll';
-import { docPath, railGroupContaining, type RailEntry } from '../lib/docData';
+import { railGroupContaining, type RailEntry } from '../lib/docData';
+import { docPath } from '../lib/docPath';
 import type { AppLocale } from '../lib/locales';
 
 const props = defineProps<{
@@ -12,6 +12,10 @@ const props = defineProps<{
 	rail: RailEntry[];
 	railNavAria: string;
 	currentStem?: string;
+}>();
+
+const emit = defineEmits<{
+	expandChange: [];
 }>();
 
 const currentGroup = railGroupContaining(props.rail, props.currentStem ?? '');
@@ -29,7 +33,9 @@ function isExpanded(key: string): boolean {
 
 function toggleGroup(key: string): void {
 	expandedByKey[key] = !expandedByKey[key];
-	requestAnimationFrame(() => syncRailScrollEdges());
+	requestAnimationFrame(() => {
+		emit('expandChange');
+	});
 }
 </script>
 

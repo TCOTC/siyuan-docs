@@ -1,8 +1,37 @@
 import { onMounted, onUnmounted, type Ref } from 'vue';
-import { scheduleTocSyncSoon, tocSync } from '../lib/tocSync';
+import { resetTocSyncState, tocSync as runTocSync } from '../lib/tocSync';
+
+/** hash 变化、面包屑回顶等：连打几次以跟上平滑滚动与布局 */
+function scheduleSoon(sync: () => void): void {
+	sync();
+	requestAnimationFrame(() => {
+		sync();
+	});
+	window.setTimeout(() => {
+		sync();
+	}, 0);
+	window.setTimeout(() => {
+		sync();
+	}, 64);
+}
 
 /** 本页目录与正文滚动同步 */
-export function useTocInPage(tocList: Ref<HTMLElement | null>, main: Ref<HTMLElement | null>): void {
+export function useTocInPage(
+	tocList: Ref<HTMLElement | null>,
+	main: Ref<HTMLElement | null>,
+): {
+	tocSync: () => void;
+	scheduleTocSyncSoon: () => void;
+	resetTocSyncState: () => void;
+} {
+	function tocSync(): void {
+		runTocSync(tocList.value, main.value);
+	}
+
+	function scheduleTocSyncSoon(): void {
+		scheduleSoon(tocSync);
+	}
+
 	const ac = new AbortController();
 	let tocRaf: number | null = null;
 	onMounted(() => {
@@ -55,4 +84,5 @@ export function useTocInPage(tocList: Ref<HTMLElement | null>, main: Ref<HTMLEle
 		if (tocRaf != null) cancelAnimationFrame(tocRaf);
 		ac.abort();
 	});
+	return { tocSync, scheduleTocSyncSoon, resetTocSyncState };
 }

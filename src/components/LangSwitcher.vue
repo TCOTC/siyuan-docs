@@ -54,7 +54,7 @@ function onLocaleClick(loc: AppLocale): void {
 			:class="{ 'is-open': open }"
 			:aria-label="t.langSwitcherAria"
 		>
-			<li v-for="loc in appLocalesForPresentation()" :key="loc" role="presentation">
+			<li v-for="loc in appLocalesForPresentation" :key="loc" role="presentation">
 				<RouterLink
 					role="menuitem"
 					class="copy-split__panel-item lang-switch__panel-item"
