@@ -1,5 +1,7 @@
 import type { AppLocale } from './locales';
-import { HOME_STEM } from './docMeta';
+import { HOME_STEM, docPath, withBase } from './docPath';
+
+export { HOME_STEM, docPath };
 
 export type TocHeading = {
 	depth: number;
@@ -36,33 +38,19 @@ export type RailEntry = RailPage | NavGroup;
 export type GeneratedDocs = {
 	docs: DocRecord[];
 	nav: Record<AppLocale, RailEntry[]>;
-	homeStem: string;
 };
 
 export function railGroupContaining(entries: RailEntry[], stem: string): NavGroup | undefined {
 	return entries.find((e): e is NavGroup => e.type === 'group' && e.items.some((i) => i.stem === stem));
 }
 
-/** Vue Router 的 `to`（不含 `BASE_URL`）；首页 `home` 对应语言根路径 */
-export function docPath(locale: AppLocale, stem: string): string {
-	if (stem === HOME_STEM) return `/${locale}/`;
-	return `/${locale}/${stem}/`;
-}
-
 export function docHref(locale: AppLocale, stem: string, base = import.meta.env.BASE_URL): string {
-	const prefix = base.endsWith('/') ? base.slice(0, -1) : base;
-	return `${prefix}${docPath(locale, stem)}`;
+	return withBase(docPath(locale, stem), base);
 }
 
-/** 站内纯文本 Markdown：`/{locale}/{stem}/` 对应 `/{locale}/{stem}.md`，首页为 `/{locale}.md` */
-function docMarkdownPath(locale: AppLocale, stem: string): string {
-	if (stem === HOME_STEM) return `/${locale}.md`;
-	return `/${locale}/${stem}.md`;
-}
-
+/** 站内纯文本 Markdown：`/{locale}/{stem}/` 对应 `/{locale}/{stem}.md` */
 export function docMarkdownHref(locale: AppLocale, stem: string, base = import.meta.env.BASE_URL): string {
-	const prefix = base.endsWith('/') ? base.slice(0, -1) : base;
-	return `${prefix}${docMarkdownPath(locale, stem)}`;
+	return withBase(`/${locale}/${stem}.md`, base);
 }
 
 /** 从 `/:locale` 或 `/:locale/:path(.*)` 取出文档 stem（空路径即首页） */

@@ -19,7 +19,6 @@ import { clearPageMarkdown, setPageMarkdown } from '../lib/pageMarkdown';
 
 const data = generated as GeneratedDocs;
 const route = useRoute();
-const homeStem = data.homeStem;
 
 const locale = computed(
 	() => (normalizeLocale(String(route.params.locale ?? '')) ?? defaultLocale) as AppLocale,
@@ -30,9 +29,6 @@ const t = computed(() => shellUi(locale.value));
 const nav = computed(() => data.nav[locale.value] ?? []);
 const breadcrumbs = computed(() => {
 	if (!doc.value) return [{ label: t.value.crumbLabel }];
-	if (stem.value === homeStem) {
-		return [{ label: doc.value.title }];
-	}
 	const group = railGroupContaining(nav.value, stem.value);
 	return [...(group ? [{ label: group.label }] : []), { label: doc.value.title }];
 });
@@ -71,10 +67,9 @@ onUnmounted(() => {
 		:breadcrumbs="breadcrumbs"
 		:headings="doc?.headings ?? []"
 		:md-view-href="doc ? docMarkdownHref(locale, doc.stem) : undefined"
-		:home-stem="homeStem"
 		:not-found="!doc"
 	>
 		<article v-if="doc" class="prose" v-html="doc.html" />
-		<NotFoundArticle v-else :locale="locale" :home-stem="homeStem" :t="t" />
+		<NotFoundArticle v-else :locale="locale" :t="t" />
 	</DocLayout>
 </template>

@@ -3,12 +3,15 @@ import type { RouteRecordRaw, RouterScrollBehavior } from 'vue-router';
 import HomeRedirect from './pages/HomeRedirect.vue';
 import DocPage from './pages/DocPage.vue';
 import NotFound from './pages/NotFound.vue';
+import { appI18nLocales } from './lib/locales';
+
+const localeParam = appI18nLocales.join('|');
 
 export const routes: RouteRecordRaw[] = [
 	{ path: '/', component: HomeRedirect, name: 'home' },
 	{ path: '/404', component: NotFound, name: 'not-found-page' },
-	{ path: '/:locale(en|zh-CN)', component: DocPage, name: 'doc-locale-root' },
-	{ path: '/:locale(en|zh-CN)/:path(.*)', component: DocPage, name: 'doc' },
+	{ path: `/:locale(${localeParam})`, component: DocPage, name: 'doc-locale-root' },
+	{ path: `/:locale(${localeParam})/:path(.*)`, component: DocPage, name: 'doc' },
 	{ path: '/:pathMatch(.*)*', component: NotFound, name: 'not-found' },
 ];
 

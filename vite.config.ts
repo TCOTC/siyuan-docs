@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import fs from 'node:fs';
 import path from 'node:path';
 import 'vite-ssg';
+import { docSsgRoute } from './src/lib/docPath.ts';
 
 const siteBase = process.env.SITE_BASE || '/';
 const docsJsonPath = path.join(process.cwd(), 'tmp', 'docs.json');
@@ -11,12 +12,10 @@ function includedDocRoutes(): string[] {
 	if (!fs.existsSync(docsJsonPath)) return ['/'];
 	const data = JSON.parse(fs.readFileSync(docsJsonPath, 'utf8')) as {
 		docs: { locale: string; stem: string }[];
-		homeStem: string;
 	};
 	const routes = ['/', '/404'];
 	for (const doc of data.docs) {
-		if (doc.stem === data.homeStem) routes.push(`/${doc.locale}`);
-		else routes.push(`/${doc.locale}/${doc.stem}`);
+		routes.push(docSsgRoute(doc.locale, doc.stem));
 	}
 	return routes;
 }

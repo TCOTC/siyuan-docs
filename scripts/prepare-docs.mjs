@@ -4,13 +4,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 import { parseNavYml } from './parse-nav-yml.mjs';
+import { docPath, withBase } from '../src/lib/docPath.ts';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const tmpDir = path.join(root, 'tmp');
 const contentDir = path.join(tmpDir, 'content');
 const docsJsonPath = path.join(tmpDir, 'docs.json');
 const localeSuffixes = ['en', 'zh-CN'];
-const homeStem = 'home';
 
 function walkMarkdown(dir, acc = []) {
 	if (!fs.existsSync(dir)) return acc;
@@ -47,10 +47,7 @@ function rewriteHref(href, locale, stem) {
 	joined = joined.replace(/\\/g, '/');
 	if (joined.startsWith('..') || joined.startsWith('/')) return href;
 	if (joined.endsWith('.md')) joined = joined.slice(0, -3);
-	const base = process.env.SITE_BASE || '/';
-	const prefix = base.endsWith('/') ? base.slice(0, -1) : base;
-	if (joined === homeStem) return `${prefix}/${locale}/${hash}`;
-	return `${prefix}/${locale}/${joined}/${hash}`;
+	return `${withBase(docPath(locale, joined), process.env.SITE_BASE || '/')}${hash}`;
 }
 
 function rewriteHtmlLinks(html, locale, stem) {
@@ -176,7 +173,6 @@ for (const locale of localeSuffixes) {
 const payload = {
 	docs,
 	nav,
-	homeStem,
 };
 
 fs.mkdirSync(tmpDir, { recursive: true });
@@ -185,13 +181,10 @@ fs.writeFileSync(docsJsonPath, `${JSON.stringify(payload, null, '\t')}\n`);
 const publicDir = path.join(root, 'public');
 for (const loc of localeSuffixes) {
 	fs.rmSync(path.join(publicDir, loc), { recursive: true, force: true });
-	fs.rmSync(path.join(publicDir, `${loc}.md`), { force: true });
+	fs.rmSync(path.join(publicDir, `${loc}.md`), { force: true }); // 旧版语言根 `/en.md`
 }
 for (const doc of docs) {
-	const abs =
-		doc.stem === homeStem
-			? path.join(publicDir, `${doc.locale}.md`)
-			: `${path.join(publicDir, doc.locale, ...doc.stem.split('/'))}.md`;
+	const abs = `${path.join(publicDir, doc.locale, ...doc.stem.split('/'))}.md`;
 	fs.mkdirSync(path.dirname(abs), { recursive: true });
 	const body = doc.markdown.endsWith('\n') ? doc.markdown : `${doc.markdown}\n`;
 	fs.writeFileSync(abs, body, 'utf8');

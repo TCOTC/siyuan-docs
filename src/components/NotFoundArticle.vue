@@ -6,7 +6,6 @@ import type { ShellUi } from '../i18n/types';
 
 defineProps<{
 	locale: AppLocale;
-	homeStem: string;
 	t: Pick<ShellUi, 'heading' | 'body' | 'button'>;
 }>();
 </script>
@@ -17,7 +16,7 @@ defineProps<{
 		<h1>{{ t.heading }}</h1>
 		<p>{{ t.body }}</p>
 		<p class="not-found__actions">
-			<RouterLink class="btn" :to="docPath(locale, homeStem)">{{ t.button }}</RouterLink>
+			<RouterLink class="btn" :to="docPath(locale)">{{ t.button }}</RouterLink>
 		</p>
 	</article>
 </template>

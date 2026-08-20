@@ -15,7 +15,15 @@ import { closePagefindModal, ensurePagefindTriggers, startPagefindLoader } from 
 import { scrollActiveRailNavIntoView, syncRailScrollEdges } from '../lib/railScroll';
 import { resetTocSyncState, scheduleTocSyncSoon, tocSync } from '../lib/tocSync';
 import { shellUi } from '../i18n';
-import { docHref, docPath, findDoc, type GeneratedDocs, type RailEntry, type TocHeading } from '../lib/docData';
+import {
+	HOME_STEM,
+	docHref,
+	docPath,
+	findDoc,
+	type GeneratedDocs,
+	type RailEntry,
+	type TocHeading,
+} from '../lib/docData';
 import { appI18nLocales, localeHtmlLang, type AppLocale } from '../lib/locales';
 import generated from '#docs';
 
@@ -30,29 +38,28 @@ const props = defineProps<{
 	breadcrumbs: { label: string; href?: string }[];
 	headings: TocHeading[];
 	mdViewHref?: string;
-	homeStem: string;
 	notFound?: boolean;
 }>();
 
-function localeDocStem(locale: AppLocale, stem: string, homeStem: string): string {
-	return findDoc(docsData.docs, locale, stem) ? stem : homeStem;
+function localeDocStem(locale: AppLocale, stem: string): string {
+	return findDoc(docsData.docs, locale, stem) ? stem : HOME_STEM;
 }
 
-function localeDocHref(locale: AppLocale, stem: string, homeStem: string): string {
-	return docHref(locale, localeDocStem(locale, stem, homeStem));
+function localeDocHref(locale: AppLocale, stem: string): string {
+	return docHref(locale, localeDocStem(locale, stem));
 }
 
-function localeDocPath(locale: AppLocale, stem: string, homeStem: string): string {
-	return docPath(locale, localeDocStem(locale, stem, homeStem));
+function localeDocPath(locale: AppLocale, stem: string): string {
+	return docPath(locale, localeDocStem(locale, stem));
 }
 
 const t = computed(() => shellUi(props.locale));
 const tocItems = computed(() => props.headings.filter((h) => h.depth >= 2 && h.depth <= 4));
-const docHomePath = computed(() => docPath(props.locale, props.homeStem));
+const docHomePath = computed(() => docPath(props.locale));
 const hrefByLocale = computed(() => {
-	const stem = props.currentStem ?? props.homeStem;
+	const stem = props.currentStem ?? HOME_STEM;
 	return Object.fromEntries(
-		appI18nLocales.map((l) => [l, localeDocPath(l, stem, props.homeStem)] as const),
+		appI18nLocales.map((l) => [l, localeDocPath(l, stem)] as const),
 	) as Record<AppLocale, string>;
 });
 const pagefindBundle = computed(() => {
@@ -146,7 +153,7 @@ useHead({
 		...appI18nLocales.map((loc) => ({
 			rel: 'alternate' as const,
 			hreflang: localeHtmlLang[loc],
-			href: localeDocHref(loc, props.currentStem ?? props.homeStem, props.homeStem),
+			href: localeDocHref(loc, props.currentStem ?? HOME_STEM),
 		})),
 	],
 });
@@ -279,7 +286,7 @@ watch(
 					<ul class="rail-footer__links">
 						<li>
 							<RouterLink
-								:class="{ 'is-current': currentStem === homeStem }"
+								:class="{ 'is-current': currentStem === HOME_STEM }"
 								:to="docHomePath"
 								active-class=""
 								exact-active-class=""

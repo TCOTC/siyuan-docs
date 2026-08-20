@@ -23,9 +23,8 @@ const nav = data.nav[locale] ?? [];
 		:rail="nav"
 		:breadcrumbs="[{ label: t.crumbLabel }]"
 		:headings="[]"
-		:home-stem="data.homeStem"
 		not-found
 	>
-		<NotFoundArticle :locale="locale" :home-stem="data.homeStem" :t="t" />
+		<NotFoundArticle :locale="locale" :t="t" />
 	</DocLayout>
 </template>
