@@ -7,10 +7,10 @@
 	--muted: #f7f8f8;
 	--raised: #f3f4f5;
 	--code-bg: #f7f7f7;
-	/* 文本 */
-	--ink: #111111;
-	--ink-dim: #52525b;
-	--ink-faint: #71717a;
+	/* 文本：主色 #26251e（rgb(38, 37, 30)）；灰色为同色 75% 不透明度 */
+	--ink: #26251e;
+	--ink-dim: color-mix(in srgb, var(--ink) 75%, transparent);
+	--ink-faint: var(--ink-dim);
 	/* 线色 */
 	--line: #e6e6e6;
 	--line-strong: #d0d6e0;
@@ -72,9 +72,9 @@
 	color-scheme: light;
 
 	/* Pagefind UI（名称与 pagefind 包一致） */
-	--pf-text: #111111;
-	--pf-text-secondary: #52525b;
-	--pf-text-muted: #71717a;
+	--pf-text: var(--ink);
+	--pf-text-secondary: var(--ink-dim);
+	--pf-text-muted: var(--ink-faint);
 	--pf-background: #f7f7f4;
 	--pf-border: #e6e6e6;
 	--pf-hover: #f7f8f8;
@@ -95,17 +95,18 @@ html[data-theme='dark'] {
 	--muted: rgba(255, 255, 255, 0.03);
 	--raised: #242119;
 	--code-bg: #1c1910;
-	--ink: #f7f8f8;
-	--ink-dim: #b8bcc8;
-	--ink-faint: #8a8f98;
+	/* 文本：主色 #edecec；灰色为同色 60% 不透明度 */
+	--ink: #edecec;
+	--ink-dim: color-mix(in srgb, var(--ink) 60%, transparent);
+	--ink-faint: var(--ink-dim);
 	--line: rgba(255, 255, 255, 0.06);
 	--line-strong: rgba(255, 255, 255, 0.1);
 	--accent: #7170ff;
 	--accent-hover: #828fff;
 	color-scheme: dark;
-	--pf-text: #f7f8f8;
-	--pf-text-secondary: #b8bcc8;
-	--pf-text-muted: #8a8f98;
+	--pf-text: var(--ink);
+	--pf-text-secondary: var(--ink-dim);
+	--pf-text-muted: var(--ink-faint);
 	--pf-background: #14120b;
 	--pf-border: rgba(255, 255, 255, 0.1);
 	--pf-hover: rgba(255, 255, 255, 0.05);

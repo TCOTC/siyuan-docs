@@ -69,7 +69,7 @@ useCodeBlockCopy(
 
 	p {
 		margin: 0.85em 0;
-		color: var(--ink-dim);
+		color: var(--ink);
 		line-height: 1.65;
 	}
 
@@ -94,7 +94,7 @@ useCodeBlockCopy(
 	ol {
 		margin: 0.85em 0;
 		padding-left: 1.35em;
-		color: var(--ink-dim);
+		color: var(--ink);
 	}
 
 	li {
@@ -300,7 +300,7 @@ useCodeBlockCopy(
 		padding: var(--sp-2) var(--sp-3);
 		vertical-align: top;
 		border: var(--sp-line) solid var(--line);
-		color: var(--ink-dim);
+		color: var(--ink);
 	}
 
 	th {
