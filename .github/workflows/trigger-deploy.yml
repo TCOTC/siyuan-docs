@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '**/*.md'
+      - 'nav.yml'
       - '.github/workflows/trigger-deploy.yml'
   workflow_dispatch:
 
