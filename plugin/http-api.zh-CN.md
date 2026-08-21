@@ -84,7 +84,7 @@ curl -X POST http://127.0.0.1:6806/api/notebook/lsNotebooks \
 
 | 能力 | 文档 |
 | --- | --- |
-| `fetchPost`、UI 组件 | [前端 Plugin API](./frontend-api) |
+| `fetchPost`、UI 组件 | [前端 Plugin API](./frontend-api.zh-CN.md) |
 | 插件存储封装 | 同上「数据存储」一节 |
 
 ---

@@ -246,13 +246,13 @@ fetchPost("/api/notebook/lsNotebooks", {}, (response) => {
 });
 ```
 
-带 Token、统一错误格式等约定见 [HTTP API 与数据规范](./http-api)。
+带 Token、统一错误格式等约定见 [HTTP API 与数据规范](./http-api.zh-CN.md)。
 
 ---
 
 ## 12. 事件总线 `this.eventBus`
 
-API：**`on`**、**`once`**、**`off`**、**`emit`**（见 `EventBus.ts`）。事件名字符串集合为 **`TEventBus`**，完整列表见 [插件 · 事件参考](./events)。
+API：**`on`**、**`once`**、**`off`**、**`emit`**（见 `EventBus.ts`）。事件名字符串集合为 **`TEventBus`**，完整列表见 [插件 · 事件参考](./events.zh-CN.md)。
 
 ```ts
 const onSync = (e: CustomEvent) => {
@@ -276,7 +276,7 @@ this.eventBus.off("sync-end", onSync);
 
 | 主题 | 文档 |
 | --- | --- |
-| 清单字段 | [plugin.json](./manifest) |
-| HTTP 与文件规范 | [HTTP API 与数据规范](./http-api) |
-| 调试与排错 | [调试与排错](./debugging) |
-| 事件名一览 | [事件参考](./events) |
+| 清单字段 | [plugin.json](./manifest.zh-CN.md) |
+| HTTP 与文件规范 | [HTTP API 与数据规范](./http-api.zh-CN.md) |
+| 调试与排错 | [调试与排错](./debugging.zh-CN.md) |
+| 事件名一览 | [事件参考](./events.zh-CN.md) |

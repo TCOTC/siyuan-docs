@@ -41,10 +41,8 @@ description: 可选摘要
 
 ## 相对链接
 
-正文里的站内链接**不要**写语言后缀。构建时会用当前文件的语言补全：
+正文里的站内链接相对**当前 Markdown 文件**，写成完整文件名（含语言后缀与 `.md`）。中文文档链到 `*.zh-CN.md`，英文文档链到 `*.en.md`。构建网站时再改成对应语言的网页路径。
 
 ```markdown
-[集市包总览](../bazaar/overview)
+[集市包总览](../bazaar/overview.zh-CN.md)
 ```
-
-可带或不带 `.md`。不要写成 `overview.zh-CN.md`。

@@ -15,39 +15,39 @@ Sources: the **SiYuan open-source repo** and the **official plugin-sample**; if 
 
 | Page | Description |
 | --- | --- |
-| [How to read and contribute](./intro/docs-style) | Conventions and chapter structure |
-| [Marketplace packages overview](./bazaar/overview) | **Five** package types, paths, shared `Package` fields |
-| [Publishing and versions](./bazaar/publishing) | `package.zip`, GitHub Release, listing notes |
+| [How to read and contribute](./intro/docs-style.en.md) | Conventions and chapter structure |
+| [Marketplace packages overview](./bazaar/overview.en.md) | **Five** package types, paths, shared `Package` fields |
+| [Publishing and versions](./bazaar/publishing.en.md) | `package.zip`, GitHub Release, listing notes |
 
 ### Plugins (Petal)
 
 | Page | Description |
 | --- | --- |
-| [Plugin development overview](./plugin/overview) | Runtime, `index.js` load chain, lifecycle |
-| [Quick start](./plugin/quickstart) | Template repo, `pnpm`, local debugging |
-| [plugin.json](./plugin/manifest) | Manifest and environment fields |
-| [Frontend Plugin API](./plugin/frontend-api) | `Plugin` class, commands, Dock, storage, `fetchPost` |
-| [HTTP API and data rules](./plugin/http-api) | HTTP, auth, `/api/file/*`, daily note attributes |
-| [Debugging](./plugin/debugging) | Console, common errors |
-| [Events reference](./plugin/events) | **`TEventBus`** event tables |
-| [Packaging and publishing](./plugin/packaging) | zip, Release |
+| [Plugin development overview](./plugin/overview.en.md) | Runtime, `index.js` load chain, lifecycle |
+| [Quick start](./plugin/quickstart.en.md) | Template repo, `pnpm`, local debugging |
+| [plugin.json](./plugin/manifest.en.md) | Manifest and environment fields |
+| [Frontend Plugin API](./plugin/frontend-api.en.md) | `Plugin` class, commands, Dock, storage, `fetchPost` |
+| [HTTP API and data rules](./plugin/http-api.en.md) | HTTP, auth, `/api/file/*`, daily note attributes |
+| [Debugging](./plugin/debugging.en.md) | Console, common errors |
+| [Events reference](./plugin/events.en.md) | **`TEventBus`** event tables |
+| [Packaging and publishing](./plugin/packaging.en.md) | zip, Release |
 
 ### Themes
 
 | Page | Description |
 | --- | --- |
-| [Theme overview](./theme/overview) | `appearance/themes`, vs plugins |
-| [theme.json](./theme/manifest) | `modes`, manifest fields |
-| [Styling and CSS variables](./theme/styling) | `--b3-*` variables and customization |
+| [Theme overview](./theme/overview.en.md) | `appearance/themes`, vs plugins |
+| [theme.json](./theme/manifest.en.md) | `modes`, manifest fields |
+| [Styling and CSS variables](./theme/styling.en.md) | `--b3-*` variables and customization |
 
 ### Icon packs · Templates · Widgets
 
 | Page | Description |
 | --- | --- |
-| [Icon packs](./icons/overview) | `appearance/icons`, `icon.json` |
-| [Template packs](./templates/overview) | `data/templates`, `/api/template/render` |
-| [Template syntax](./templates/authoring) | `.action{}` Go templates |
-| [Widgets](./widgets/overview) | `data/widgets`, `/widgets/` iframe |
+| [Icon packs](./icons/overview.en.md) | `appearance/icons`, `icon.json` |
+| [Template packs](./templates/overview.en.md) | `data/templates`, `/api/template/render` |
+| [Template syntax](./templates/authoring.en.md) | `.action{}` Go templates |
+| [Widgets](./widgets/overview.en.md) | `data/widgets`, `/widgets/` iframe |
 
 ---
 

@@ -40,5 +40,5 @@ my-template-pack/
 
 ## 下一步
 
-- [template.json](./manifest)
-- [模板语法与创作](./authoring)
+- [template.json](./manifest.zh-CN.md)
+- [模板语法与创作](./authoring.zh-CN.md)

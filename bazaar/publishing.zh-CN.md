@@ -42,9 +42,9 @@ description: package.zip、GitHub Release 与上架注意事项
 
 ## 本地验证
 
-在正式发布前，可将 zip 解压到工作空间对应目录（见 [集市包总览](./overview) 中的路径表），重启或刷新后手动验证，再发 Release。
+在正式发布前，可将 zip 解压到工作空间对应目录（见 [集市包总览](./overview.zh-CN.md) 中的路径表），重启或刷新后手动验证，再发 Release。
 
 ## 相关链接
 
-- 插件打包细节：[插件 · 打包与发布](../plugin/packaging)
-- HTTP API 文档：[HTTP API 与数据规范](../plugin/http-api)
+- 插件打包细节：[插件 · 打包与发布](../plugin/packaging.zh-CN.md)
+- HTTP API 文档：[HTTP API 与数据规范](../plugin/http-api.zh-CN.md)

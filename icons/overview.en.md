@@ -24,7 +24,7 @@ Built-in example: `app/appearance/icons/litheness/icon.json`:
 }
 ```
 
-This matches the shared `Package` shape; you can add **`minAppVersion`**, **`displayName`**, **`description`**, **`readme`**, **`funding`**, **`keywords`**, etc., for marketplace display and search (see [Marketplace packages overview](../bazaar/overview)).
+This matches the shared `Package` shape; you can add **`minAppVersion`**, **`displayName`**, **`description`**, **`readme`**, **`funding`**, **`keywords`**, etc., for marketplace display and search (see [Marketplace packages overview](../bazaar/overview.en.md)).
 
 There are **no** `modes` / `backends` / `frontends` fields for themes or plugins.
 
@@ -38,4 +38,4 @@ Changing the “icon scheme” in Settings is an appearance setting. If you only
 
 ## Next steps
 
-- [icon.json field reference](./manifest)
+- [icon.json field reference](./manifest.en.md)

@@ -40,9 +40,9 @@ description: 五类集市包、安装路径与通用元数据
 
 | 字段 | 含义 |
 | --- | --- |
-| `modes` | 字符串数组，元素为 `light` 和/或 `dark`，见 [主题 manifest](../theme/manifest) |
+| `modes` | 字符串数组，元素为 `light` 和/或 `dark`，见 [主题 manifest](../theme/manifest.zh-CN.md) |
 
-插件专有（节选，完整见 [plugin.json](../plugin/manifest)）：
+插件专有（节选，完整见 [plugin.json](../plugin/manifest.zh-CN.md)）：
 
 | 字段 | 含义 |
 | --- | --- |
@@ -57,9 +57,9 @@ description: 五类集市包、安装路径与通用元数据
 
 ## 与「社区集市」索引的关系
 
-集市索引与上架流程可能重构；**不要**把本文当作唯一上架依据。通用要求是：仓库发 **Release**、附 **`package.zip`**、清单字段合法、资源尺寸符合规范。详见 [发布与版本](./publishing)。
+集市索引与上架流程可能重构；**不要**把本文当作唯一上架依据。通用要求是：仓库发 **Release**、附 **`package.zip`**、清单字段合法、资源尺寸符合规范。详见 [发布与版本](./publishing.zh-CN.md)。
 
 ## 下一步
 
-- [发布与版本](./publishing)
-- 各类包详细说明：[插件](../plugin/overview)、[主题](../theme/overview)、[图标包](../icons/overview)、[模板](../templates/overview)、[挂件](../widgets/overview)
+- [发布与版本](./publishing.zh-CN.md)
+- 各类包详细说明：[插件](../plugin/overview.zh-CN.md)、[主题](../theme/overview.zh-CN.md)、[图标包](../icons/overview.zh-CN.md)、[模板](../templates/overview.zh-CN.md)、[挂件](../widgets/overview.zh-CN.md)

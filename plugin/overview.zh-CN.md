@@ -91,6 +91,6 @@ description: 插件的运行环境、加载链路与生命周期
 
 ## 下一步阅读
 
-1. [快速上手](./quickstart)
-2. [plugin.json](./manifest)
-3. [前端 Plugin API](./frontend-api)
+1. [快速上手](./quickstart.zh-CN.md)
+2. [plugin.json](./manifest.zh-CN.md)
+3. [前端 Plugin API](./frontend-api.zh-CN.md)

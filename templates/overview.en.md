@@ -40,5 +40,5 @@ Filenames only need to match whatever your insert UI can select; marketplace zip
 
 ## Next steps
 
-- [template.json](./manifest)
-- [Template syntax and authoring](./authoring)
+- [template.json](./manifest.en.md)
+- [Template syntax and authoring](./authoring.en.md)

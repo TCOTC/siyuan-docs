@@ -39,5 +39,5 @@ description: .action{} 模板、可用变量与调试建议
 
 ## 延伸阅读
 
-- HTTP API 总表：[HTTP API 与数据规范](../plugin/http-api)
-- 模板包结构：[模板包开发](./overview)
+- HTTP API 总表：[HTTP API 与数据规范](../plugin/http-api.zh-CN.md)
+- 模板包结构：[模板包开发](./overview.zh-CN.md)

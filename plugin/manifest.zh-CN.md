@@ -94,4 +94,4 @@ description: 插件清单字段与运行环境约束
 
 ## 下一步
 
-- [前端 Plugin API](./frontend-api)。
+- [前端 Plugin API](./frontend-api.zh-CN.md)。

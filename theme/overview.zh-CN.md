@@ -33,7 +33,7 @@ appearance/themes/my-theme/
 
 ## 样式入口
 
-常见文件名为 **`theme.css`**（内置 `daylight`、`midnight` 使用此名）。变量命名大量使用 **`--b3-`** 前缀，见 [样式与 CSS 变量](./styling)。
+常见文件名为 **`theme.css`**（内置 `daylight`、`midnight` 使用此名）。变量命名大量使用 **`--b3-`** 前缀，见 [样式与 CSS 变量](./styling.zh-CN.md)。
 
 ---
 
@@ -51,5 +51,5 @@ appearance/themes/my-theme/
 
 ## 下一步
 
-- [theme.json](./manifest)
-- [样式与 CSS 变量](./styling)
+- [theme.json](./manifest.zh-CN.md)
+- [样式与 CSS 变量](./styling.zh-CN.md)

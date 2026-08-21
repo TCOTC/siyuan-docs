@@ -3,7 +3,7 @@ title: icon.json 说明
 description: 图标包清单与集市字段
 ---
 
-`icon.json` 与 [集市包总览](../bazaar/overview) 中的通用 `Package` 字段一致。
+`icon.json` 与 [集市包总览](../bazaar/overview.zh-CN.md) 中的通用 `Package` 字段一致。
 
 ## 常用字段
 
@@ -27,4 +27,4 @@ description: 图标包清单与集市字段
 ## 相关源码
 
 - 解析与展示逻辑见主程序源码中「外观 / 图标」相关部分
-- `Package` 元数据与 [集市包总览](../bazaar/overview) 一致
+- `Package` 元数据与 [集市包总览](../bazaar/overview.zh-CN.md) 一致

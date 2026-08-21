@@ -33,7 +33,7 @@ At startup SiYuan scans each theme subfolder for **`theme.json`** and groups the
 
 ## Style entry
 
-The usual filename is **`theme.css`** (built-in `daylight` and `midnight` use it). Variables are mostly prefixed **`--b3-`**; see [Styling and CSS variables](./styling).
+The usual filename is **`theme.css`** (built-in `daylight` and `midnight` use it). Variables are mostly prefixed **`--b3-`**; see [Styling and CSS variables](./styling.en.md).
 
 ---
 
@@ -51,5 +51,5 @@ Themes own the visual system: **CSS variables + `.b3-*` component classes**. Whe
 
 ## Next steps
 
-- [theme.json](./manifest)
-- [Styling and CSS variables](./styling)
+- [theme.json](./manifest.en.md)
+- [Styling and CSS variables](./styling.en.md)

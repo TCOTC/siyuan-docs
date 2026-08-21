@@ -36,4 +36,4 @@ description: widget.json、静态资源与 iframe 嵌入
 
 ## 下一步
 
-- [widget.json](./manifest)
+- [widget.json](./manifest.zh-CN.md)

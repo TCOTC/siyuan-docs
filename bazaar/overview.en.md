@@ -40,9 +40,9 @@ Theme-only:
 
 | Field | Meaning |
 | --- | --- |
-| `modes` | Array of `light` and/or `dark`; see [Theme manifest](../theme/manifest) |
+| `modes` | Array of `light` and/or `dark`; see [Theme manifest](../theme/manifest.en.md) |
 
-Plugin-only (excerpt; full table in [plugin.json](../plugin/manifest)):
+Plugin-only (excerpt; full table in [plugin.json](../plugin/manifest.en.md)):
 
 | Field | Meaning |
 | --- | --- |
@@ -57,9 +57,9 @@ Plugin-only (excerpt; full table in [plugin.json](../plugin/manifest)):
 
 ## Relation to community marketplace indexes
 
-Indexing and publishing may change; **do not** treat this page as the only listing guide. Expect a repo **Release**, a **`package.zip`** asset, valid manifest fields, and assets that meet size rules. See [Publishing and versions](./publishing).
+Indexing and publishing may change; **do not** treat this page as the only listing guide. Expect a repo **Release**, a **`package.zip`** asset, valid manifest fields, and assets that meet size rules. See [Publishing and versions](./publishing.en.md).
 
 ## Next steps
 
-- [Publishing and versions](./publishing)
-- Per-type docs: [Plugins](../plugin/overview), [Themes](../theme/overview), [Icon packs](../icons/overview), [Templates](../templates/overview), [Widgets](../widgets/overview)
+- [Publishing and versions](./publishing.en.md)
+- Per-type docs: [Plugins](../plugin/overview.en.md), [Themes](../theme/overview.en.md), [Icon packs](../icons/overview.en.md), [Templates](../templates/overview.en.md), [Widgets](../widgets/overview.en.md)

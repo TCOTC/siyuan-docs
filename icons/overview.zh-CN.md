@@ -24,7 +24,7 @@ description: icon.json、目录位置与使用场景
 }
 ```
 
-与 `Package` 结构一致，可继续包含 **`minAppVersion`、`displayName`、`description`、`readme`、`funding`、`keywords`** 等字段，用于集市展示与搜索（见 [集市包总览](../bazaar/overview)）。
+与 `Package` 结构一致，可继续包含 **`minAppVersion`、`displayName`、`description`、`readme`、`funding`、`keywords`** 等字段，用于集市展示与搜索（见 [集市包总览](../bazaar/overview.zh-CN.md)）。
 
 **没有** `modes` / `backends` / `frontends` 等主题或插件专有字段。
 
@@ -38,4 +38,4 @@ description: icon.json、目录位置与使用场景
 
 ## 下一步
 
-- [icon.json 字段说明](./manifest)
+- [icon.json 字段说明](./manifest.zh-CN.md)

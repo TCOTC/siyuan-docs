@@ -15,39 +15,39 @@ description: 面向思源笔记插件、集市包与主题作者的完整入口
 
 | 页面 | 说明 |
 | --- | --- |
-| [如何阅读与贡献本文档](./intro/docs-style) | 写作约定与章节结构 |
-| [集市包总览](./bazaar/overview) | **五类**集市包、路径、通用 `Package` 字段 |
-| [发布与版本](./bazaar/publishing) | `package.zip`、GitHub Release、上架注意 |
+| [如何阅读与贡献本文档](./intro/docs-style.zh-CN.md) | 写作约定与章节结构 |
+| [集市包总览](./bazaar/overview.zh-CN.md) | **五类**集市包、路径、通用 `Package` 字段 |
+| [发布与版本](./bazaar/publishing.zh-CN.md) | `package.zip`、GitHub Release、上架注意 |
 
 ### 插件（Petal）
 
 | 页面 | 说明 |
 | --- | --- |
-| [插件开发概览](./plugin/overview) | 运行环境、`index.js` 加载链、生命周期 |
-| [快速上手](./plugin/quickstart) | 模板仓库、`pnpm`、本地调试 |
-| [plugin.json](./plugin/manifest) | 清单与环境字段 |
-| [前端 Plugin API](./plugin/frontend-api) | `Plugin` 类、命令、Dock、存储、`fetchPost` |
-| [HTTP API 与数据规范](./plugin/http-api) | HTTP、鉴权、`/api/file/*`、日记属性 |
-| [调试与排错](./plugin/debugging) | 控制台、常见报错 |
-| [事件参考](./plugin/events) | **`TEventBus`** 事件表 |
-| [打包与发布](./plugin/packaging) | zip、Release |
+| [插件开发概览](./plugin/overview.zh-CN.md) | 运行环境、`index.js` 加载链、生命周期 |
+| [快速上手](./plugin/quickstart.zh-CN.md) | 模板仓库、`pnpm`、本地调试 |
+| [plugin.json](./plugin/manifest.zh-CN.md) | 清单与环境字段 |
+| [前端 Plugin API](./plugin/frontend-api.zh-CN.md) | `Plugin` 类、命令、Dock、存储、`fetchPost` |
+| [HTTP API 与数据规范](./plugin/http-api.zh-CN.md) | HTTP、鉴权、`/api/file/*`、日记属性 |
+| [调试与排错](./plugin/debugging.zh-CN.md) | 控制台、常见报错 |
+| [事件参考](./plugin/events.zh-CN.md) | **`TEventBus`** 事件表 |
+| [打包与发布](./plugin/packaging.zh-CN.md) | zip、Release |
 
 ### 主题
 
 | 页面 | 说明 |
 | --- | --- |
-| [主题概览](./theme/overview) | `appearance/themes`、与插件区别 |
-| [theme.json](./theme/manifest) | `modes`、清单字段 |
-| [样式与 CSS 变量](./theme/styling) | `--b3-*` 变量与定制步骤 |
+| [主题概览](./theme/overview.zh-CN.md) | `appearance/themes`、与插件区别 |
+| [theme.json](./theme/manifest.zh-CN.md) | `modes`、清单字段 |
+| [样式与 CSS 变量](./theme/styling.zh-CN.md) | `--b3-*` 变量与定制步骤 |
 
 ### 图标包 · 模板 · 挂件
 
 | 页面 | 说明 |
 | --- | --- |
-| [图标包](./icons/overview) | `appearance/icons`、`icon.json` |
-| [模板包](./templates/overview) | `data/templates`、`/api/template/render` |
-| [模板语法](./templates/authoring) | `.action{}` Go 模板 |
-| [挂件](./widgets/overview) | `data/widgets`、`/widgets/` iframe |
+| [图标包](./icons/overview.zh-CN.md) | `appearance/icons`、`icon.json` |
+| [模板包](./templates/overview.zh-CN.md) | `data/templates`、`/api/template/render` |
+| [模板语法](./templates/authoring.zh-CN.md) | `.action{}` Go 模板 |
+| [挂件](./widgets/overview.zh-CN.md) | `data/widgets`、`/widgets/` iframe |
 
 ---
 

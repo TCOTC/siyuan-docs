@@ -91,6 +91,6 @@ There are also optional overrides such as **`updateProtyleToolbar`**, **`updateC
 
 ## Next steps
 
-1. [Quick start](./quickstart)
-2. [plugin.json](./manifest)
-3. [Frontend Plugin API](./frontend-api)
+1. [Quick start](./quickstart.en.md)
+2. [plugin.json](./manifest.en.md)
+3. [Frontend Plugin API](./frontend-api.en.md)
