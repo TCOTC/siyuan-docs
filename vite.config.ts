@@ -21,45 +21,6 @@ function includedDocRoutes(): string[] {
 	return routes;
 }
 
-const markdownPlainText = 'text/plain; charset=utf-8';
-
-function isMarkdownRequest(url: string | undefined): boolean {
-	if (!url) return false;
-	const pathname = url.split('?')[0] ?? '';
-	return pathname.endsWith('.md');
-}
-
-/** 把文档 `.md` 的 Content-Type 改成纯文本，避免浏览器按 `text/markdown` 下载 */
-function markdownPlainTextPlugin(): Plugin {
-	function forcePlainText(
-		req: { url?: string },
-		res: { setHeader: (name: string, value: number | string | readonly string[]) => unknown },
-		next: () => void,
-	): void {
-		if (!isMarkdownRequest(req.url)) {
-			next();
-			return;
-		}
-		const setHeader = res.setHeader.bind(res);
-		res.setHeader = (name, value) => {
-			if (String(name).toLowerCase() === 'content-type') {
-				return setHeader('Content-Type', markdownPlainText);
-			}
-			return setHeader(name, value);
-		};
-		next();
-	}
-	return {
-		name: 'markdown-plain-text',
-		configureServer(server) {
-			server.middlewares.use(forcePlainText);
-		},
-		configurePreviewServer(server) {
-			server.middlewares.use(forcePlainText);
-		},
-	};
-}
-
 /** 开发时把上次构建的 `dist/pagefind` 挂到 `/pagefind/`，避免 SPA 回退成 HTML 导致搜索脚本假加载 */
 function pagefindDevPlugin(): Plugin {
 	const pagefindDir = path.join(process.cwd(), 'dist', 'pagefind');
@@ -117,7 +78,6 @@ export default defineConfig({
 				},
 			},
 		}),
-		markdownPlainTextPlugin(),
 		pagefindDevPlugin(),
 	],
 	ssgOptions: {

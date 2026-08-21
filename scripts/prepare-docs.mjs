@@ -37,6 +37,7 @@ function hasScheme(url) {
 	return /^[a-zA-Z][a-zA-Z0-9+.-]*:/u.test(url);
 }
 
+/** 相对链接按仓库文件路径解析（含 `.{locale}.md`），再写成站点路径 */
 function rewriteHref(href, locale, stem) {
 	if (!href || hasScheme(href) || href.startsWith('#') || href.startsWith('/')) return href;
 	const hashIndex = href.indexOf('#');
@@ -47,8 +48,10 @@ function rewriteHref(href, locale, stem) {
 	let joined = path.posix.normalize(path.posix.join(dir === '.' ? '' : dir, pathPart));
 	joined = joined.replace(/\\/g, '/');
 	if (joined.startsWith('..') || joined.startsWith('/')) return href;
-	if (joined.endsWith('.md')) joined = joined.slice(0, -3);
-	return `${withBase(docPath(locale, joined), process.env.SITE_BASE || '/')}${hash}`;
+	const parsed = parseFileName(joined);
+	const destStem = parsed ? parsed.stem : joined.endsWith('.md') ? joined.slice(0, -3) : joined;
+	const destLocale = parsed?.locale ?? locale;
+	return `${withBase(docPath(destLocale, destStem), process.env.SITE_BASE || '/')}${hash}`;
 }
 
 function rewriteHtmlLinks(html, locale, stem) {

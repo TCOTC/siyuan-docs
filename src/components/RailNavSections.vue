@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ChevronDown } from '@lucide/vue';
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import { railGroupContaining, type RailEntry } from '../lib/docData';
 import { docPath } from '../lib/docPath';
@@ -17,14 +17,26 @@ const emit = defineEmits<{
 	expandChange: [];
 }>();
 
-const currentGroup = railGroupContaining(props.rail, props.currentStem ?? '');
-
-/** 各分组开合；仅在打开页面时按当前文档路径展开，之后以用户点击为准 */
+/** 各分组开合。换文档时若当前页所在分组是收起的则展开；不自动收起用户打开的其它分组 */
 const expandedByKey = reactive<Record<string, boolean>>({});
-for (const entry of props.rail) {
-	if (entry.type !== 'group') continue;
-	expandedByKey[entry.key] = entry.key === currentGroup?.key;
+
+function ensureCurrentGroupExpanded(): void {
+	const group = railGroupContaining(props.rail, props.currentStem ?? '');
+	if (!group || expandedByKey[group.key] === true) return;
+	expandedByKey[group.key] = true;
+	if (import.meta.env.SSR) return;
+	requestAnimationFrame(() => {
+		emit('expandChange');
+	});
 }
+
+watch(
+	() => [props.currentStem ?? '', props.rail] as const,
+	() => {
+		ensureCurrentGroupExpanded();
+	},
+	{ immediate: true },
+);
 
 function isExpanded(key: string): boolean {
 	return expandedByKey[key] === true;
