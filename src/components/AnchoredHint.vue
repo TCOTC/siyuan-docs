@@ -33,13 +33,13 @@ defineProps<{
 		z-index: 20000;
 		display: block;
 		width: max-content;
-		max-width: min(280px, calc(100vw - 24px));
+		max-width: min(280px, calc(100vw - var(--sp-5)));
 		padding: var(--sp-2) var(--sp-3);
 		background: var(--raised);
 		color: var(--ink);
 		border: var(--sp-line) solid var(--line-strong);
 		border-radius: var(--r);
-		box-shadow: var(--pf-shadow-md, 0 4px 12px rgba(0, 0, 0, 0.25));
+		box-shadow: var(--pf-shadow-md);
 		white-space: nowrap;
 		text-align: center;
 		font-size: var(--tp-xs);

@@ -1,0 +1,59 @@
+/* 共用片段：焦点环、圆钮、覆盖式滚动条 */
+
+$bp-rail: 850px;
+$bp-toc: 1000px;
+
+@mixin focus-ring {
+	outline: var(--sp-micro) solid var(--accent);
+	outline-offset: var(--sp-micro);
+}
+
+/* 顶栏圆形图标按钮（IconBtn / 代码块复制等） */
+@mixin icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--tool-h);
+	height: var(--tool-h);
+	padding: 0;
+	flex-shrink: 0;
+	color: var(--ink-dim);
+	background: transparent;
+	border: var(--sp-line) solid var(--line);
+	border-radius: var(--r-pill);
+	cursor: pointer;
+
+	&:hover {
+		color: var(--ink);
+		background: var(--hover-fill);
+		border-color: var(--line-strong);
+	}
+}
+
+/* 侧栏：滑块默认透明，滚动时由 .rail-scrollbar--visible 显示 */
+@mixin overlay-scrollbar {
+	&:not(.rail-scrollbar--visible) {
+		scrollbar-color: transparent transparent;
+
+		&::-webkit-scrollbar-thumb {
+			background-color: transparent;
+
+			&:hover {
+				background-color: transparent;
+			}
+		}
+	}
+
+	&.rail-scrollbar--visible {
+		scrollbar-color: var(--scrollbar-thumb) transparent;
+
+		&::-webkit-scrollbar-thumb {
+			background-color: var(--scrollbar-thumb);
+			transition: background-color 0.12s ease;
+
+			&:hover {
+				background-color: var(--scrollbar-thumb-hover);
+			}
+		}
+	}
+}

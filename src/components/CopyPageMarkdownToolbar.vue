@@ -120,17 +120,14 @@ onUnmounted(() => {
 .copy-split {
 	display: inline-flex;
 	align-items: stretch;
-	min-height: var(--tool-h);
 	height: var(--tool-h);
 	border-radius: var(--r-pill);
 	border: var(--sp-line) solid var(--line);
 	background: var(--canvas);
-	overflow: visible;
 	flex-shrink: 0;
-	box-sizing: border-box;
 
 	html[data-theme='dark'] & {
-		background: rgba(255, 255, 255, 0.03);
+		background: var(--muted);
 	}
 
 	:deep(.hint) {
@@ -140,35 +137,34 @@ onUnmounted(() => {
 	}
 }
 
-.copy-split__main {
-	display: inline-flex;
+.copy-split__main,
+.copy-split__chev {
+	display: flex;
 	align-items: center;
 	justify-content: center;
+	height: 100%;
+	padding: 0;
+	background: transparent;
+	border: none;
+	cursor: pointer;
+
+	&:hover {
+		color: var(--ink);
+		background: var(--hover-fill);
+	}
+}
+
+.copy-split__main {
 	flex: 1;
 	min-width: 0;
-	gap: var(--sp-2);
-	height: 100%;
-	min-height: 100%;
 	padding: 0 var(--sp-3);
 	font-family: inherit;
 	font-size: var(--tp-sm);
 	font-weight: 510;
 	line-height: 1;
 	color: var(--ink-dim);
-	background: transparent;
-	border: none;
 	border-top-left-radius: var(--r-pill);
 	border-bottom-left-radius: var(--r-pill);
-	cursor: pointer;
-
-	&:hover {
-		color: var(--ink);
-		background: var(--muted);
-	}
-
-	html[data-theme='dark'] &:hover {
-		background: rgba(255, 255, 255, 0.05);
-	}
 
 	svg {
 		flex-shrink: 0;
@@ -224,28 +220,10 @@ onUnmounted(() => {
 }
 
 .copy-split__chev {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: var(--sp-6);
-	min-height: 100%;
-	height: 100%;
-	padding: 0;
-	color: var(--ink-faint);
-	background: transparent;
-	border: none;
+	width: var(--tool-h);
+	color: var(--ink-dim);
 	border-top-right-radius: var(--r-pill);
 	border-bottom-right-radius: var(--r-pill);
-	cursor: pointer;
-
-	&:hover {
-		color: var(--ink);
-		background: var(--muted);
-	}
-
-	html[data-theme='dark'] &:hover {
-		background: rgba(255, 255, 255, 0.05);
-	}
 }
 
 .copy-split__divider {

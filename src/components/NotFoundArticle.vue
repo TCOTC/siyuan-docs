@@ -26,9 +26,7 @@ defineProps<{
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	box-sizing: border-box;
 	height: var(--tool-h);
-	min-height: var(--tool-h);
 	padding: 0 var(--sp-4);
 	font-size: var(--tp-sm);
 	font-weight: 600;
@@ -40,16 +38,12 @@ defineProps<{
 	cursor: pointer;
 
 	&:hover {
-		background: var(--muted);
+		background: var(--hover-fill);
 		text-decoration: none;
 	}
 
 	html[data-theme='dark'] & {
-		background: rgba(255, 255, 255, 0.04);
-	}
-
-	html[data-theme='dark'] &:hover {
-		background: rgba(255, 255, 255, 0.08);
+		background: var(--muted);
 	}
 }
 

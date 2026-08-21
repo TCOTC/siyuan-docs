@@ -64,7 +64,7 @@ const bind = computed(() => {
 	text-decoration: none;
 
 	&:hover {
-		background: var(--muted);
+		background: var(--hover-fill);
 
 		.menu-panel-item__title {
 			color: var(--ink);
@@ -95,6 +95,6 @@ const bind = computed(() => {
 	font-size: var(--tp-xs);
 	font-weight: 400;
 	line-height: 1.35;
-	color: var(--ink-faint);
+	color: var(--ink-dim);
 }
 </style>

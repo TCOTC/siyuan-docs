@@ -1,3 +1,5 @@
+@use 'mixins' as *;
+
 /* v-html 正文与注入的复制按钮没有 data-v，故放在全局样式里 */
 .prose {
 	max-width: 100%;
@@ -5,38 +7,39 @@
 	overflow-x: auto;
 	-webkit-overflow-scrolling: touch;
 
+	h1,
+	h2,
+	h3,
+	h4 {
+		scroll-margin-top: var(--anchor-scroll);
+	}
+
+	h1,
+	h2,
+	h3 {
+		font-weight: 600;
+		color: var(--ink);
+	}
+
 	h1 {
 		margin: 0 0 0.5em;
 		font-size: var(--tp-h1);
-		font-weight: 600;
 		letter-spacing: -0.045em;
 		line-height: 1.15;
-		color: var(--ink);
-		scroll-margin-top: var(--anchor-scroll);
 	}
 
 	h2 {
 		margin: 2em 0 0.55em;
 		padding-top: 0.25em;
 		font-size: var(--tp-h2);
-		font-weight: 600;
 		letter-spacing: -0.03em;
 		line-height: 1.35;
-		color: var(--ink);
-		scroll-margin-top: var(--anchor-scroll);
 	}
 
 	h3 {
 		margin: 1.5em 0 0.45em;
 		font-size: var(--tp-base);
-		font-weight: 600;
 		letter-spacing: -0.02em;
-		color: var(--ink);
-		scroll-margin-top: var(--anchor-scroll);
-	}
-
-	h4 {
-		scroll-margin-top: var(--anchor-scroll);
 	}
 
 	p {
@@ -50,11 +53,7 @@
 		font-weight: 500;
 		text-decoration: underline;
 		text-underline-offset: var(--sp-1);
-		text-decoration-color: rgba(0, 0, 0, 0.25);
-
-		html[data-theme='dark'] & {
-			text-decoration-color: rgba(255, 255, 255, 0.35);
-		}
+		text-decoration-color: color-mix(in srgb, var(--ink) 30%, transparent);
 
 		&:hover {
 			text-decoration-color: var(--accent);
@@ -81,7 +80,6 @@
 		font-family: var(--font-mono);
 		font-size: var(--tp-sm);
 		line-height: 1.55;
-		font-weight: 400;
 		border: var(--sp-line) solid var(--line-strong);
 		border-radius: var(--r-card);
 		background: var(--code-bg);
@@ -97,31 +95,17 @@
 			border: none;
 			background: none;
 			font-size: inherit;
-			font-weight: inherit;
 		}
 
 		/* 代码块右上角复制（由 useCodeBlockCopy 注入 .code-block-copy；悬浮 / focus 时显示，不占文档流） */
 		.code-block-copy {
+			@include icon-btn;
 			position: absolute;
 			top: var(--sp-2);
 			right: var(--sp-2);
-			left: auto;
 			z-index: 1;
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			width: var(--sp-6);
-			height: var(--sp-6);
-			min-width: var(--sp-6);
-			min-height: var(--sp-6);
 			margin: 0;
-			padding: 0;
 			line-height: 0;
-			color: var(--ink-dim);
-			background: transparent;
-			border: var(--sp-line) solid var(--line);
-			border-radius: var(--r-pill);
-			cursor: pointer;
 			opacity: 0;
 			pointer-events: none;
 			transition:
@@ -129,21 +113,6 @@
 				color 0.12s ease,
 				background-color 0.12s ease,
 				border-color 0.12s ease;
-
-			&:hover {
-				color: var(--ink);
-				background: var(--muted);
-				border-color: var(--line-strong);
-			}
-
-			html[data-theme='dark'] &:hover {
-				background: rgba(255, 255, 255, 0.05);
-			}
-
-			&:focus-visible {
-				outline: var(--sp-micro) solid var(--accent);
-				outline-offset: var(--sp-micro);
-			}
 		}
 
 		&:hover .code-block-copy,
@@ -193,7 +162,6 @@
 	code {
 		font-family: var(--font-mono);
 		font-size: 0.88em;
-		font-weight: 400;
 	}
 
 	:not(pre) > code {
@@ -212,8 +180,6 @@
 		font-size: var(--tp-sm);
 		line-height: 1.5;
 		border: var(--sp-line) solid var(--line-strong);
-		border-radius: var(--r-card);
-		background: var(--canvas);
 	}
 
 	caption {
@@ -236,7 +202,6 @@
 
 	th {
 		font-weight: 600;
-		color: var(--ink);
 	}
 
 	thead th {
@@ -247,19 +212,11 @@
 	}
 
 	tbody tr:nth-child(even) td {
-		background: rgba(0, 0, 0, 0.025);
-	}
-
-	html[data-theme='dark'] & tbody tr:nth-child(even) td {
-		background: rgba(255, 255, 255, 0.04);
+		background: color-mix(in srgb, var(--ink) 3%, transparent);
 	}
 
 	tbody tr:hover td {
-		background: rgba(0, 0, 0, 0.05);
-	}
-
-	html[data-theme='dark'] & tbody tr:hover td {
-		background: rgba(255, 255, 255, 0.07);
+		background: color-mix(in srgb, var(--ink) 6%, transparent);
 	}
 
 	hr {

@@ -206,7 +206,7 @@ watch(
 		>
 			<header class="rail-header">
 				<RouterLink
-					class="brand-lockup brand-lockup--rail"
+					class="brand-lockup"
 					:to="docHomePath"
 					active-class=""
 					exact-active-class=""
@@ -215,7 +215,7 @@ watch(
 					<span class="brand-lockup__divider" aria-hidden="true" />
 					<span class="brand-lockup__text">{{ t.railSiteLabel }}</span>
 				</RouterLink>
-				<div ref="slotRail" class="tool-slot tool-slot--rail"></div>
+				<div ref="slotRail" class="tool-slot--rail"></div>
 			</header>
 			<div class="rail-body">
 				<div
@@ -322,13 +322,11 @@ watch(
 						<slot />
 					</main>
 					<aside v-show="tocItems.length > 0" class="toc" :aria-label="t.tocAsideAria" data-pagefind-ignore>
-						<div class="toc__inner">
-							<ul ref="tocListEl" class="toc__list">
-								<li v-for="h in tocItems" :key="h.slug" :class="`toc-depth-${h.depth}`">
-									<a :href="`#${h.slug}`">{{ h.text }}</a>
-								</li>
-							</ul>
-						</div>
+						<ul ref="tocListEl" class="toc__list">
+							<li v-for="h in tocItems" :key="h.slug" :class="`toc-depth-${h.depth}`">
+								<a :href="`#${h.slug}`">{{ h.text }}</a>
+							</li>
+						</ul>
 					</aside>
 				</div>
 			</div>

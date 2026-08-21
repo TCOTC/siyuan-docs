@@ -33,7 +33,7 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-btn {
 	height: var(--tool-h) !important;
 	min-width: var(--tool-h) !important;
 	padding: 0 !important;
-	border-radius: 9999px !important;
+	border-radius: var(--r-pill) !important;
 	justify-content: center !important;
 	align-items: center !important;
 	gap: 0 !important;
@@ -46,14 +46,9 @@ pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-btn {
 
 	&:hover {
 		color: var(--ink) !important;
-		background: var(--muted) !important;
+		background: var(--hover-fill) !important;
 		border-color: var(--line-strong) !important;
 	}
-}
-
-html[data-theme='dark'] .pf-search-placeholder.pf-trigger-btn:hover,
-html[data-theme='dark'] pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-btn:hover {
-	background: rgba(255, 255, 255, 0.05) !important;
 }
 
 pagefind-modal-trigger.pf-trigger-wrap {

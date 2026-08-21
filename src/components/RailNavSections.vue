@@ -97,6 +97,17 @@ function toggleGroup(key: string): void {
 </template>
 
 <style scoped lang="scss">
+@mixin nav-label {
+	margin: 0;
+	padding: var(--sp-2) var(--sp-1) var(--sp-2) var(--sp-micro);
+	font-size: var(--tp-body);
+	font-weight: 500;
+	letter-spacing: 0.01em;
+	color: var(--ink-dim);
+	border-radius: var(--r);
+	line-height: 1.3;
+}
+
 .rail-nav {
 	&__root {
 		list-style: none;
@@ -123,23 +134,11 @@ function toggleGroup(key: string): void {
 	&__home-link {
 		display: block;
 		width: 100%;
-		margin: 0;
-		padding: var(--sp-2) var(--sp-1) var(--sp-2) var(--sp-micro);
-		font-size: var(--tp-body);
-		font-weight: 500;
-		letter-spacing: 0.01em;
-		color: var(--ink-faint);
-		border-radius: var(--r);
-		line-height: 1.3;
+		@include nav-label;
 
 		&:hover,
 		&.is-active {
 			color: var(--ink);
-		}
-
-		&:focus-visible {
-			outline: var(--sp-micro) solid var(--accent);
-			outline-offset: var(--sp-micro);
 		}
 	}
 
@@ -148,27 +147,15 @@ function toggleGroup(key: string): void {
 		align-items: center;
 		justify-content: space-between;
 		width: 100%;
-		margin: 0;
-		padding: var(--sp-2) var(--sp-1) var(--sp-2) var(--sp-micro);
 		font: inherit;
-		font-size: var(--tp-body);
-		font-weight: 500;
-		letter-spacing: 0.01em;
-		color: var(--ink-faint);
+		@include nav-label;
 		background: transparent;
 		border: none;
-		border-radius: var(--r);
 		cursor: pointer;
 		text-align: left;
-		line-height: 1.3;
 
 		&:hover {
 			color: var(--ink);
-		}
-
-		&:focus-visible {
-			outline: var(--sp-micro) solid var(--accent);
-			outline-offset: var(--sp-micro);
 		}
 	}
 
@@ -216,17 +203,9 @@ function toggleGroup(key: string): void {
 		border: none;
 		line-height: 1.45;
 
-		&:hover {
-			color: var(--ink);
-		}
-
+		&:hover,
 		&.is-active {
 			color: var(--ink);
-		}
-
-		&:focus-visible {
-			outline: var(--sp-micro) solid var(--accent);
-			outline-offset: var(--sp-micro);
 		}
 	}
 }

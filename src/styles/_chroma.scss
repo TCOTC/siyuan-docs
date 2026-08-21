@@ -1,13 +1,100 @@
 // chroma catppuccin-latte（亮）/ catppuccin-mocha（暗）；class 前缀 highlight-，与 Lute 输出一致。
 // 重新生成：pnpm chroma-css
 // 代码块底色沿用 --code-bg，已去掉 chroma 包装层的 background-color
-// 亮色用 :not(dark) 包住，避免 latte 有、mocha 没有的 token 在暗色里继续套浅色规则
+// 两套主题共有的结构声明提到主题块外；亮色用 :not(dark) 包住，避免 latte 有、mocha 没有的 token 在暗色里继续套浅色规则
+
+// PreWrapper
+.highlight-chroma {
+	-webkit-text-size-adjust: none;
+
+	// LineLink
+	.highlight-lnlinks {
+		outline: none;
+		text-decoration: none;
+		color: inherit;
+	}
+
+	// LineTableTD
+	.highlight-lntd {
+		vertical-align: top;
+		padding: 0;
+		margin: 0;
+		border: 0;
+	}
+
+	// LineTable
+	.highlight-lntable {
+		border-spacing: 0;
+		padding: 0;
+		margin: 0;
+		border: 0;
+	}
+
+	// LineNumbersTable
+	.highlight-lnt,
+	// LineNumbers
+	.highlight-ln {
+		white-space: pre;
+		-webkit-user-select: none;
+		user-select: none;
+		margin-right: 0.4em;
+		padding: 0 0.4em 0 0.4em;
+	}
+
+	// Line
+	.highlight-line {
+		display: block;
+	}
+
+	// NameDecorator
+	.highlight-nd,
+	// Operator
+	.highlight-o,
+	// OperatorWord
+	.highlight-ow,
+	// OperatorReserved
+	.highlight-or,
+	// GenericHeading
+	.highlight-gh,
+	// GenericStrong
+	.highlight-gs,
+	// GenericSubheading
+	.highlight-gu {
+		font-weight: bold;
+	}
+
+	// Comment
+	.highlight-c,
+	// CommentHashbang
+	.highlight-ch,
+	// CommentMultiline
+	.highlight-cm,
+	// CommentSingle
+	.highlight-c1,
+	// CommentSpecial
+	.highlight-cs,
+	// CommentPreproc
+	.highlight-cp,
+	// GenericEmph
+	.highlight-ge {
+		font-style: italic;
+	}
+
+	// CommentPreprocFile
+	.highlight-cpf {
+		font-weight: bold;
+		font-style: italic;
+	}
+
+	// GenericUnderline
+	.highlight-gl {
+		text-decoration: underline;
+	}
+}
 
 html:not([data-theme='dark']) {
-	// PreWrapper
 	.highlight-chroma {
 		color: #4c4f69;
-		-webkit-text-size-adjust: none;
 
 		// Error
 		.highlight-err,
@@ -24,29 +111,6 @@ html:not([data-theme='dark']) {
 			color: #d20f39;
 		}
 
-		// LineLink
-		.highlight-lnlinks {
-			outline: none;
-			text-decoration: none;
-			color: inherit;
-		}
-
-		// LineTableTD
-		.highlight-lntd {
-			vertical-align: top;
-			padding: 0;
-			margin: 0;
-			border: 0;
-		}
-
-		// LineTable
-		.highlight-lntable {
-			border-spacing: 0;
-			padding: 0;
-			margin: 0;
-			border: 0;
-		}
-
 		// LineHighlight
 		.highlight-hl {
 			background-color: #bcc0cc;
@@ -56,17 +120,7 @@ html:not([data-theme='dark']) {
 		.highlight-lnt,
 		// LineNumbers
 		.highlight-ln {
-			white-space: pre;
-			-webkit-user-select: none;
-			user-select: none;
-			margin-right: 0.4em;
-			padding: 0 0.4em 0 0.4em;
 			color: #8c8fa1;
-		}
-
-		// Line
-		.highlight-line {
-			display: block;
 		}
 
 		// Keyword
@@ -101,7 +155,11 @@ html:not([data-theme='dark']) {
 		// LiteralNumberIntegerLong
 		.highlight-il,
 		// LiteralNumberOct
-		.highlight-mo {
+		.highlight-mo,
+		// GenericHeading
+		.highlight-gh,
+		// GenericSubheading
+		.highlight-gu {
 			color: #fe640b;
 		}
 
@@ -116,6 +174,8 @@ html:not([data-theme='dark']) {
 
 		// NameAttribute
 		.highlight-na,
+		// NameDecorator
+		.highlight-nd,
 		// NameFunction
 		.highlight-nf,
 		// NameFunctionMagic
@@ -134,18 +194,18 @@ html:not([data-theme='dark']) {
 			color: #df8e1d;
 		}
 
-		// NameDecorator
-		.highlight-nd {
-			color: #1e66f5;
-			font-weight: bold;
-		}
-
 		// NameLabel
 		.highlight-nl,
 		// NameBuiltin
 		.highlight-nb,
 		// NameBuiltinPseudo
-		.highlight-bp {
+		.highlight-bp,
+		// Operator
+		.highlight-o,
+		// OperatorWord
+		.highlight-ow,
+		// OperatorReserved
+		.highlight-or {
 			color: #04a5e5;
 		}
 
@@ -184,20 +244,7 @@ html:not([data-theme='dark']) {
 		// LiteralStringDoc
 		.highlight-sd,
 		// LiteralStringHeredoc
-		.highlight-sh {
-			color: #9ca0b0;
-		}
-
-		// Operator
-		.highlight-o,
-		// OperatorWord
-		.highlight-ow,
-		// OperatorReserved
-		.highlight-or {
-			color: #04a5e5;
-			font-weight: bold;
-		}
-
+		.highlight-sh,
 		// Comment
 		.highlight-c,
 		// CommentMultiline
@@ -207,22 +254,15 @@ html:not([data-theme='dark']) {
 		// CommentSpecial
 		.highlight-cs,
 		// CommentPreproc
-		.highlight-cp {
+		.highlight-cp,
+		// CommentPreprocFile
+		.highlight-cpf {
 			color: #9ca0b0;
-			font-style: italic;
 		}
 
 		// CommentHashbang
 		.highlight-ch {
 			color: #acb0be;
-			font-style: italic;
-		}
-
-		// CommentPreprocFile
-		.highlight-cpf {
-			color: #9ca0b0;
-			font-weight: bold;
-			font-style: italic;
 		}
 
 		// GenericDeleted
@@ -231,42 +271,17 @@ html:not([data-theme='dark']) {
 			background-color: #ccd0da;
 		}
 
-		// GenericEmph
-		.highlight-ge {
-			font-style: italic;
-		}
-
-		// GenericHeading
-		.highlight-gh,
-		// GenericSubheading
-		.highlight-gu {
-			color: #fe640b;
-			font-weight: bold;
-		}
-
 		// GenericInserted
 		.highlight-gi {
 			color: #40a02b;
 			background-color: #ccd0da;
 		}
-
-		// GenericStrong
-		.highlight-gs {
-			font-weight: bold;
-		}
-
-		// GenericUnderline
-		.highlight-gl {
-			text-decoration: underline;
-		}
 	}
 }
 
 html[data-theme='dark'] {
-	// PreWrapper
 	.highlight-chroma {
 		color: #cdd6f4;
-		-webkit-text-size-adjust: none;
 
 		// Error
 		.highlight-err,
@@ -283,29 +298,6 @@ html[data-theme='dark'] {
 			color: #f38ba8;
 		}
 
-		// LineLink
-		.highlight-lnlinks {
-			outline: none;
-			text-decoration: none;
-			color: inherit;
-		}
-
-		// LineTableTD
-		.highlight-lntd {
-			vertical-align: top;
-			padding: 0;
-			margin: 0;
-			border: 0;
-		}
-
-		// LineTable
-		.highlight-lntable {
-			border-spacing: 0;
-			padding: 0;
-			margin: 0;
-			border: 0;
-		}
-
 		// LineHighlight
 		.highlight-hl {
 			background-color: #45475a;
@@ -315,17 +307,7 @@ html[data-theme='dark'] {
 		.highlight-lnt,
 		// LineNumbers
 		.highlight-ln {
-			white-space: pre;
-			-webkit-user-select: none;
-			user-select: none;
-			margin-right: 0.4em;
-			padding: 0 0.4em 0 0.4em;
 			color: #7f849c;
-		}
-
-		// Line
-		.highlight-line {
-			display: block;
 		}
 
 		// Keyword
@@ -360,7 +342,11 @@ html[data-theme='dark'] {
 		// LiteralNumberIntegerLong
 		.highlight-il,
 		// LiteralNumberOct
-		.highlight-mo {
+		.highlight-mo,
+		// GenericHeading
+		.highlight-gh,
+		// GenericSubheading
+		.highlight-gu {
 			color: #fab387;
 		}
 
@@ -375,6 +361,8 @@ html[data-theme='dark'] {
 
 		// NameAttribute
 		.highlight-na,
+		// NameDecorator
+		.highlight-nd,
 		// NameFunction
 		.highlight-nf,
 		// NameFunctionMagic
@@ -393,18 +381,18 @@ html[data-theme='dark'] {
 			color: #f9e2af;
 		}
 
-		// NameDecorator
-		.highlight-nd {
-			color: #89b4fa;
-			font-weight: bold;
-		}
-
 		// NameLabel
 		.highlight-nl,
 		// NameBuiltin
 		.highlight-nb,
 		// NameBuiltinPseudo
-		.highlight-bp {
+		.highlight-bp,
+		// Operator
+		.highlight-o,
+		// OperatorWord
+		.highlight-ow,
+		// OperatorReserved
+		.highlight-or {
 			color: #89dceb;
 		}
 
@@ -443,20 +431,7 @@ html[data-theme='dark'] {
 		// LiteralStringDoc
 		.highlight-sd,
 		// LiteralStringHeredoc
-		.highlight-sh {
-			color: #6c7086;
-		}
-
-		// Operator
-		.highlight-o,
-		// OperatorWord
-		.highlight-ow,
-		// OperatorReserved
-		.highlight-or {
-			color: #89dceb;
-			font-weight: bold;
-		}
-
+		.highlight-sh,
 		// Comment
 		.highlight-c,
 		// CommentMultiline
@@ -466,22 +441,15 @@ html[data-theme='dark'] {
 		// CommentSpecial
 		.highlight-cs,
 		// CommentPreproc
-		.highlight-cp {
+		.highlight-cp,
+		// CommentPreprocFile
+		.highlight-cpf {
 			color: #6c7086;
-			font-style: italic;
 		}
 
 		// CommentHashbang
 		.highlight-ch {
 			color: #585b70;
-			font-style: italic;
-		}
-
-		// CommentPreprocFile
-		.highlight-cpf {
-			color: #6c7086;
-			font-weight: bold;
-			font-style: italic;
 		}
 
 		// GenericDeleted
@@ -490,33 +458,10 @@ html[data-theme='dark'] {
 			background-color: #313244;
 		}
 
-		// GenericEmph
-		.highlight-ge {
-			font-style: italic;
-		}
-
-		// GenericHeading
-		.highlight-gh,
-		// GenericSubheading
-		.highlight-gu {
-			color: #fab387;
-			font-weight: bold;
-		}
-
 		// GenericInserted
 		.highlight-gi {
 			color: #a6e3a1;
 			background-color: #313244;
-		}
-
-		// GenericStrong
-		.highlight-gs {
-			font-weight: bold;
-		}
-
-		// GenericUnderline
-		.highlight-gl {
-			text-decoration: underline;
 		}
 	}
 }

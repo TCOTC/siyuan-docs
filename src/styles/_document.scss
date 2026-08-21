@@ -1,12 +1,12 @@
+@use 'mixins' as *;
+
 *,
 *::before,
 *::after {
 	box-sizing: border-box;
 }
 
-/* rem 相对根字号（100% = 用户 / 浏览器默认），正文与 UI 文本着陆一致缩放 */
 html {
-	font-size: 100%;
 	/* 纵向 document 滚动时预留稳定 gutter，减轻 `100vw` 与布局视口宽差导致的水平对不齐 */
 	scrollbar-gutter: stable;
 }
@@ -17,7 +17,6 @@ body {
 	font-family: var(--font);
 	font-size: var(--tp-body);
 	line-height: 1.55;
-	font-weight: 400;
 	font-feature-settings: 'cv01', 'ss03';
 	color: var(--ink);
 	background: var(--canvas);
@@ -26,12 +25,19 @@ body {
 	-webkit-tap-highlight-color: transparent;
 }
 
-/* 触摸 / 鼠标点击后不保留浏览器默认蓝色 focus 框；键盘 Tab 仍通过各组件的 :focus-visible 显示轮廓 */
+/* 触摸 / 鼠标点击后不保留浏览器默认蓝色 focus 框；键盘 Tab 显示轮廓 */
 button:focus:not(:focus-visible),
 a:focus:not(:focus-visible),
 [role='button']:focus:not(:focus-visible),
 summary:focus:not(:focus-visible) {
 	outline: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+[role='button']:focus-visible,
+summary:focus-visible {
+	@include focus-ring;
 }
 
 /* 全站滚动条：透明底轨 + 细滑块（Firefox scrollbar-* / WebKit） */
@@ -82,15 +88,15 @@ a {
 
 .skip-link:focus {
 	transform: translateY(0);
-	outline: var(--sp-micro) solid var(--accent);
-	outline-offset: var(--sp-micro);
+	@include focus-ring;
 }
 
 .brand-lockup {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--sp-3);
-	font-size: var(--tp-md);
+	min-width: 0;
+	font-size: var(--tp-base);
 	font-weight: 600;
 	letter-spacing: -0.02em;
 	color: var(--ink);
@@ -115,18 +121,14 @@ a {
 		align-self: center;
 		background: var(--line-strong);
 	}
-
-	&--rail {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--sp-3);
-		min-width: 0;
-		padding: 0;
-		font-size: var(--tp-base);
-	}
 }
 
-/* 文档页：整页（document）纵向滚动，#fragment 由浏览器对齐文档滚动容器；侧栏 sticky、主栏顶栏 sticky */
+/* 顶栏圆形图标按钮（组件根节点 class="icon-btn"） */
+.icon-btn {
+	@include icon-btn;
+}
+
+/* 文档页：整页（document）纵向滚动，#fragment 由浏览器对齐文档滚动容器 */
 body.doc-layout {
 	min-height: 100dvh;
 	overflow-x: hidden;
@@ -137,12 +139,9 @@ body.doc-layout {
 	display: grid;
 	grid-template-columns: var(--doc-rail-width) minmax(0, 1fr);
 	align-items: start;
-	min-height: 100dvh;
-	overflow: visible;
-	background: var(--canvas);
 }
 
-// 修复文档内容不足时也会显示滚动条的问题
+/* 修复文档内容不足时也会显示滚动条的问题 */
 body.doc-layout .shell {
 	min-height: calc(100dvh - 1px);
 }
@@ -172,7 +171,6 @@ body.doc-layout .shell {
 	top: 0;
 	bottom: 0;
 	width: var(--doc-rail-width);
-	padding: 0;
 	border-right: var(--sp-line) solid var(--line);
 	background: var(--panel);
 	/* 顶栏提示用 absolute，裁切放在 `.rail-body`，避免这里 overflow 把气泡切掉 */
@@ -190,7 +188,6 @@ body.doc-layout .shell {
 	justify-content: space-between;
 	gap: var(--sp-3);
 	height: var(--bar-h);
-	min-height: var(--bar-h);
 	padding: 0 var(--sp-4) 0 var(--sp-5);
 	border-bottom: var(--sp-line) solid var(--line);
 }
@@ -239,41 +236,17 @@ body.doc-layout .shell {
 	}
 }
 
-/* 侧栏文档列表：滑块默认透明，仅在滚动时由脚本加上 .rail-scrollbar--visible 后显示（与 macOS 覆盖式滚动条体验接近） */
+/* 侧栏文档列表：滑块默认透明，仅在滚动时由脚本加上 .rail-scrollbar--visible 后显示 */
 .rail-scroll {
 	flex: 1;
 	min-height: 0;
 	overflow-x: hidden;
 	overflow-y: auto;
-	/* 在尚未出现滚动条时先留出槽位，避免显示滚动条后正文区宽度突变（与细滑块视觉宽度可能不完全一致，由 UA 决定） */
+	/* 在尚未出现滚动条时先留出槽位，避免显示滚动条后正文区宽度突变 */
 	scrollbar-gutter: stable;
 	padding: var(--sp-3) 0 var(--sp-2) var(--sp-4);
 	-webkit-overflow-scrolling: touch;
-
-	&:not(.rail-scrollbar--visible) {
-		scrollbar-color: transparent transparent;
-
-		&::-webkit-scrollbar-thumb {
-			background-color: transparent;
-
-			&:hover {
-				background-color: transparent;
-			}
-		}
-	}
-
-	&.rail-scrollbar--visible {
-		scrollbar-color: var(--scrollbar-thumb) transparent;
-
-		&::-webkit-scrollbar-thumb {
-			background-color: var(--scrollbar-thumb);
-			transition: background-color 0.12s ease;
-
-			&:hover {
-				background-color: var(--scrollbar-thumb-hover);
-			}
-		}
-	}
+	@include overlay-scrollbar;
 }
 
 /* 与侧栏背景同色，仅在有可滚动内容且未顶/底时显隐；pointer-events: none 不挡点击 */
@@ -317,12 +290,12 @@ body.doc-layout .shell {
 			font-weight: 510;
 			color: var(--ink-dim);
 
-			&:hover {
+			&:hover,
+			&.is-current {
 				color: var(--ink);
 			}
 
 			&.is-current {
-				color: var(--ink);
 				font-weight: 600;
 			}
 		}
@@ -341,10 +314,7 @@ body.doc-layout .shell {
 	flex-direction: column;
 	min-width: 0;
 	min-height: 0;
-	flex: 1 1 auto;
 	overflow-x: hidden;
-	overflow-y: visible;
-	background: var(--canvas);
 	position: relative;
 	z-index: 1;
 }
@@ -355,7 +325,6 @@ body.doc-layout .shell {
 		top: 0;
 		left: var(--doc-rail-width);
 		right: 0;
-		width: auto;
 		z-index: 10;
 	}
 
@@ -422,10 +391,9 @@ body.doc-layout .shell {
 			content: '/';
 			flex-shrink: 0;
 			margin: 0 var(--sp-2);
-			font-weight: 400;
 			font-size: var(--tp-sm);
 			line-height: 1;
-			color: var(--ink-faint);
+			color: var(--ink-dim);
 			opacity: 0.45;
 			user-select: none;
 		}
@@ -448,31 +416,24 @@ body.doc-layout .shell {
 
 	&__text,
 	&__current {
+		display: block;
+		max-width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 		font-size: var(--tp-sm);
 		line-height: 1.5;
 		letter-spacing: -0.13px;
 	}
 
 	&__text {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		color: var(--ink-faint);
+		color: var(--ink-dim);
 		font-weight: 510;
 	}
 
 	&__current {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
 		color: var(--ink);
 		font-weight: 590;
-	}
-
-	body.doc-layout .bar &__current,
-	body.doc-layout .bar &__text {
-		max-width: 100%;
-		display: block;
 	}
 }
 
@@ -497,7 +458,6 @@ svg.lucide {
 	width: var(--tool-h);
 	height: var(--tool-h);
 	border: none;
-	border-radius: 0;
 	background: transparent;
 	color: var(--ink-dim);
 	cursor: pointer;
@@ -510,8 +470,6 @@ svg.lucide {
 	}
 
 	&:focus-visible {
-		outline: var(--sp-micro) solid var(--accent);
-		outline-offset: var(--sp-micro);
 		border-radius: var(--sp-1);
 	}
 
@@ -580,8 +538,6 @@ body.doc-rail-open .rail-menu-trigger__bar {
 	min-width: 0;
 	min-height: 0;
 	overflow-x: hidden;
-	overflow-y: visible;
-	-webkit-overflow-scrolling: touch;
 
 	/* 有本页大纲时：正文 + 大纲同排，便于宽屏下作为一整块水平居中 */
 	&-cluster {
@@ -598,19 +554,16 @@ body.doc-rail-open .rail-menu-trigger__bar {
 		flex: 1 1 auto;
 		min-width: 0;
 		overflow-x: hidden;
-		overflow-y: visible;
 		padding: var(--sp-7) var(--sp-7) var(--sp-10) var(--sp-6);
 		max-width: var(--w-read);
 		width: 100%;
-		box-sizing: border-box;
-		background: var(--canvas);
 
 		&:focus {
 			outline: none;
 		}
 	}
 
-	@media (min-width: 1000px) {
+	@media (min-width: $bp-toc) {
 		/* 正文 + 大纲占位同宽，`margin: auto` 居中整块（大纲本体为 fixed 不占 flex 宽） */
 		body.doc-layout &.read--toc &-cluster {
 			flex: 0 1 auto;
@@ -625,7 +578,6 @@ body.doc-rail-open .rail-menu-trigger__bar {
 				content: '';
 				flex: 0 0 var(--toc-w);
 				width: var(--toc-w);
-				max-width: var(--w-toc-max);
 				min-height: 1px;
 				pointer-events: none;
 			}
@@ -641,31 +593,15 @@ body.doc-rail-open .rail-menu-trigger__bar {
 
 /* 本页大纲：DOM 中置于 `read-cluster` 内；宽屏下 fixed，`left` 由 `--doc-rail-width` 与正文最大宽推算 */
 .toc {
-	flex: 0 0 var(--toc-w);
-	min-height: 0;
-	width: var(--toc-w);
-	max-width: var(--w-toc-max);
-	position: sticky;
-	top: var(--overlay-top);
-	align-self: flex-start;
-	max-height: calc(100dvh - var(--overlay-top));
-	overflow-x: hidden;
-	overflow-y: auto;
-	-webkit-overflow-scrolling: touch;
 	padding: var(--sp-7) 0 var(--sp-10) var(--sp-2);
 	background: var(--canvas);
 	/* 不显示滚动条，仍可滚动（覆盖全站 * 滚动条样式） */
 	scrollbar-width: none;
-	-ms-overflow-style: none;
 
 	&::-webkit-scrollbar {
 		display: none;
 		width: 0;
 		height: 0;
-	}
-
-	&__inner {
-		min-height: 0;
 	}
 
 	&__list {
@@ -711,7 +647,6 @@ body.doc-rail-open .rail-menu-trigger__bar {
 			&.toc-depth-3 a,
 			&.toc-depth-4 a {
 				padding-left: var(--sp-4);
-				font-size: var(--tp-xs);
 			}
 		}
 
@@ -727,21 +662,15 @@ body.doc-rail-open .rail-menu-trigger__bar {
 			&:hover {
 				color: var(--ink);
 			}
-
-			&:focus-visible {
-				outline: var(--sp-micro) solid var(--accent);
-				outline-offset: var(--sp-micro);
-			}
 		}
 	}
 
-	/* ≥1000px：固定视口 */
-	@media (min-width: 1000px) {
+	@media (min-width: $bp-toc) {
 		body.doc-layout & {
 			position: fixed;
 			top: var(--overlay-top);
 			/*
-			 * 与 `#main-content` 右缘对齐：`inner` 为主栏内宽，`mw` 为正文实际宽度上限，
+			 * 与 `#main-content` 右缘对齐：正文实际宽度上限为 `--w-read`，
 			 * 与 `read-cluster` 内 `min(100%, var(--w-read))` + `::after` 占位一致。
 			 */
 			left: calc(
@@ -756,22 +685,17 @@ body.doc-rail-open .rail-menu-trigger__bar {
 					) /
 					2
 			);
-			right: auto;
 			width: var(--toc-w);
-			max-width: var(--w-toc-max);
-			flex: none;
-			bottom: auto;
-			max-height: calc(100dvh - var(--overlay-top) - env(safe-area-inset-bottom, 0px));
-			height: auto;
-			align-self: flex-start;
 			z-index: 4;
+			max-height: calc(100dvh - var(--overlay-top) - env(safe-area-inset-bottom, 0px));
 			overflow-x: hidden;
 			overflow-y: auto;
 			overscroll-behavior-y: contain;
+			-webkit-overflow-scrolling: touch;
 		}
 	}
 
-	@media not (min-width: 1000px) {
+	@media (width < #{$bp-toc}) {
 		body.doc-layout & {
 			display: none;
 		}
@@ -783,7 +707,7 @@ body.doc-rail-open .rail-menu-trigger__bar {
  * 850px–<1000px：固定文档列表 + 正文，无本页大纲
  * ≥1000px：文档列表 + 正文 + 本页大纲
  */
-@media (width < 850px) {
+@media (width < #{$bp-rail}) {
 	body.doc-layout {
 		--doc-rail-width: 0px;
 		/*
@@ -811,15 +735,11 @@ body.doc-rail-open .rail-menu-trigger__bar {
 
 		.rail-menu-trigger {
 			display: inline-flex;
-			margin-left: 0;
 		}
 
 		.rail-backdrop {
 			display: block;
-			top: var(--overlay-top);
-			right: 0;
-			bottom: 0;
-			left: 0;
+			inset: var(--overlay-top) 0 0;
 		}
 
 		&.doc-rail-open .rail-backdrop {
@@ -829,53 +749,21 @@ body.doc-rail-open .rail-menu-trigger__bar {
 		}
 
 		.rail {
-			position: fixed;
 			top: var(--overlay-top);
 			right: 0;
-			bottom: 0;
 			left: 0;
 			z-index: 200;
 			width: 100%;
 			max-width: none;
-			height: auto;
-			min-height: 0;
-			padding-left: 0;
 			border-right: none;
-			border-bottom: none;
-			box-shadow: none;
 			overflow-x: hidden;
 			overflow-y: auto;
 			-webkit-overflow-scrolling: touch;
-			transform: none;
 			opacity: 0;
 			visibility: hidden;
 			pointer-events: none;
-
 			/* 抽屉档整栏滚动：与 .rail-scroll 相同，仅滚动时显示滑块 */
-			&:not(.rail-scrollbar--visible) {
-				scrollbar-color: transparent transparent;
-
-				&::-webkit-scrollbar-thumb {
-					background-color: transparent;
-
-					&:hover {
-						background-color: transparent;
-					}
-				}
-			}
-
-			&.rail-scrollbar--visible {
-				scrollbar-color: var(--scrollbar-thumb) transparent;
-
-				&::-webkit-scrollbar-thumb {
-					background-color: var(--scrollbar-thumb);
-					transition: background-color 0.12s ease;
-
-					&:hover {
-						background-color: var(--scrollbar-thumb-hover);
-					}
-				}
-			}
+			@include overlay-scrollbar;
 
 			/* 与主栏顶栏右缘、目录折叠 chevron 右缘同一垂线 */
 			.rail-header {
