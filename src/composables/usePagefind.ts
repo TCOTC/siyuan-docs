@@ -1,14 +1,51 @@
-import { onMounted, toValue, type MaybeRefOrGetter } from 'vue';
+import { nextTick, onMounted, ref, toValue, watch, type MaybeRefOrGetter, type Ref } from 'vue';
 
 const TRIGGER = 'pagefind-modal-trigger';
 
 let loadInFlight = false;
 let pagefindReady = false;
 let resolvedBundle = '';
+let resolvedLang = '';
+/** 脚本加载失败后隐藏搜索钮；成功前先占位 */
+const pagefindAvailable = ref(true);
+
+function persistHot(): void {
+	if (!import.meta.hot) return;
+	import.meta.hot.data.bundle = resolvedBundle;
+	import.meta.hot.data.lang = resolvedLang;
+}
+
+function bundleScriptSrc(): string {
+	return `${resolvedBundle}pagefind-component-ui.js`;
+}
+
+function removeBundleScript(): void {
+	if (!resolvedBundle) return;
+	document.querySelector(`script[src="${bundleScriptSrc()}"]`)?.remove();
+}
+
+/** 弹层与 config 挂在 body 上，不进 Vue 树，避免热更新拆掉后 Pagefind 单例接不上 */
+function ensurePagefindChrome(): void {
+	if (import.meta.env.SSR || !resolvedBundle) return;
+	let cfg = document.querySelector('pagefind-config');
+	if (!cfg) {
+		cfg = document.createElement('pagefind-config');
+		document.body.appendChild(cfg);
+	}
+	cfg.setAttribute('bundle-path', resolvedBundle);
+	if (resolvedLang) cfg.setAttribute('lang', resolvedLang);
+
+	if (!document.querySelector('pagefind-modal')) {
+		const modal = document.createElement('pagefind-modal');
+		modal.setAttribute('reset-on-close', '');
+		document.body.appendChild(modal);
+	}
+}
 
 function mountModalTriggers(): void {
+	ensurePagefindChrome();
 	for (const wrap of document.querySelectorAll('[data-pf-trigger-mount]')) {
-		if (wrap.querySelector(TRIGGER)) continue;
+		for (const old of wrap.querySelectorAll(TRIGGER)) old.remove();
 		const ph = wrap.querySelector('.pf-search-placeholder');
 		const el = document.createElement(TRIGGER);
 		el.className = 'pf-trigger-wrap';
@@ -24,24 +61,31 @@ function mountModalTriggers(): void {
 function finishLoadSuccess(): void {
 	pagefindReady = true;
 	loadInFlight = false;
-	mountModalTriggers();
+	pagefindAvailable.value = true;
+	void nextTick(() => {
+		mountModalTriggers();
+	});
 }
 
 function finishLoadFailure(): void {
 	loadInFlight = false;
 	pagefindReady = false;
+	pagefindAvailable.value = false;
+	removeBundleScript();
 }
 
 function loadPagefind(): void {
 	if (pagefindReady && customElements.get(TRIGGER)) {
-		mountModalTriggers();
+		void nextTick(() => {
+			mountModalTriggers();
+		});
 		return;
 	}
 	if (loadInFlight || !resolvedBundle) return;
 	loadInFlight = true;
 
 	const cssHref = `${resolvedBundle}pagefind-component-ui.css`;
-	const jsSrc = `${resolvedBundle}pagefind-component-ui.js`;
+	const jsSrc = bundleScriptSrc();
 
 	if (!document.querySelector(`link[href="${cssHref}"]`)) {
 		const link = document.createElement('link');
@@ -57,8 +101,11 @@ function loadPagefind(): void {
 
 	const existing = document.querySelector(`script[src="${jsSrc}"]`);
 	if (existing) {
-		void customElements.whenDefined(TRIGGER).then(finishLoadSuccess);
-		return;
+		if (customElements.get(TRIGGER)) {
+			finishLoadSuccess();
+			return;
+		}
+		existing.remove();
 	}
 
 	const script = document.createElement('script');
@@ -71,7 +118,8 @@ function loadPagefind(): void {
 	document.head.appendChild(script);
 }
 
-function ensurePagefindTriggers(): void {
+/** 热更新或切页后补挂 trigger；脚本未就绪时直接返回 */
+export function ensurePagefindTriggers(): void {
 	if (!pagefindReady || !customElements.get(TRIGGER)) return;
 	mountModalTriggers();
 }
@@ -91,14 +139,42 @@ function closePagefindModal(): void {
 	modal.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 }
 
-/** 挂载后加载 Pagefind；切页时由调用方关闭弹层并补挂 trigger */
-export function usePagefind(bundle: MaybeRefOrGetter<string>): {
+/** 挂载后加载 Pagefind；失败则隐藏搜索钮。弹层挂在 body，热更新只重挂 trigger */
+export function usePagefind(
+	bundle: MaybeRefOrGetter<string>,
+	lang: MaybeRefOrGetter<string>,
+): {
 	closePagefindModal: () => void;
 	ensurePagefindTriggers: () => void;
+	pagefindAvailable: Ref<boolean>;
 } {
 	onMounted(() => {
 		resolvedBundle = toValue(bundle);
+		resolvedLang = toValue(lang);
+		persistHot();
 		loadPagefind();
 	});
-	return { closePagefindModal, ensurePagefindTriggers };
+	watch(
+		() => toValue(lang),
+		(next) => {
+			resolvedLang = next;
+			persistHot();
+			if (!pagefindReady) return;
+			document.querySelector('pagefind-config')?.setAttribute('lang', next);
+		},
+	);
+	return { closePagefindModal, ensurePagefindTriggers, pagefindAvailable };
+}
+
+if (import.meta.hot) {
+	import.meta.hot.accept();
+	if (import.meta.hot.data.bundle) {
+		resolvedBundle = import.meta.hot.data.bundle;
+		resolvedLang = import.meta.hot.data.lang ?? '';
+		pagefindReady = Boolean(customElements.get(TRIGGER));
+		pagefindAvailable.value = pagefindReady || pagefindAvailable.value;
+		void nextTick(() => {
+			loadPagefind();
+		});
+	}
 }

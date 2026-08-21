@@ -19,7 +19,20 @@ export const routes: RouteRecordRaw[] = [
 	{ path: '/:pathMatch(.*)*', component: DocPage, name: 'not-found' },
 ];
 
-/** 站内切页滚到顶部；同页 hash 交给浏览器；浏览器后退用 savedPosition */
+/** 站内切页滚到顶部；同页 hash 交给浏览器；跨页 / 首屏 hash 按元素 id 查找；后退用 savedPosition */
+function elementByHash(hash: string): Element | undefined {
+	if (typeof document === 'undefined') return undefined;
+	const raw = hash.startsWith('#') ? hash.slice(1) : hash;
+	if (!raw) return undefined;
+	let id = raw;
+	try {
+		id = decodeURIComponent(raw);
+	} catch {
+		/* 非法 % 序列时沿用原串 */
+	}
+	return document.getElementById(id) ?? undefined;
+}
+
 export const scrollBehavior: RouterScrollBehavior = async (to, from, savedPosition) => {
 	if (savedPosition) {
 		await nextTick();
@@ -28,7 +41,9 @@ export const scrollBehavior: RouterScrollBehavior = async (to, from, savedPositi
 	if (to.hash) {
 		if (to.path === from.path) return false;
 		await nextTick();
-		return { el: to.hash, top: 0 };
+		const el = elementByHash(to.hash);
+		if (el) return { el, top: 0 };
+		return { top: 0 };
 	}
 	if (from.matched.length === 0) {
 		return false;

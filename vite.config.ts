@@ -1,7 +1,10 @@
+/// <reference types="node" />
 import { defineConfig, type Plugin } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import fs from 'node:fs';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
+import process from 'node:process';
 import 'vite-ssg';
 import { docSsgRoute } from './src/lib/docPath.ts';
 
@@ -19,6 +22,41 @@ function includedDocRoutes(): string[] {
 		routes.push(docSsgRoute(doc.locale, doc.stem));
 	}
 	return routes;
+}
+
+const markdownType = 'text/markdown; charset=utf-8';
+
+function isMarkdownRequest(url: string | undefined): boolean {
+	if (!url) return false;
+	const pathname = url.split('?')[0] ?? '';
+	return pathname.endsWith('.md');
+}
+
+/** Vite 默认 `text/markdown` 不含 charset，中文 Windows 会按系统编码误读 */
+function markdownCharsetPlugin(): Plugin {
+	function forceCharset(req: IncomingMessage, res: ServerResponse, next: () => void): void {
+		if (!isMarkdownRequest(req.url)) {
+			next();
+			return;
+		}
+		const setHeader = res.setHeader.bind(res);
+		res.setHeader = (name, value) => {
+			if (String(name).toLowerCase() === 'content-type') {
+				return setHeader('Content-Type', markdownType);
+			}
+			return setHeader(name, value);
+		};
+		next();
+	}
+	return {
+		name: 'markdown-charset',
+		configureServer(server) {
+			server.middlewares.use(forceCharset);
+		},
+		configurePreviewServer(server) {
+			server.middlewares.use(forceCharset);
+		},
+	};
 }
 
 /** 开发时把上次构建的 `dist/pagefind` 挂到 `/pagefind/`，避免 SPA 回退成 HTML 导致搜索脚本假加载 */
@@ -78,6 +116,7 @@ export default defineConfig({
 				},
 			},
 		}),
+		markdownCharsetPlugin(),
 		pagefindDevPlugin(),
 	],
 	ssgOptions: {

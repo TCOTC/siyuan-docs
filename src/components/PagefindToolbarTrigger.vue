@@ -1,14 +1,20 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import AnchoredHint from './AnchoredHint.vue';
+import { ensurePagefindTriggers } from '../composables/usePagefind';
 
 defineProps<{
 	label: string;
 }>();
+
+onMounted(() => {
+	ensurePagefindTriggers();
+});
 </script>
 
 <template>
 	<AnchoredHint :text="label">
-		<div class="pf-trigger-stack" data-pf-trigger-mount v-once>
+		<div class="pf-trigger-stack" data-pf-trigger-mount>
 			<button type="button" class="pf-trigger-btn pf-search-placeholder" :aria-label="label">
 				<span class="pf-trigger-icon" aria-hidden="true"></span>
 			</button>

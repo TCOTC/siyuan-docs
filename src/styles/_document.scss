@@ -696,9 +696,7 @@ body.doc-rail-open .rail-menu-trigger__bar {
 	}
 
 	@media (width < #{$bp-toc}) {
-		body.doc-layout & {
-			display: none;
-		}
+		display: none;
 	}
 }
 
@@ -706,9 +704,10 @@ body.doc-rail-open .rail-menu-trigger__bar {
  * <850px：仅正文 + 抽屉文档列表，无本页大纲
  * 850px–<1000px：固定文档列表 + 正文，无本页大纲
  * ≥1000px：文档列表 + 正文 + 本页大纲
+ * 窄屏规则挂在 body 上，不依赖 useHead 写入的 .doc-layout（预渲染 HTML 无此 class，async 脚本执行前会闪出桌面侧栏）。
  */
 @media (width < #{$bp-rail}) {
-	body.doc-layout {
+	body {
 		--doc-rail-width: 0px;
 		/*
 		 * 抽屉档右侧基准：与主栏汉堡外沿、`.rail-nav__trigger` 内 chevron 同一垂线。

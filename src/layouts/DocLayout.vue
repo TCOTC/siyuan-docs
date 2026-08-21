@@ -15,7 +15,7 @@ import { useTocInPage } from '../composables/useTocInPage';
 import { shellUi } from '../i18n';
 import { docHref, findDoc, type GeneratedDocs, type RailEntry, type TocHeading } from '../lib/docData';
 import { HOME_STEM, docPath } from '../lib/docPath';
-import { appI18nLocales, type AppLocale } from '../lib/locales';
+import { appI18nLocales, defaultLocale, type AppLocale } from '../lib/locales';
 import generated from '#docs';
 
 const docsData = generated as GeneratedDocs;
@@ -77,7 +77,10 @@ const { syncRailScrollEdges, scrollActiveRailNavIntoView } = useRailScroll(
 	railAside,
 );
 const { tocSync } = useTocInPage(tocListEl, mainEl);
-const { closePagefindModal, ensurePagefindTriggers } = usePagefind(pagefindBundle);
+const { closePagefindModal, ensurePagefindTriggers, pagefindAvailable } = usePagefind(
+	pagefindBundle,
+	() => props.locale,
+);
 let layoutAbort: AbortController | null = null;
 
 function toggleHeaderMenu(name: Exclude<HeaderMenu, null>): void {
@@ -111,15 +114,23 @@ useHead({
 	},
 	title: () => siteTitle.value,
 	meta: () => (props.description ? [{ name: 'description', content: props.description }] : []),
-	link: () => [
-		{ rel: 'icon', type: 'image/svg+xml', href: `${import.meta.env.BASE_URL}favicon.svg` },
-		{ rel: 'icon', href: `${import.meta.env.BASE_URL}favicon.ico`, sizes: 'any' },
-		...appI18nLocales.map((loc) => ({
-			rel: 'alternate' as const,
-			hreflang: loc,
-			href: localeDocHref(loc, props.currentStem ?? HOME_STEM),
-		})),
-	],
+	link: () => {
+		const stem = props.currentStem ?? HOME_STEM;
+		return [
+			{ rel: 'icon', type: 'image/svg+xml', href: `${import.meta.env.BASE_URL}favicon.svg` },
+			{ rel: 'icon', href: `${import.meta.env.BASE_URL}favicon.ico`, sizes: 'any' },
+			...appI18nLocales.map((loc) => ({
+				rel: 'alternate' as const,
+				hreflang: loc,
+				href: localeDocHref(loc, stem),
+			})),
+			{
+				rel: 'alternate' as const,
+				hreflang: 'x-default',
+				href: localeDocHref(defaultLocale, stem),
+			},
+		];
+	},
 });
 
 watch(railOpen, (open) => {
@@ -188,7 +199,6 @@ watch(
 
 <template>
 	<a class="skip-link" href="#main-content">{{ t.skipToContent }}</a>
-	<pagefind-config :bundle-path="pagefindBundle" :lang="locale" />
 	<div class="shell">
 		<div
 			class="rail-backdrop"
@@ -200,7 +210,6 @@ watch(
 			class="rail"
 			id="doc-rail"
 			:aria-label="t.docNavAria"
-			:aria-modal="railOpen ? 'true' : undefined"
 			data-pagefind-ignore
 			@click="onRailClick"
 		>
@@ -280,7 +289,7 @@ watch(
 				<div class="bar__act">
 					<Teleport defer :disabled="desktopRail || !slotRail" :to="slotRail ?? 'body'">
 						<div class="tool-float">
-							<PagefindToolbarTrigger :label="t.search" />
+							<PagefindToolbarTrigger v-if="pagefindAvailable" :label="t.search" />
 							<LangSwitcher
 								:locale="locale"
 								:href-by-locale="hrefByLocale"
@@ -332,5 +341,4 @@ watch(
 			</div>
 		</div>
 	</div>
-	<pagefind-modal reset-on-close></pagefind-modal>
 </template>
