@@ -1,6 +1,8 @@
 import { nextTick, onMounted, onUnmounted, toValue, watch, type MaybeRefOrGetter } from 'vue';
 
 const TRIGGER = 'pagefind-modal-trigger';
+const CONFIG = 'pagefind-config';
+const MODAL = 'pagefind-modal';
 /** 脚本已返回但自定义元素未注册时放弃，避免一直占着 in-flight */
 const WHEN_DEFINED_MS = 8000;
 
@@ -10,6 +12,25 @@ let resolvedBundle = '';
 let resolvedLang = '';
 
 const loadWaiters: Array<() => void> = [];
+
+type PagefindInstance = {
+	setLanguage?: (lang: string) => void;
+};
+
+type PagefindComponentsApi = {
+	getInstanceManager?: () => {
+		getInstance?: (name: string) => PagefindInstance | undefined;
+	};
+};
+
+function pagefindApi(): PagefindComponentsApi | undefined {
+	return (window as unknown as { PagefindComponents?: PagefindComponentsApi }).PagefindComponents;
+}
+
+function siteBase(): string {
+	const base = import.meta.env.BASE_URL;
+	return base.endsWith('/') ? base : `${base}/`;
+}
 
 function persistHot(): void {
 	if (!import.meta.hot) return;
@@ -38,19 +59,45 @@ function waitUntilLoaded(): Promise<void> {
 	});
 }
 
+/** Pagefind 只在元素首次连上 DOM 时读取属性，必须在 append 之前写好 */
+function fillConfigAttrs(cfg: Element): void {
+	cfg.setAttribute('bundle-path', resolvedBundle);
+	cfg.setAttribute('base-url', siteBase());
+	if (resolvedLang) cfg.setAttribute('lang', resolvedLang);
+}
+
+/**
+ * 在加载 UI 脚本之前挂上 config。
+ * `type="module"` 没有 currentScript，探测失败会回退到站点根 `/pagefind/`，子路径部署会 404。
+ */
+function ensurePagefindConfig(): void {
+	if (import.meta.env.SSR || !resolvedBundle) return;
+	const existing = document.querySelector(CONFIG);
+	if (existing) {
+		if (!customElements.get(CONFIG)) fillConfigAttrs(existing);
+		return;
+	}
+	const cfg = document.createElement(CONFIG);
+	fillConfigAttrs(cfg);
+	document.body.appendChild(cfg);
+}
+
+function applyLang(lang: string): void {
+	if (!lang) return;
+	const cfg = document.querySelector(CONFIG);
+	if (cfg && !customElements.get(CONFIG)) {
+		cfg.setAttribute('lang', lang);
+		return;
+	}
+	pagefindApi()?.getInstanceManager?.()?.getInstance?.('default')?.setLanguage?.(lang);
+}
+
 /** 弹层与 config 挂在 body 上，不进 Vue 树，避免热更新拆掉后 Pagefind 单例接不上 */
 function ensurePagefindChrome(): void {
 	if (import.meta.env.SSR || !resolvedBundle) return;
-	let cfg = document.querySelector('pagefind-config');
-	if (!cfg) {
-		cfg = document.createElement('pagefind-config');
-		document.body.appendChild(cfg);
-	}
-	cfg.setAttribute('bundle-path', resolvedBundle);
-	if (resolvedLang) cfg.setAttribute('lang', resolvedLang);
-
-	if (!document.querySelector('pagefind-modal')) {
-		const modal = document.createElement('pagefind-modal');
+	ensurePagefindConfig();
+	if (!document.querySelector(MODAL)) {
+		const modal = document.createElement(MODAL);
 		modal.setAttribute('reset-on-close', '');
 		document.body.appendChild(modal);
 	}
@@ -102,6 +149,7 @@ function loadPagefind(): Promise<void> {
 	if (!resolvedBundle) return Promise.resolve();
 	if (loadInFlight) return waitUntilLoaded();
 	loadInFlight = true;
+	ensurePagefindConfig();
 
 	const cssHref = `${resolvedBundle}pagefind-component-ui.css`;
 	const jsSrc = bundleScriptSrc();
@@ -130,7 +178,11 @@ function loadPagefind(): Promise<void> {
 			settled = true;
 			finishLoadFailure();
 		}, WHEN_DEFINED_MS);
-		void customElements.whenDefined(TRIGGER).then(() => {
+		void Promise.all([
+			customElements.whenDefined(CONFIG),
+			customElements.whenDefined(MODAL),
+			customElements.whenDefined(TRIGGER),
+		]).then(() => {
 			if (settled) return;
 			settled = true;
 			window.clearTimeout(timer);
@@ -153,7 +205,7 @@ export function ensurePagefindTriggers(): void {
 }
 
 function closePagefindModal(): void {
-	const modal = document.querySelector('pagefind-modal');
+	const modal = document.querySelector(MODAL);
 	if (!modal) return;
 	const host = modal as HTMLElement & { close?: () => void; hide?: () => void };
 	if (typeof host.close === 'function') {
@@ -206,7 +258,7 @@ export function usePagefind(
 			resolvedLang = next;
 			persistHot();
 			if (!pagefindReady) return;
-			document.querySelector('pagefind-config')?.setAttribute('lang', next);
+			applyLang(next);
 		},
 	);
 	return { closePagefindModal, ensurePagefindTriggers };
