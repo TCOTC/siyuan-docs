@@ -77,7 +77,7 @@ const { syncRailScrollEdges, scrollActiveRailNavIntoView } = useRailScroll(
 	railAside,
 );
 const { tocSync } = useTocInPage(tocListEl, mainEl);
-const { closePagefindModal, ensurePagefindTriggers, pagefindAvailable } = usePagefind(
+const { closePagefindModal, ensurePagefindTriggers } = usePagefind(
 	pagefindBundle,
 	() => props.locale,
 );
@@ -289,7 +289,7 @@ watch(
 				<div class="bar__act">
 					<Teleport defer :disabled="desktopRail || !slotRail" :to="slotRail ?? 'body'">
 						<div class="tool-float">
-							<PagefindToolbarTrigger v-if="pagefindAvailable" :label="t.search" />
+							<PagefindToolbarTrigger :label="t.search" />
 							<LangSwitcher
 								:locale="locale"
 								:href-by-locale="hrefByLocale"

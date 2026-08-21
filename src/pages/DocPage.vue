@@ -13,6 +13,7 @@ import {
 	stemFromRouteParam,
 	type GeneratedDocs,
 } from '../lib/docData';
+import { getDocHtml } from '../lib/docHtml';
 import { detectLocale, normalizeLocale } from '../lib/localePreference';
 import { defaultLocale, type AppLocale } from '../lib/locales';
 
@@ -29,6 +30,7 @@ const doc = computed(() => {
 	if (!routeLocale.value) return undefined;
 	return findDoc(data.docs, locale.value, stem.value);
 });
+const html = computed(() => (doc.value ? getDocHtml(doc.value.locale, doc.value.stem) : ''));
 const t = computed(() => shellUi(locale.value));
 const nav = computed(() => data.nav[locale.value] ?? []);
 const breadcrumbs = computed(() => {
@@ -54,7 +56,7 @@ onMounted(() => {
 		:md-view-href="doc ? docMarkdownHref(locale, doc.stem) : undefined"
 		:not-found="!doc"
 	>
-		<DocArticle v-if="doc" :locale="locale" :html="doc.html" />
+		<DocArticle v-if="doc" :locale="locale" :html="html" />
 		<NotFoundArticle v-else :locale="locale" :t="t" />
 	</DocLayout>
 </template>

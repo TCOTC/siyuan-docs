@@ -1,13 +1,15 @@
-import { nextTick, onMounted, ref, toValue, watch, type MaybeRefOrGetter, type Ref } from 'vue';
+import { nextTick, onMounted, onUnmounted, toValue, watch, type MaybeRefOrGetter } from 'vue';
 
 const TRIGGER = 'pagefind-modal-trigger';
+/** 脚本已返回但自定义元素未注册时放弃，避免一直占着 in-flight */
+const WHEN_DEFINED_MS = 8000;
 
 let loadInFlight = false;
 let pagefindReady = false;
 let resolvedBundle = '';
 let resolvedLang = '';
-/** 脚本加载失败后隐藏搜索钮；成功前先占位 */
-const pagefindAvailable = ref(true);
+
+const loadWaiters: Array<() => void> = [];
 
 function persistHot(): void {
 	if (!import.meta.hot) return;
@@ -22,6 +24,18 @@ function bundleScriptSrc(): string {
 function removeBundleScript(): void {
 	if (!resolvedBundle) return;
 	document.querySelector(`script[src="${bundleScriptSrc()}"]`)?.remove();
+}
+
+function flushLoadWaiters(): void {
+	const pending = loadWaiters.splice(0, loadWaiters.length);
+	for (const resolve of pending) resolve();
+}
+
+function waitUntilLoaded(): Promise<void> {
+	if (pagefindReady && document.querySelector(TRIGGER)) return Promise.resolve();
+	return new Promise((resolve) => {
+		loadWaiters.push(resolve);
+	});
 }
 
 /** 弹层与 config 挂在 body 上，不进 Vue 树，避免热更新拆掉后 Pagefind 单例接不上 */
@@ -58,30 +72,35 @@ function mountModalTriggers(): void {
 	}
 }
 
+function clickMountedTrigger(): void {
+	const host = document.querySelector(TRIGGER);
+	if (!host) return;
+	const btn = host.querySelector<HTMLElement>('button, .pf-trigger-btn');
+	(btn ?? (host as HTMLElement)).click();
+}
+
 function finishLoadSuccess(): void {
 	pagefindReady = true;
 	loadInFlight = false;
-	pagefindAvailable.value = true;
 	void nextTick(() => {
 		mountModalTriggers();
+		flushLoadWaiters();
 	});
 }
 
 function finishLoadFailure(): void {
+	if (pagefindReady) return;
 	loadInFlight = false;
-	pagefindReady = false;
-	pagefindAvailable.value = false;
 	removeBundleScript();
+	flushLoadWaiters();
 }
 
-function loadPagefind(): void {
-	if (pagefindReady && customElements.get(TRIGGER)) {
-		void nextTick(() => {
-			mountModalTriggers();
-		});
-		return;
+function loadPagefind(): Promise<void> {
+	if (pagefindReady && customElements.get(TRIGGER) && document.querySelector(TRIGGER)) {
+		return Promise.resolve();
 	}
-	if (loadInFlight || !resolvedBundle) return;
+	if (!resolvedBundle) return Promise.resolve();
+	if (loadInFlight) return waitUntilLoaded();
 	loadInFlight = true;
 
 	const cssHref = `${resolvedBundle}pagefind-component-ui.css`;
@@ -96,26 +115,35 @@ function loadPagefind(): void {
 
 	if (customElements.get(TRIGGER)) {
 		finishLoadSuccess();
-		return;
+		return waitUntilLoaded();
 	}
 
-	const existing = document.querySelector(`script[src="${jsSrc}"]`);
-	if (existing) {
-		if (customElements.get(TRIGGER)) {
-			finishLoadSuccess();
-			return;
-		}
-		existing.remove();
-	}
+	document.querySelector(`script[src="${jsSrc}"]`)?.remove();
 
 	const script = document.createElement('script');
 	script.type = 'module';
 	script.src = jsSrc;
 	script.onload = (): void => {
-		void customElements.whenDefined(TRIGGER).then(finishLoadSuccess);
+		let settled = false;
+		const timer = window.setTimeout(() => {
+			if (settled) return;
+			settled = true;
+			finishLoadFailure();
+		}, WHEN_DEFINED_MS);
+		void customElements.whenDefined(TRIGGER).then(() => {
+			if (settled) return;
+			settled = true;
+			window.clearTimeout(timer);
+			finishLoadSuccess();
+		});
 	};
 	script.onerror = finishLoadFailure;
 	document.head.appendChild(script);
+	return waitUntilLoaded();
+}
+
+function isSearchMount(target: EventTarget | null): boolean {
+	return target instanceof Element && Boolean(target.closest('[data-pf-trigger-mount]'));
 }
 
 /** 热更新或切页后补挂 trigger；脚本未就绪时直接返回 */
@@ -139,20 +167,38 @@ function closePagefindModal(): void {
 	modal.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 }
 
-/** 挂载后加载 Pagefind；失败则隐藏搜索钮。弹层挂在 body，热更新只重挂 trigger */
+/** 首次点击搜索钮再加载 Pagefind。弹层挂在 body，热更新只重挂 trigger */
 export function usePagefind(
 	bundle: MaybeRefOrGetter<string>,
 	lang: MaybeRefOrGetter<string>,
 ): {
 	closePagefindModal: () => void;
 	ensurePagefindTriggers: () => void;
-	pagefindAvailable: Ref<boolean>;
 } {
+	let layoutAbort: AbortController | null = null;
+
 	onMounted(() => {
 		resolvedBundle = toValue(bundle);
 		resolvedLang = toValue(lang);
 		persistHot();
-		loadPagefind();
+		layoutAbort = new AbortController();
+		document.addEventListener(
+			'click',
+			(e: MouseEvent) => {
+				if (pagefindReady) return;
+				if (!isSearchMount(e.target)) return;
+				e.preventDefault();
+				e.stopPropagation();
+				void loadPagefind().then(() => {
+					if (pagefindReady) clickMountedTrigger();
+				});
+			},
+			{ capture: true, signal: layoutAbort.signal },
+		);
+	});
+	onUnmounted(() => {
+		layoutAbort?.abort();
+		layoutAbort = null;
 	});
 	watch(
 		() => toValue(lang),
@@ -163,7 +209,7 @@ export function usePagefind(
 			document.querySelector('pagefind-config')?.setAttribute('lang', next);
 		},
 	);
-	return { closePagefindModal, ensurePagefindTriggers, pagefindAvailable };
+	return { closePagefindModal, ensurePagefindTriggers };
 }
 
 if (import.meta.hot) {
@@ -172,9 +218,10 @@ if (import.meta.hot) {
 		resolvedBundle = import.meta.hot.data.bundle;
 		resolvedLang = import.meta.hot.data.lang ?? '';
 		pagefindReady = Boolean(customElements.get(TRIGGER));
-		pagefindAvailable.value = pagefindReady || pagefindAvailable.value;
-		void nextTick(() => {
-			loadPagefind();
-		});
+		if (pagefindReady) {
+			void nextTick(() => {
+				ensurePagefindTriggers();
+			});
+		}
 	}
 }

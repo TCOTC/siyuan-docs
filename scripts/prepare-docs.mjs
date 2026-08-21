@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 import { parseNavYml } from './parse-nav-yml.mjs';
-import { docPath, withBase } from '../src/lib/docPath.ts';
+import { HOME_STEM, docPath, withBase } from '../src/lib/docPath.ts';
 import { appI18nLocales } from '../src/lib/locales.ts';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -63,6 +63,14 @@ function rewriteHtmlLinks(html, locale, stem) {
 
 function stripTags(s) {
 	return s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function escapeHtml(s) {
+	return String(s)
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;');
 }
 
 function extractHeadings(html) {
@@ -174,23 +182,59 @@ for (const locale of localeSuffixes) {
 }
 
 const payload = {
-	docs: docs.map(({ markdown, ...doc }) => doc),
+	docs: docs.map(({ markdown, html, ...doc }) => doc),
 	nav,
 };
 
 fs.mkdirSync(tmpDir, { recursive: true });
 fs.writeFileSync(docsJsonPath, `${JSON.stringify(payload, null, '\t')}\n`);
 
+const docHtmlDir = path.join(tmpDir, 'doc-html');
+const pagefindSrc = path.join(tmpDir, 'pagefind-source');
 const publicDir = path.join(root, 'public');
+fs.rmSync(docHtmlDir, { recursive: true, force: true });
+fs.rmSync(pagefindSrc, { recursive: true, force: true });
 for (const loc of localeSuffixes) {
 	fs.rmSync(path.join(publicDir, loc), { recursive: true, force: true });
 	fs.rmSync(path.join(publicDir, `${loc}.md`), { force: true }); // 旧版语言根 `/en.md`
 }
-for (const doc of docs) {
-	const abs = `${path.join(publicDir, doc.locale, ...doc.stem.split('/'))}.md`;
-	fs.mkdirSync(path.dirname(abs), { recursive: true });
-	const body = doc.markdown.endsWith('\n') ? doc.markdown : `${doc.markdown}\n`;
-	fs.writeFileSync(abs, body, 'utf8');
-}
 
-console.log(`[prepare-docs] wrote ${docs.length} pages to tmp/docs.json and public markdown`);
+const loaderEntries = [];
+for (const doc of docs) {
+	const jsonAbs = `${path.join(docHtmlDir, doc.locale, ...doc.stem.split('/'))}.json`;
+	fs.mkdirSync(path.dirname(jsonAbs), { recursive: true });
+	fs.writeFileSync(jsonAbs, `${JSON.stringify({ html: doc.html })}\n`);
+	const key = `${doc.locale}:${doc.stem}`;
+	const rel = `./doc-html/${doc.locale}/${doc.stem}.json`;
+	loaderEntries.push(`\t${JSON.stringify(key)}: () => import(${JSON.stringify(rel)})`);
+
+	const mdAbs = `${path.join(publicDir, doc.locale, ...doc.stem.split('/'))}.md`;
+	fs.mkdirSync(path.dirname(mdAbs), { recursive: true });
+	const body = doc.markdown.endsWith('\n') ? doc.markdown : `${doc.markdown}\n`;
+	fs.writeFileSync(mdAbs, body, 'utf8');
+
+	const parts = doc.stem === HOME_STEM ? [doc.locale] : [doc.locale, ...doc.stem.split('/')];
+	const pfAbs = path.join(pagefindSrc, ...parts, 'index.html');
+	fs.mkdirSync(path.dirname(pfAbs), { recursive: true });
+	const title = escapeHtml(doc.title);
+	fs.writeFileSync(
+		pfAbs,
+		`<!DOCTYPE html>\n<html lang="${doc.locale}"><head><meta charset="utf-8"><title>${title}</title></head><body><main data-pagefind-body>${doc.html}</main></body></html>\n`,
+	);
+}
+fs.writeFileSync(
+	path.join(tmpDir, 'doc-html-loaders.js'),
+	`export const loaders = {\n${loaderEntries.join(',\n')},\n};\n`,
+);
+
+console.log(`[prepare-docs] wrote ${docs.length} pages to tmp/docs.json, tmp/doc-html, and public markdown`);
+
+if (process.argv.includes('--skip-pagefind')) {
+	console.log('[prepare-docs] skip Pagefind index (--skip-pagefind)');
+} else {
+	const pagefind = spawnSync(process.execPath, [path.join(root, 'scripts', 'run-pagefind.mjs'), '--dev'], {
+		cwd: root,
+		stdio: 'inherit',
+	});
+	if (pagefind.status !== 0) process.exit(pagefind.status ?? 1);
+}

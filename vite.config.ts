@@ -59,9 +59,9 @@ function markdownCharsetPlugin(): Plugin {
 	};
 }
 
-/** 开发时把上次构建的 `dist/pagefind` 挂到 `/pagefind/`，避免 SPA 回退成 HTML 导致搜索脚本假加载 */
+/** 开发时把 `tmp/pagefind` 挂到 `/pagefind/`，缺文件回 404，避免 SPA 回退成 HTML 导致搜索脚本假加载 */
 function pagefindDevPlugin(): Plugin {
-	const pagefindDir = path.join(process.cwd(), 'dist', 'pagefind');
+	const pagefindDir = path.join(process.cwd(), 'tmp', 'pagefind');
 	const mimeByExt: Record<string, string> = {
 		'.js': 'text/javascript; charset=utf-8',
 		'.css': 'text/css; charset=utf-8',
@@ -81,21 +81,27 @@ function pagefindDevPlugin(): Plugin {
 				}
 				const rel = decodeURIComponent(raw.slice(idx + marker.length));
 				if (!rel || rel.includes('\\') || rel.split('/').includes('..')) {
-					next();
+					res.statusCode = 404;
+					res.end();
 					return;
 				}
 				const root = path.resolve(pagefindDir);
 				const file = path.resolve(root, rel);
-				if (file !== root && !file.startsWith(`${root}${path.sep}`)) {
-					next();
+				if (!file.startsWith(`${root}${path.sep}`)) {
+					res.statusCode = 404;
+					res.end();
 					return;
 				}
 				if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
-					next();
+					res.statusCode = 404;
+					res.end();
 					return;
 				}
 				res.setHeader('Content-Type', mimeByExt[path.extname(file)] ?? 'application/octet-stream');
-				fs.createReadStream(file).on('error', () => next()).pipe(res);
+				fs.createReadStream(file).on('error', () => {
+					res.statusCode = 500;
+					res.end();
+				}).pipe(res);
 			});
 		},
 	};
@@ -106,6 +112,7 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			'#docs': docsJsonPath,
+			'#doc-html-loaders': path.join(process.cwd(), 'tmp', 'doc-html-loaders.js'),
 		},
 	},
 	plugins: [

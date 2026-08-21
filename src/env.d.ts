@@ -16,6 +16,13 @@ declare module '#docs' {
 	export default value;
 }
 
+declare module '#doc-html-loaders' {
+	export const loaders: Record<
+		string,
+		() => Promise<{ html?: string; default?: { html?: string } }>
+	>;
+}
+
 declare namespace JSX {
 	interface IntrinsicElements {
 		'pagefind-config': Record<string, unknown>;

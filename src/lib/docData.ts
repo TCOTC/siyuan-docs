@@ -7,12 +7,12 @@ export type TocHeading = {
 	text: string;
 };
 
+/** 进主包的文档元数据；正文 HTML 按页异步加载，见 `docHtml.ts` */
 export type DocRecord = {
 	locale: AppLocale;
 	stem: string;
 	title: string;
 	description?: string;
-	html: string;
 	headings: TocHeading[];
 };
 
