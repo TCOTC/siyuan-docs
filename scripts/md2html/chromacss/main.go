@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"strings"
 
-	chromahtml "github.com/alecthomas/chroma/formatters/html"
-	"github.com/alecthomas/chroma/styles"
+	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
+	"github.com/alecthomas/chroma/v2/styles"
 )
 
 var ruleRe = regexp.MustCompile(
@@ -31,7 +31,7 @@ func cssFor(style string) string {
 	css := b.String()
 	css = strings.ReplaceAll(css, "display: flex;", "display: block;")
 	css = regexp.MustCompile(`\.highlight-chroma \{[^}]*\}`).ReplaceAllStringFunc(css, func(rule string) string {
-		return regexp.MustCompile(`background-color:\s*#[0-9a-fA-F]+;\s*`).ReplaceAllString(rule, "")
+		return regexp.MustCompile(`background-color:\s*#[0-9a-fA-F]+;?\s*`).ReplaceAllString(rule, "")
 	})
 	return css
 }

@@ -2,11 +2,21 @@
 // 重新生成：pnpm chroma-css
 // 代码块底色沿用 --code-bg，已去掉 chroma 包装层的 background-color
 
+// PreWrapper
 .highlight-chroma {
+	-webkit-text-size-adjust: none;
+
 	// Error
 	.highlight-err {
-		color: #a61717;
-		background-color: #e3d2d2;
+		color: #f6f8fa;
+		background-color: #82071e;
+	}
+
+	// LineLink
+	.highlight-lnlinks {
+		outline: none;
+		text-decoration: none;
+		color: inherit;
 	}
 
 	// LineTableTD
@@ -27,7 +37,7 @@
 
 	// LineHighlight
 	.highlight-hl {
-		background-color: #e5e5e5;
+		background-color: #dedede;
 	}
 
 	// LineNumbersTable
@@ -35,6 +45,7 @@
 	// LineNumbers
 	.highlight-ln {
 		white-space: pre;
+		-webkit-user-select: none;
 		user-select: none;
 		margin-right: 0.4em;
 		padding: 0 0.4em 0 0.4em;
@@ -58,64 +69,66 @@
 	.highlight-kp,
 	// KeywordReserved
 	.highlight-kr,
-	// Operator
-	.highlight-o,
-	// OperatorWord
-	.highlight-ow {
-		color: #000000;
-		font-weight: bold;
-	}
-
 	// KeywordType
-	.highlight-kt,
-	// NameClass
-	.highlight-nc {
-		color: #445588;
-		font-weight: bold;
+	.highlight-kt {
+		color: #cf222e;
 	}
 
 	// NameAttribute
 	.highlight-na,
+	// NameClass
+	.highlight-nc,
+	// NameOther
+	.highlight-nx,
+	// Punctuation
+	.highlight-p,
+	// GenericEmph
+	.highlight-ge,
+	// GenericOutput
+	.highlight-go {
+		color: #1f2328;
+	}
+
 	// NameConstant
 	.highlight-no,
-	// NameVariable
-	.highlight-nv,
-	// NameVariableClass
-	.highlight-vc,
-	// NameVariableGlobal
-	.highlight-vg,
-	// NameVariableInstance
-	.highlight-vi {
-		color: #008080;
-	}
-
-	// NameBuiltin
-	.highlight-nb {
-		color: #0086b3;
-	}
-
-	// NameBuiltinPseudo
-	.highlight-bp,
-	// GenericHeading
-	.highlight-gh {
-		color: #999999;
-	}
-
 	// NameDecorator
-	.highlight-nd {
-		color: #3c5d5d;
-		font-weight: bold;
+	.highlight-nd,
+	// NameTag
+	.highlight-nt,
+	// LiteralNumber
+	.highlight-m,
+	// LiteralNumberBin
+	.highlight-mb,
+	// LiteralNumberFloat
+	.highlight-mf,
+	// LiteralNumberHex
+	.highlight-mh,
+	// LiteralNumberInteger
+	.highlight-mi,
+	// LiteralNumberIntegerLong
+	.highlight-il,
+	// LiteralNumberOct
+	.highlight-mo,
+	// Operator
+	.highlight-o,
+	// OperatorWord
+	.highlight-ow,
+	// OperatorReserved
+	.highlight-or {
+		color: #0550ae;
 	}
 
 	// NameEntity
-	.highlight-ni {
-		color: #800080;
-	}
-
-	// NameException
-	.highlight-ne,
+	.highlight-ni,
+	// NameBuiltin
+	.highlight-nb,
 	// NameFunction
 	.highlight-nf,
+	// NameFunctionMagic
+	.highlight-fm {
+		color: #6639ba;
+	}
+
 	// NameLabel
 	.highlight-nl {
 		color: #990000;
@@ -123,15 +136,26 @@
 	}
 
 	// NameNamespace
-	.highlight-nn,
-	// GenericPrompt
-	.highlight-gp {
-		color: #555555;
+	.highlight-nn {
+		color: #24292e;
 	}
 
-	// NameTag
-	.highlight-nt {
-		color: #000080;
+	// NameBuiltinPseudo
+	.highlight-bp {
+		color: #6a737d;
+	}
+
+	// NameVariable
+	.highlight-nv,
+	// NameVariableClass
+	.highlight-vc,
+	// NameVariableGlobal
+	.highlight-vg,
+	// NameVariableInstance
+	.highlight-vi,
+	// NameVariableMagic
+	.highlight-vm {
+		color: #953800;
 	}
 
 	// LiteralString
@@ -156,36 +180,16 @@
 	.highlight-si,
 	// LiteralStringOther
 	.highlight-sx,
+	// LiteralStringRegex
+	.highlight-sr,
 	// LiteralStringSingle
 	.highlight-s1 {
-		color: #dd1144;
-	}
-
-	// LiteralStringRegex
-	.highlight-sr {
-		color: #009926;
+		color: #0a3069;
 	}
 
 	// LiteralStringSymbol
 	.highlight-ss {
-		color: #990073;
-	}
-
-	// LiteralNumber
-	.highlight-m,
-	// LiteralNumberBin
-	.highlight-mb,
-	// LiteralNumberFloat
-	.highlight-mf,
-	// LiteralNumberHex
-	.highlight-mh,
-	// LiteralNumberInteger
-	.highlight-mi,
-	// LiteralNumberIntegerLong
-	.highlight-il,
-	// LiteralNumberOct
-	.highlight-mo {
-		color: #009999;
+		color: #032f62;
 	}
 
 	// Comment
@@ -195,60 +199,26 @@
 	// CommentMultiline
 	.highlight-cm,
 	// CommentSingle
-	.highlight-c1 {
-		color: #999988;
-		font-style: italic;
-	}
-
+	.highlight-c1,
 	// CommentSpecial
 	.highlight-cs,
 	// CommentPreproc
 	.highlight-cp,
 	// CommentPreprocFile
 	.highlight-cpf {
-		color: #999999;
-		font-weight: bold;
-		font-style: italic;
+		color: #57606a;
 	}
 
 	// GenericDeleted
 	.highlight-gd {
-		color: #000000;
-		background-color: #ffdddd;
-	}
-
-	// GenericEmph
-	.highlight-ge {
-		color: #000000;
-		font-style: italic;
-	}
-
-	// GenericError
-	.highlight-gr,
-	// GenericTraceback
-	.highlight-gt {
-		color: #aa0000;
+		color: #82071e;
+		background-color: #ffebe9;
 	}
 
 	// GenericInserted
 	.highlight-gi {
-		color: #000000;
-		background-color: #ddffdd;
-	}
-
-	// GenericOutput
-	.highlight-go {
-		color: #888888;
-	}
-
-	// GenericStrong
-	.highlight-gs {
-		font-weight: bold;
-	}
-
-	// GenericSubheading
-	.highlight-gu {
-		color: #aaaaaa;
+		color: #116329;
+		background-color: #dafbe1;
 	}
 
 	// GenericUnderline
@@ -258,7 +228,7 @@
 
 	// TextWhitespace
 	.highlight-w {
-		color: #bbbbbb;
+		color: #ffffff;
 	}
 }
 
@@ -266,11 +236,19 @@ html[data-theme='dark'] {
 	// PreWrapper
 	.highlight-chroma {
 		color: #d0d0d0;
+		-webkit-text-size-adjust: none;
 
 		// Error
 		.highlight-err {
 			color: #a61717;
 			background-color: #e3d2d2;
+		}
+
+		// LineLink
+		.highlight-lnlinks {
+			outline: none;
+			text-decoration: none;
+			color: inherit;
 		}
 
 		// LineTableTD
@@ -299,6 +277,7 @@ html[data-theme='dark'] {
 		// LineNumbers
 		.highlight-ln {
 			white-space: pre;
+			-webkit-user-select: none;
 			user-select: none;
 			margin-right: 0.4em;
 			padding: 0 0.4em 0 0.4em;
@@ -342,11 +321,6 @@ html[data-theme='dark'] {
 			color: #bbbbbb;
 		}
 
-		// NameBuiltin
-		.highlight-nb {
-			color: #24909d;
-		}
-
 		// NameClass
 		.highlight-nc,
 		// NameNamespace
@@ -358,7 +332,15 @@ html[data-theme='dark'] {
 		// NameConstant
 		.highlight-no,
 		// NameVariable
-		.highlight-nv {
+		.highlight-nv,
+		// NameVariableClass
+		.highlight-vc,
+		// NameVariableGlobal
+		.highlight-vg,
+		// NameVariableInstance
+		.highlight-vi,
+		// NameVariableMagic
+		.highlight-vm {
 			color: #40ffff;
 		}
 
@@ -369,8 +351,17 @@ html[data-theme='dark'] {
 			color: #ffa500;
 		}
 
+		// NameBuiltin
+		.highlight-nb,
+		// NameBuiltinPseudo
+		.highlight-bp {
+			color: #24909d;
+		}
+
 		// NameFunction
-		.highlight-nf {
+		.highlight-nf,
+		// NameFunctionMagic
+		.highlight-fm {
 			color: #447fcf;
 		}
 
