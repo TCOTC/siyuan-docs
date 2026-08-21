@@ -1,155 +1,85 @@
 import { onMounted, onUnmounted, type Ref } from 'vue';
 
-/** 阅读线：相对顶栏底边下移量占阅读区高度比例（取 clamp），线越靠上越晚切换到下一节 */
-const TOC_READING_LINE_MIN_RATIO = 0.14;
-const TOC_READING_LINE_MAX_RATIO = 0.28;
-const TOC_READING_LINE_MIN_PX = 48;
-
-function setTocListIndicator(tocList: HTMLElement, liNodes: HTMLElement[]): void {
-	if (liNodes.length === 0) {
-		tocList.style.setProperty('--top', '0px');
-		tocList.style.setProperty('--height', '0px');
-		return;
-	}
-	const listR = tocList.getBoundingClientRect();
-	let minTop = Infinity;
-	let maxBottom = -Infinity;
-	for (const li of liNodes) {
-		const liR = li.getBoundingClientRect();
-		minTop = Math.min(minTop, liR.top - listR.top);
-		maxBottom = Math.max(maxBottom, liR.bottom - listR.top);
-	}
-	tocList.style.setProperty('--top', `${Math.round(minTop)}px`);
-	tocList.style.setProperty('--height', `${Math.round(Math.max(0, maxBottom - minTop))}px`);
-}
-
-/** 宽屏下把当前大纲项滚到视口中线附近；直接改 scrollTop，避免自定义缓动与指示条抢同一 rAF */
-function scrollTocLinkIntoView(tocList: HTMLElement, headId: string | null): void {
-	if (!window.matchMedia('(min-width: 1000px)').matches) return;
-	const tocRail = tocList.closest('.toc');
-	if (!(tocRail instanceof HTMLElement) || tocRail.getBoundingClientRect().height < 1) return;
-	if (!headId) {
-		tocRail.scrollTop = 0;
-		return;
-	}
-	let target: HTMLElement | null = null;
-	for (const a of tocList.querySelectorAll('a[href^="#"]')) {
-		if ((a.getAttribute('href') ?? '').replace(/^#/, '') === headId) {
-			target = a as HTMLElement;
-			break;
-		}
-	}
-	if (!target) return;
-	const maxScroll = Math.max(0, tocRail.scrollHeight - tocRail.clientHeight);
-	if (maxScroll <= 0) return;
-	const tr = target.getBoundingClientRect();
-	const nextTop = tocRail.scrollTop + (tr.top + tr.height / 2 - window.innerHeight / 2);
-	tocRail.scrollTop = Math.min(Math.max(0, nextTop), maxScroll);
-}
-
-/** 本页目录与正文滚动同步：阅读线高亮、指示条、大纲滚入当前项 */
+/** 本页目录：标题进入视口上半区时高亮对应 `li` */
 export function useTocInPage(
 	tocList: Ref<HTMLElement | null>,
 	main: Ref<HTMLElement | null>,
-): {
-	tocSync: () => void;
-	resetTocSyncState: () => void;
-} {
-	/** 避免正文滚动时每个 rAF 都重算大纲 scrollTop；仅在高亮或视口高度变化时自动滚大纲 */
-	let tocActiveHeadSig = '';
-	let tocSyncLastViewportH = 0;
+): { tocSync: () => void } {
+	let io: IntersectionObserver | null = null;
+	const visible = new Set<string>();
 
-	function resetTocSyncState(): void {
-		tocActiveHeadSig = '';
-		tocSyncLastViewportH = 0;
+	function headings(): HTMLElement[] {
+		const list = tocList.value;
+		const docMain = main.value;
+		if (!list || !docMain) return [];
+		const wanted = new Set<string>();
+		for (const a of list.querySelectorAll('a[href^="#"]')) {
+			const id = (a.getAttribute('href') ?? '').slice(1);
+			if (id) wanted.add(id);
+		}
+		const out: HTMLElement[] = [];
+		for (const he of docMain.querySelectorAll('h2[id], h3[id], h4[id]')) {
+			if (he instanceof HTMLElement && wanted.has(he.id)) out.push(he);
+		}
+		return out;
+	}
+
+	function paint(): void {
+		const list = tocList.value;
+		if (!list) return;
+		const ordered = headings();
+		let activeId = '';
+		for (const h of ordered) {
+			if (visible.has(h.id)) activeId = h.id;
+		}
+		if (!activeId) {
+			for (const h of ordered) {
+				if (h.getBoundingClientRect().top <= 8) activeId = h.id;
+			}
+		}
+		if (!activeId) activeId = ordered[0]?.id ?? '';
+
+		for (const li of list.querySelectorAll('li')) {
+			const a = li.querySelector('a[href^="#"]');
+			if (!(a instanceof HTMLElement)) continue;
+			const href = a.getAttribute('href') ?? '';
+			const id = href.startsWith('#') ? href.slice(1) : '';
+			const on = id !== '' && id === activeId;
+			li.classList.toggle('is-active', on);
+			if (on) a.setAttribute('aria-current', 'location');
+			else a.removeAttribute('aria-current');
+		}
 	}
 
 	function tocSync(): void {
-		const list = tocList.value;
-		const docMainEl = main.value;
-		if (!list || !docMainEl || !docMainEl.classList.contains('read-main')) return;
-
-		const tocLinks = list.querySelectorAll('a[href^="#"]');
-		const idWanted: Record<string, boolean> = {};
-		for (const link of tocLinks) {
-			const href = link.getAttribute('href') ?? '';
-			const tid = href.startsWith('#') ? href.slice(1) : '';
-			if (tid) idWanted[tid] = true;
+		io?.disconnect();
+		io = null;
+		visible.clear();
+		if (import.meta.env.SSR) return;
+		const items = headings();
+		if (items.length === 0) {
+			paint();
+			return;
 		}
-		const ordered: HTMLElement[] = [];
-		for (const he of docMainEl.querySelectorAll('h2[id], h3[id], h4[id]')) {
-			if (he instanceof HTMLElement && idWanted[he.id]) ordered.push(he);
-		}
-
-		const contentHead = docMainEl.closest('.sheet')?.querySelector(':scope > .bar') ?? null;
-		const vpTop =
-			contentHead instanceof HTMLElement ? contentHead.getBoundingClientRect().bottom : 0;
-		const bandH = Math.max(1, window.innerHeight - vpTop);
-		const lineOffset = Math.min(
-			Math.max(bandH * TOC_READING_LINE_MIN_RATIO, TOC_READING_LINE_MIN_PX),
-			bandH * TOC_READING_LINE_MAX_RATIO,
+		io = new IntersectionObserver(
+			(entries) => {
+				for (const e of entries) {
+					if (!(e.target instanceof HTMLElement) || !e.target.id) continue;
+					if (e.isIntersecting) visible.add(e.target.id);
+					else visible.delete(e.target.id);
+				}
+				paint();
+			},
+			{ rootMargin: '0px 0px -65% 0px', threshold: 0 },
 		);
-		const readingLineY = vpTop + lineOffset;
-
-		let activeIndex = -1;
-		for (let i = 0; i < ordered.length; i++) {
-			if (ordered[i].getBoundingClientRect().top <= readingLineY) activeIndex = i;
-		}
-		const activeHead =
-			activeIndex >= 0 ? ordered[activeIndex] : ordered.length > 0 ? ordered[0] : null;
-
-		for (const cand of tocLinks) {
-			cand.classList.remove('is-active');
-			cand.removeAttribute('aria-current');
-		}
-		const liNodes: HTMLElement[] = [];
-		if (activeHead) {
-			for (const cand of tocLinks) {
-				if ((cand.getAttribute('href') ?? '').replace(/^#/, '') !== activeHead.id) continue;
-				cand.classList.add('is-active');
-				cand.setAttribute('aria-current', 'location');
-				const liNode = cand.closest('li');
-				if (liNode instanceof HTMLElement) liNodes.push(liNode);
-				break;
-			}
-		}
-		setTocListIndicator(list, liNodes);
-
-		const sig = activeHead?.id ?? '';
-		const vph = window.innerHeight;
-		const viewportChanged = tocSyncLastViewportH > 0 && vph > 0 && vph !== tocSyncLastViewportH;
-		tocSyncLastViewportH = vph;
-		const sigChanged = sig !== tocActiveHeadSig;
-		if (sigChanged) tocActiveHeadSig = sig;
-		if (sigChanged || viewportChanged) {
-			scrollTocLinkIntoView(list, activeHead?.id ?? null);
-		}
+		for (const h of items) io.observe(h);
+		paint();
 	}
 
-	const ac = new AbortController();
-	let tocRaf: number | null = null;
-	function tocSchedule(): void {
-		if (tocRaf != null) return;
-		tocRaf = requestAnimationFrame(() => {
-			tocRaf = null;
-			tocSync();
-		});
-	}
-
-	onMounted(() => {
-		const list = tocList.value;
-		const mainEl = main.value;
-		if (!list || !mainEl || !mainEl.classList.contains('read-main')) return;
-
-		const { signal } = ac;
-		window.addEventListener('scroll', tocSchedule, { passive: true, signal });
-		window.addEventListener('resize', tocSchedule, { passive: true, signal });
-		window.addEventListener('hashchange', tocSchedule, { passive: true, signal });
-		tocSchedule();
-	});
+	onMounted(tocSync);
 	onUnmounted(() => {
-		if (tocRaf != null) cancelAnimationFrame(tocRaf);
-		ac.abort();
+		io?.disconnect();
+		io = null;
 	});
-	return { tocSync, resetTocSyncState };
+	return { tocSync };
 }

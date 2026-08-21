@@ -28,19 +28,19 @@ function onLocaleClick(loc: AppLocale): void {
 
 <template>
 	<div class="lang-switch" data-header-menu="lang">
-		<AnchoredHint :text="t.langSwitcherHint">
+		<AnchoredHint :text="t.langSwitcher">
 			<IconBtn
 				id="lang-switch-btn"
 				:aria-expanded="open ? 'true' : 'false'"
 				aria-haspopup="menu"
 				aria-controls="lang-switch-panel"
-				:aria-label="t.langSwitcherAria"
+				:aria-label="t.langSwitcher"
 				@click="emit('toggle')"
 			>
 				<Languages :size="18" aria-hidden="true" />
 			</IconBtn>
 		</AnchoredHint>
-		<MenuPanel id="lang-switch-panel" :open="open" :aria-label="t.langSwitcherAria">
+		<MenuPanel id="lang-switch-panel" :open="open" :aria-label="t.langSwitcher">
 			<MenuPanelItem
 				v-for="loc in appI18nLocales"
 				:key="loc"

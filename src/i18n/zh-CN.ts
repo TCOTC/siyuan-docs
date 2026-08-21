@@ -1,39 +1,30 @@
-import type { CodeBlockCopyUi, ShellUi } from './types';
+import type { ShellUi } from './types';
 
 export const zhCNShellUi: ShellUi = {
 	siteName: '思源开发者',
 	railSiteLabel: '开发者',
 	skipToContent: '跳到正文 →',
-	themeToggleAria: '切换浅色或深色主题',
-	themeToggleHint: '切换主题',
+	themeToggle: '切换浅色或深色主题',
 	docNavAria: '文档导航',
 	railNavAria: '侧栏目录',
 	railFooterDocs: '开发者',
 	railFooterBazaar: '社区集市',
 	railFooterOfficial: '官网',
 	breadcrumbsAria: '面包屑',
-	copyPageMdAria: '复制页面内容为 Markdown',
-	copyPageHint: '复制页面内容为 Markdown',
+	copyPage: '复制页面内容为 Markdown',
 	copyMenuMoreTitle: '更多选项',
 	copyMenuMdTitle: '复制页面',
-	copyMenuMdDesc: '复制页面内容为 Markdown',
 	copyMenuViewTitle: '查看 Markdown',
 	copyMenuViewDesc: '查看该页面的纯文本',
 	railMenuOpenAria: '打开文档导航',
 	railMenuCloseAria: '关闭文档导航',
 	tocAsideAria: '本页目录',
-	langSwitcherAria: '界面语言',
-	langSwitcherHint: '切换语言',
-	searchHint: '搜索',
-	searchOpenAria: '打开搜索',
+	langSwitcher: '切换语言',
+	search: '搜索',
 	notFoundTitle: '页面未找到',
 	notFoundDescription: '未找到该页面。可从侧栏进入其他章节或使用顶栏搜索。',
 	notFoundBody: '该地址可能已移动、拼写有误，或当前部署中尚不存在。',
 	notFoundHome: '打开文档首页',
-};
-
-export const zhCNCodeBlockCopyUi: CodeBlockCopyUi = {
-	copyAria: '复制代码',
-	copiedAria: '已复制',
-	failedAria: '复制失败',
+	copyCode: '复制代码',
+	copiedCode: '已复制',
 };

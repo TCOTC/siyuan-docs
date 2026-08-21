@@ -77,7 +77,7 @@ const { syncRailScrollEdges, scrollActiveRailNavIntoView } = useRailScroll(
 	railScrollClip,
 	railAside,
 );
-const { tocSync, resetTocSyncState } = useTocInPage(tocListEl, mainEl);
+const { tocSync } = useTocInPage(tocListEl, mainEl);
 const { closePagefindModal, ensurePagefindTriggers } = usePagefind(pagefindBundle);
 let layoutAbort: AbortController | null = null;
 
@@ -171,7 +171,6 @@ watch(
 	() => [props.locale, props.currentStem ?? '', props.notFound === true] as const,
 	async () => {
 		if (import.meta.env.SSR) return;
-		resetTocSyncState();
 		closeHeaderMenu();
 		setRailOpen(false);
 		await nextTick();
@@ -215,7 +214,7 @@ watch(
 				<div ref="slotRail" class="tool-slot tool-slot--rail"></div>
 				<div class="rail-header__actions">
 					<div class="rail-header__search-slot">
-						<PagefindToolbarTrigger :search-hint="t.searchHint" :search-open-aria="t.searchOpenAria" />
+						<PagefindToolbarTrigger :label="t.search" />
 					</div>
 				</div>
 			</header>
@@ -283,7 +282,7 @@ watch(
 					<Teleport defer :disabled="toolbarWide || !slotRail" :to="slotRail ?? 'body'">
 						<div class="tool-float">
 							<div class="bar__search bar__search--drawer" data-pagefind-ignore>
-								<PagefindToolbarTrigger :search-hint="t.searchHint" :search-open-aria="t.searchOpenAria" />
+								<PagefindToolbarTrigger :label="t.search" />
 							</div>
 							<LangSwitcher
 								:locale="locale"
@@ -294,7 +293,7 @@ watch(
 								@close="closeHeaderMenu"
 							/>
 							<div class="bar__desk">
-								<ThemeToggleHint :theme-toggle-aria="t.themeToggleAria" :theme-toggle-hint="t.themeToggleHint" />
+								<ThemeToggleHint :label="t.themeToggle" />
 								<CopyPageMarkdownToolbar
 									v-if="!notFound && mdViewHref"
 									:md-view-href="mdViewHref"
@@ -329,7 +328,7 @@ watch(
 					</main>
 					<aside v-show="tocItems.length > 0" class="toc" :aria-label="t.tocAsideAria" data-pagefind-ignore>
 						<div class="toc__inner">
-							<ul ref="tocListEl" class="toc__list" style="--top: 0px; --height: 0px">
+							<ul ref="tocListEl" class="toc__list">
 								<li v-for="h in tocItems" :key="h.slug" :class="`toc-depth-${h.depth}`">
 									<a :href="`#${h.slug}`">{{ h.text }}</a>
 								</li>

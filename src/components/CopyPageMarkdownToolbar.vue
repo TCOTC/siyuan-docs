@@ -11,13 +11,7 @@ const props = defineProps<{
 	open: boolean;
 	t: Pick<
 		ShellUi,
-		| 'copyPageMdAria'
-		| 'copyPageHint'
-		| 'copyMenuMoreTitle'
-		| 'copyMenuMdTitle'
-		| 'copyMenuMdDesc'
-		| 'copyMenuViewTitle'
-		| 'copyMenuViewDesc'
+		'copyPage' | 'copyMenuMoreTitle' | 'copyMenuMdTitle' | 'copyMenuViewTitle' | 'copyMenuViewDesc'
 	>;
 }>();
 
@@ -64,7 +58,7 @@ onUnmounted(() => {
 
 <template>
 	<div class="copy-split" data-header-menu="copy">
-		<AnchoredHint :text="t.copyPageHint">
+		<AnchoredHint :text="t.copyPage">
 			<button
 				type="button"
 				class="copy-split__main"
@@ -73,7 +67,7 @@ onUnmounted(() => {
 					'copy-split__main--success': copyState === 'success',
 					'copy-split__main--error': copyState === 'error',
 				}"
-				:aria-label="t.copyPageMdAria"
+				:aria-label="t.copyPage"
 				@click="copyWithFeedback"
 			>
 				<span class="copy-split__main-icons" aria-hidden="true">
@@ -106,7 +100,7 @@ onUnmounted(() => {
 			<MenuPanel id="copy-page-menu" :open="open">
 				<MenuPanelItem @click="copyWithFeedback">
 					{{ t.copyMenuMdTitle }}
-					<template #desc>{{ t.copyMenuMdDesc }}</template>
+					<template #desc>{{ t.copyPage }}</template>
 				</MenuPanelItem>
 				<MenuPanelItem
 					:href="mdViewHref"

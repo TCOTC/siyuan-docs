@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { computed, useAttrs } from 'vue';
 import { RouterLink } from 'vue-router';
-import { useAttrs } from 'vue';
 
 defineOptions({ inheritAttrs: false });
 
@@ -11,45 +11,31 @@ const props = defineProps<{
 }>();
 
 const attrs = useAttrs();
+
+const tag = computed(() => (props.to ? RouterLink : props.href ? 'a' : 'button'));
+
+const bind = computed(() => {
+	if (props.to) {
+		return { ...attrs, to: props.to, role: 'menuitem', activeClass: '', exactActiveClass: '' };
+	}
+	if (props.href) {
+		return { ...attrs, href: props.href, role: 'menuitem' };
+	}
+	return { ...attrs, type: 'button', role: 'menuitem' };
+});
 </script>
 
 <template>
 	<li class="menu-panel-item" role="presentation">
-		<RouterLink
-			v-if="to"
-			v-bind="attrs"
+		<component
+			:is="tag"
+			v-bind="bind"
 			class="menu-panel-item__btn"
 			:class="{ 'menu-panel-item__btn--compact': compact }"
-			:to="to"
-			role="menuitem"
-			active-class=""
-			exact-active-class=""
 		>
 			<span class="menu-panel-item__title"><slot /></span>
 			<span v-if="$slots.desc" class="menu-panel-item__desc"><slot name="desc" /></span>
-		</RouterLink>
-		<a
-			v-else-if="href"
-			v-bind="attrs"
-			class="menu-panel-item__btn"
-			:class="{ 'menu-panel-item__btn--compact': compact }"
-			:href="href"
-			role="menuitem"
-		>
-			<span class="menu-panel-item__title"><slot /></span>
-			<span v-if="$slots.desc" class="menu-panel-item__desc"><slot name="desc" /></span>
-		</a>
-		<button
-			v-else
-			v-bind="attrs"
-			type="button"
-			class="menu-panel-item__btn"
-			:class="{ 'menu-panel-item__btn--compact': compact }"
-			role="menuitem"
-		>
-			<span class="menu-panel-item__title"><slot /></span>
-			<span v-if="$slots.desc" class="menu-panel-item__desc"><slot name="desc" /></span>
-		</button>
+		</component>
 	</li>
 </template>
 

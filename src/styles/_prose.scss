@@ -148,8 +148,7 @@
 
 		&:hover .code-block-copy,
 		&:focus-within .code-block-copy,
-		& .code-block-copy.code-block-copy--success,
-		& .code-block-copy.code-block-copy--error {
+		& .code-block-copy.code-block-copy--success {
 			opacity: 1;
 			pointer-events: auto;
 		}
@@ -172,17 +171,8 @@
 			flex-shrink: 0;
 		}
 
-		.code-block-copy--success,
-		.code-block-copy--error {
+		.code-block-copy--success {
 			border-color: var(--line-strong);
-		}
-
-		.code-block-copy--error {
-			color: #e11d48;
-		}
-
-		html[data-theme='dark'] & .code-block-copy--error {
-			color: #fb7185;
 		}
 
 		@media (prefers-reduced-motion: reduce) {

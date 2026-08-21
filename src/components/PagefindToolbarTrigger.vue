@@ -2,15 +2,14 @@
 import AnchoredHint from './AnchoredHint.vue';
 
 defineProps<{
-	searchHint: string;
-	searchOpenAria: string;
+	label: string;
 }>();
 </script>
 
 <template>
-	<AnchoredHint :text="searchHint">
+	<AnchoredHint :text="label">
 		<div class="pf-trigger-stack" data-pf-trigger-mount v-once>
-			<button type="button" class="pf-trigger-btn pf-search-placeholder" :aria-label="searchOpenAria">
+			<button type="button" class="pf-trigger-btn pf-search-placeholder" :aria-label="label">
 				<span class="pf-trigger-icon" aria-hidden="true"></span>
 			</button>
 		</div>
@@ -20,10 +19,41 @@ defineProps<{
 <style lang="scss">
 /* Pagefind 注入的自定义元素没有 data-v，用非 scoped 覆盖其样式 */
 /* 固定槽位 + 绝对叠放：避免 inline-grid 与自定义元素 display 组合在部分浏览器里落成两列并排 */
-.pf-search-placeholder.pf-trigger-btn {
+.pf-trigger-btn {
 	cursor: pointer;
 	font: inherit;
 	color: inherit;
+}
+
+.pf-search-placeholder.pf-trigger-btn,
+pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-btn {
+	position: relative !important;
+	display: inline-flex !important;
+	width: var(--tool-h) !important;
+	height: var(--tool-h) !important;
+	min-width: var(--tool-h) !important;
+	padding: 0 !important;
+	border-radius: 9999px !important;
+	justify-content: center !important;
+	align-items: center !important;
+	gap: 0 !important;
+	overflow: visible !important;
+	background: transparent !important;
+	border: var(--sp-line) solid var(--line) !important;
+	color: var(--ink-dim) !important;
+	/* Pagefind UI 默认对 border-color / box-shadow 做过渡，换主题时圆形边框会渐变 */
+	transition: none !important;
+
+	&:hover {
+		color: var(--ink) !important;
+		background: var(--muted) !important;
+		border-color: var(--line-strong) !important;
+	}
+}
+
+html[data-theme='dark'] .pf-search-placeholder.pf-trigger-btn:hover,
+html[data-theme='dark'] pagefind-modal-trigger.pf-trigger-wrap .pf-trigger-btn:hover {
+	background: rgba(255, 255, 255, 0.05) !important;
 }
 
 pagefind-modal-trigger.pf-trigger-wrap {
@@ -33,35 +63,6 @@ pagefind-modal-trigger.pf-trigger-wrap {
 	width: 100%;
 	height: 100%;
 	max-width: 100%;
-
-	.pf-trigger-btn {
-		position: relative !important;
-		display: inline-flex !important;
-		width: var(--tool-h) !important;
-		height: var(--tool-h) !important;
-		min-width: var(--tool-h) !important;
-		padding: 0 !important;
-		border-radius: 9999px !important;
-		justify-content: center !important;
-		align-items: center !important;
-		gap: 0 !important;
-		overflow: visible !important;
-		background: transparent !important;
-		border: var(--sp-line) solid var(--line) !important;
-		color: var(--ink-dim) !important;
-		/* Pagefind UI 默认对 border-color / box-shadow 做过渡，换主题时圆形边框会渐变 */
-		transition: none !important;
-
-		&:hover {
-			color: var(--ink) !important;
-			background: var(--muted) !important;
-			border-color: var(--line-strong) !important;
-		}
-	}
-
-	html[data-theme='dark'] & .pf-trigger-btn:hover {
-		background: rgba(255, 255, 255, 0.05) !important;
-	}
 
 	.pf-trigger-text {
 		position: absolute !important;
@@ -95,34 +96,6 @@ pagefind-modal-trigger.pf-trigger-wrap {
 		width: 100%;
 		height: 100%;
 		margin: 0;
-	}
-
-	.pf-search-placeholder.pf-trigger-btn {
-		position: relative !important;
-		display: inline-flex !important;
-		width: var(--tool-h) !important;
-		height: var(--tool-h) !important;
-		min-width: var(--tool-h) !important;
-		padding: 0 !important;
-		border-radius: 9999px !important;
-		justify-content: center !important;
-		align-items: center !important;
-		gap: 0 !important;
-		overflow: visible !important;
-		background: transparent !important;
-		border: var(--sp-line) solid var(--line) !important;
-		color: var(--ink-dim) !important;
-		transition: none !important;
-
-		&:hover {
-			color: var(--ink) !important;
-			background: var(--muted) !important;
-			border-color: var(--line-strong) !important;
-		}
-	}
-
-	html[data-theme='dark'] & .pf-search-placeholder.pf-trigger-btn:hover {
-		background: rgba(255, 255, 255, 0.05) !important;
 	}
 
 	/* 占位按钮：与 Pagefind .pf-trigger-icon 同款 mask，避免 Lucide 与 UI 包矢量不一致 */

@@ -5,16 +5,15 @@ import IconBtn from './IconBtn.vue';
 import { useTheme } from '../composables/useTheme';
 
 defineProps<{
-	themeToggleAria: string;
-	themeToggleHint: string;
+	label: string;
 }>();
 
 const { toggleTheme } = useTheme();
 </script>
 
 <template>
-	<AnchoredHint :text="themeToggleHint">
-		<IconBtn id="theme-toggle" :aria-label="themeToggleAria" @click="toggleTheme">
+	<AnchoredHint :text="label">
+		<IconBtn id="theme-toggle" :aria-label="label" @click="toggleTheme">
 			<Sun class="theme-icon theme-icon--sun" :size="18" />
 			<Moon class="theme-icon theme-icon--moon" :size="18" />
 		</IconBtn>

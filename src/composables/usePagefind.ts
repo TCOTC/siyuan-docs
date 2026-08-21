@@ -2,8 +2,6 @@ import { onMounted, toValue, type MaybeRefOrGetter } from 'vue';
 
 const TRIGGER = 'pagefind-modal-trigger';
 
-let idleScheduled = false;
-let pointerBound = false;
 let loadInFlight = false;
 let pagefindReady = false;
 let resolvedBundle = '';
@@ -21,14 +19,6 @@ function mountModalTriggers(): void {
 		wrap.appendChild(el);
 		ph?.parentNode?.removeChild(ph);
 	}
-}
-
-function whenTriggerDefined(): Promise<void> {
-	const defined = customElements.whenDefined(TRIGGER);
-	const timeout = new Promise<never>((_, reject) => {
-		window.setTimeout(() => reject(new Error('pagefind-ui')), 4000);
-	});
-	return Promise.race([defined, timeout]).then(() => undefined);
 }
 
 function finishLoadSuccess(): void {
@@ -67,7 +57,7 @@ function loadPagefind(): void {
 
 	const existing = document.querySelector(`script[src="${jsSrc}"]`);
 	if (existing) {
-		void whenTriggerDefined().then(finishLoadSuccess).catch(finishLoadFailure);
+		void customElements.whenDefined(TRIGGER).then(finishLoadSuccess);
 		return;
 	}
 
@@ -75,45 +65,10 @@ function loadPagefind(): void {
 	script.type = 'module';
 	script.src = jsSrc;
 	script.onload = (): void => {
-		void whenTriggerDefined().then(finishLoadSuccess).catch(finishLoadFailure);
+		void customElements.whenDefined(TRIGGER).then(finishLoadSuccess);
 	};
 	script.onerror = finishLoadFailure;
 	document.head.appendChild(script);
-}
-
-function startPagefindLoader(bundle: string): void {
-	if (bundle) resolvedBundle = bundle;
-	if (!resolvedBundle) return;
-
-	if (pagefindReady && customElements.get(TRIGGER)) {
-		mountModalTriggers();
-		return;
-	}
-
-	if (!idleScheduled) {
-		idleScheduled = true;
-		const ric = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1));
-		ric(
-			() => {
-				loadPagefind();
-			},
-			{ timeout: 2000 },
-		);
-	}
-
-	if (pointerBound) return;
-	pointerBound = true;
-	document.addEventListener(
-		'pointerdown',
-		(e: PointerEvent) => {
-			const el = e.target;
-			if (!(el instanceof Element)) return;
-			if (el.closest('.pf-search-placeholder, .pf-trigger-stack, [data-pf-trigger-mount]')) {
-				loadPagefind();
-			}
-		},
-		true,
-	);
 }
 
 function ensurePagefindTriggers(): void {
@@ -136,13 +91,14 @@ function closePagefindModal(): void {
 	modal.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 }
 
-/** 挂载后按需加载 Pagefind；切页时由调用方关闭弹层并补挂 trigger */
+/** 挂载后加载 Pagefind；切页时由调用方关闭弹层并补挂 trigger */
 export function usePagefind(bundle: MaybeRefOrGetter<string>): {
 	closePagefindModal: () => void;
 	ensurePagefindTriggers: () => void;
 } {
 	onMounted(() => {
-		startPagefindLoader(toValue(bundle));
+		resolvedBundle = toValue(bundle);
+		loadPagefind();
 	});
 	return { closePagefindModal, ensurePagefindTriggers };
 }
