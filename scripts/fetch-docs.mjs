@@ -3,10 +3,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseNavYml } from './parse-nav-yml.mjs';
+import { appI18nLocales } from '../src/lib/locales.ts';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dest = path.join(root, 'tmp', 'content');
-const localeSuffixes = ['en', 'zh-CN'];
+const localeSuffixes = [...appI18nLocales];
 
 fs.rmSync(dest, { recursive: true, force: true });
 fs.mkdirSync(dest, { recursive: true });

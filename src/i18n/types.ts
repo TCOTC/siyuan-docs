@@ -4,8 +4,6 @@ export type ShellUi = {
 	skipToContent: string;
 	themeToggleAria: string;
 	themeToggleHint: string;
-	topNavAria: string;
-	topNavDocs: string;
 	docNavAria: string;
 	railNavAria: string;
 	railFooterDocs: string;
@@ -24,15 +22,12 @@ export type ShellUi = {
 	tocAsideAria: string;
 	langSwitcherAria: string;
 	langSwitcherHint: string;
-	navHome: string;
 	searchHint: string;
 	searchOpenAria: string;
-	shellTitle: string;
-	shellDescription: string;
-	heading: string;
-	body: string;
-	button: string;
-	crumbLabel: string;
+	notFoundTitle: string;
+	notFoundDescription: string;
+	notFoundBody: string;
+	notFoundHome: string;
 };
 
 export type CodeBlockCopyUi = {

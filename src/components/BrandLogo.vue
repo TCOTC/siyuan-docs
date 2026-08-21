@@ -3,7 +3,7 @@
 		xmlns="http://www.w3.org/2000/svg"
 		viewBox="0 0 1024 1024"
 		fill="none"
-		class="brand-lockup__logo brand-lockup__logo-svg"
+		class="brand-lockup__logo"
 		width="28"
 		height="28"
 		aria-hidden="true"
@@ -15,3 +15,13 @@
 		<path class="brand-logo-fold" d="M717.091 101.818l269.857 269.857v550.507l-269.857-269.857z" />
 	</svg>
 </template>
+
+<style scoped lang="scss">
+.brand-logo-mark {
+	fill: var(--logo-mark);
+}
+
+.brand-logo-fold {
+	fill: var(--logo-fold);
+}
+</style>

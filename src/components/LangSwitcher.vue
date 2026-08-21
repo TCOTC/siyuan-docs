@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { Languages } from '@lucide/vue';
-import { RouterLink } from 'vue-router';
 import AnchoredHint from './AnchoredHint.vue';
-import {
-	appLocalesForPresentation,
-	langSwitcherOptionLabel,
-	localeHtmlLang,
-	type AppLocale,
-} from '../lib/locales';
+import IconBtn from './IconBtn.vue';
+import MenuPanel from './MenuPanel.vue';
+import MenuPanelItem from './MenuPanelItem.vue';
+import { appI18nLocales, langSwitcherOptionLabel, type AppLocale } from '../lib/locales';
 import { persistLocalePreference } from '../lib/localePreference';
 import type { ShellUi } from '../i18n/types';
 
@@ -32,9 +29,7 @@ function onLocaleClick(loc: AppLocale): void {
 <template>
 	<div class="lang-switch" data-header-menu="lang">
 		<AnchoredHint :text="t.langSwitcherHint">
-			<button
-				type="button"
-				class="icon-btn"
+			<IconBtn
 				id="lang-switch-btn"
 				data-floating-hint-anchor
 				:aria-expanded="open ? 'true' : 'false'"
@@ -43,32 +38,31 @@ function onLocaleClick(loc: AppLocale): void {
 				:aria-label="t.langSwitcherAria"
 				@click="emit('toggle')"
 			>
-				<Languages class="lang-switch__icon" :size="18" aria-hidden="true" />
-			</button>
+				<Languages :size="18" aria-hidden="true" />
+			</IconBtn>
 		</AnchoredHint>
-		<ul
-			class="copy-split__panel lang-switch__panel"
-			id="lang-switch-panel"
-			role="menu"
-			:hidden="!open"
-			:class="{ 'is-open': open }"
-			:aria-label="t.langSwitcherAria"
-		>
-			<li v-for="loc in appLocalesForPresentation" :key="loc" role="presentation">
-				<RouterLink
-					role="menuitem"
-					class="copy-split__panel-item lang-switch__panel-item"
-					:to="hrefByLocale[loc]"
-					:hreflang="localeHtmlLang[loc]"
-					:lang="localeHtmlLang[loc]"
-					:aria-current="locale === loc ? 'page' : undefined"
-					active-class=""
-					exact-active-class=""
-					@click="onLocaleClick(loc)"
-				>
-					<span class="copy-split__panel-item__title">{{ langSwitcherOptionLabel[loc] }}</span>
-				</RouterLink>
-			</li>
-		</ul>
+		<MenuPanel id="lang-switch-panel" :open="open" :aria-label="t.langSwitcherAria">
+			<MenuPanelItem
+				v-for="loc in appI18nLocales"
+				:key="loc"
+				compact
+				:to="hrefByLocale[loc]"
+				:hreflang="loc"
+				:lang="loc"
+				:aria-current="locale === loc ? 'page' : undefined"
+				@click="onLocaleClick(loc)"
+			>
+				{{ langSwitcherOptionLabel[loc] }}
+			</MenuPanelItem>
+		</MenuPanel>
 	</div>
 </template>
+
+<style scoped lang="scss">
+.lang-switch {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	flex-shrink: 0;
+}
+</style>

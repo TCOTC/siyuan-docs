@@ -15,7 +15,7 @@ import { useTocInPage } from '../composables/useTocInPage';
 import { shellUi } from '../i18n';
 import { docHref, findDoc, type GeneratedDocs, type RailEntry, type TocHeading } from '../lib/docData';
 import { HOME_STEM, docPath } from '../lib/docPath';
-import { appI18nLocales, localeHtmlLang, type AppLocale } from '../lib/locales';
+import { appI18nLocales, type AppLocale } from '../lib/locales';
 import generated from '#docs';
 
 const docsData = generated as GeneratedDocs;
@@ -28,7 +28,6 @@ const props = defineProps<{
 	rail: RailEntry[];
 	breadcrumbs: { label: string; href?: string }[];
 	headings: TocHeading[];
-	markdown?: string;
 	mdViewHref?: string;
 	notFound?: boolean;
 }>();
@@ -78,7 +77,7 @@ const { syncRailScrollEdges, scrollActiveRailNavIntoView } = useRailScroll(
 	railScrollClip,
 	railAside,
 );
-const { tocSync, scheduleTocSyncSoon, resetTocSyncState } = useTocInPage(tocListEl, mainEl);
+const { tocSync, resetTocSyncState } = useTocInPage(tocListEl, mainEl);
 const { closePagefindModal, ensurePagefindTriggers } = usePagefind(pagefindBundle);
 let layoutAbort: AbortController | null = null;
 
@@ -102,54 +101,22 @@ function onRailClick(e: MouseEvent): void {
 	}
 }
 
-function onBreadcrumbsClick(e: MouseEvent): void {
-	if (e.defaultPrevented || e.button !== 0) return;
-	if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
-	const t = e.target;
-	if (!(t instanceof Element)) return;
-	const hit = t.closest('a.breadcrumbs__current, span.breadcrumbs__current');
-	if (!hit) return;
-	let sameDoc = hit instanceof HTMLSpanElement;
-	if (hit instanceof HTMLAnchorElement) {
-		try {
-			const u = new URL(hit.getAttribute('href') ?? '', location.href);
-			sameDoc = u.pathname === location.pathname && u.search === location.search;
-		} catch {
-			sameDoc = false;
-		}
-	}
-	if (!sameDoc) return;
-	if (hit instanceof HTMLAnchorElement) e.preventDefault();
-	try {
-		if (location.hash) {
-			history.replaceState(null, '', location.pathname + location.search);
-		}
-	} catch {
-		/* ignore */
-	}
-	window.scrollTo({ top: 0, behavior: 'smooth' });
-	scheduleTocSyncSoon();
-}
-
 useHead({
 	htmlAttrs: {
-		lang: () => localeHtmlLang[props.locale],
+		lang: () => props.locale,
 		'data-doc-locale': () => props.locale,
 	},
 	bodyAttrs: {
 		class: () => (railOpen.value ? 'doc-layout doc-rail-open' : 'doc-layout'),
 	},
 	title: () => siteTitle.value,
-	meta: () => [
-		{ name: 'pagefind-bundle', content: pagefindBundle.value },
-		...(props.description ? [{ name: 'description', content: props.description }] : []),
-	],
+	meta: () => (props.description ? [{ name: 'description', content: props.description }] : []),
 	link: () => [
 		{ rel: 'icon', type: 'image/svg+xml', href: `${import.meta.env.BASE_URL}favicon.svg` },
 		{ rel: 'icon', href: `${import.meta.env.BASE_URL}favicon.ico`, sizes: 'any' },
 		...appI18nLocales.map((loc) => ({
 			rel: 'alternate' as const,
-			hreflang: localeHtmlLang[loc],
+			hreflang: loc,
 			href: localeDocHref(loc, props.currentStem ?? HOME_STEM),
 		})),
 	],
@@ -157,7 +124,6 @@ useHead({
 
 watch(railOpen, (open) => {
 	if (import.meta.env.SSR) return;
-	document.body.classList.toggle('doc-rail-open', open);
 	document.body.style.overflow = open ? 'hidden' : '';
 	if (!open) return;
 	window.requestAnimationFrame(() => {
@@ -198,7 +164,6 @@ onMounted(() => {
 onUnmounted(() => {
 	layoutAbort?.abort();
 	layoutAbort = null;
-	document.body.classList.remove('doc-rail-open');
 	document.body.style.overflow = '';
 });
 
@@ -227,7 +192,6 @@ watch(
 	<div class="shell">
 		<div
 			class="rail-backdrop"
-			id="rail-backdrop"
 			:aria-hidden="railOpen ? 'false' : 'true'"
 			@click="setRailOpen(false)"
 		/>
@@ -251,7 +215,7 @@ watch(
 					<span class="brand-lockup__divider" aria-hidden="true" />
 					<span class="brand-lockup__text">{{ t.railSiteLabel }}</span>
 				</RouterLink>
-				<div ref="slotRail" id="tool-slot-rail" class="tool-slot tool-slot--rail"></div>
+				<div ref="slotRail" class="tool-slot tool-slot--rail"></div>
 				<div class="rail-header__actions">
 					<div class="rail-header__search-slot">
 						<PagefindToolbarTrigger :search-hint="t.searchHint" :search-open-aria="t.searchOpenAria" />
@@ -262,14 +226,12 @@ watch(
 				<div
 					ref="railScrollClip"
 					class="rail-scroll-clip"
-					data-rail-scroll-clip
 					data-edge-top="0"
 					data-edge-bottom="1"
 				>
 					<div ref="railScrollEl" class="rail-scroll">
 						<RailNavSections
 							:locale="locale"
-							id-prefix="doc"
 							:rail="rail"
 							:rail-nav-aria="t.railNavAria"
 							:current-stem="currentStem"
@@ -308,12 +270,7 @@ watch(
 
 		<div class="sheet" :data-doc-has-toc="tocItems.length > 0 ? '1' : undefined">
 			<div class="bar" data-pagefind-ignore>
-				<nav
-					v-if="breadcrumbs.length"
-					class="breadcrumbs"
-					:aria-label="t.breadcrumbsAria"
-					@click="onBreadcrumbsClick"
-				>
+				<nav v-if="breadcrumbs.length" class="breadcrumbs" :aria-label="t.breadcrumbsAria">
 					<ol class="breadcrumbs__list">
 						<li v-for="(c, i) in breadcrumbs" :key="i" class="breadcrumbs__item">
 							<RouterLink
@@ -347,7 +304,7 @@ watch(
 				</nav>
 				<div class="bar__act">
 					<Teleport defer :disabled="toolbarWide || !slotRail" :to="slotRail ?? 'body'">
-						<div id="tool-float" class="tool-float">
+						<div class="tool-float">
 							<div class="bar__search bar__search--drawer" data-pagefind-ignore>
 								<PagefindToolbarTrigger :search-hint="t.searchHint" :search-open-aria="t.searchOpenAria" />
 							</div>
@@ -363,7 +320,6 @@ watch(
 								<ThemeToggleHint :theme-toggle-aria="t.themeToggleAria" :theme-toggle-hint="t.themeToggleHint" />
 								<CopyPageMarkdownToolbar
 									v-if="!notFound && mdViewHref"
-									:markdown="markdown ?? ''"
 									:md-view-href="mdViewHref"
 									:open="headerMenu === 'copy'"
 									:t="t"
@@ -376,7 +332,6 @@ watch(
 					<button
 						type="button"
 						class="rail-menu-trigger"
-						id="rail-menu-toggle"
 						:aria-expanded="railOpen ? 'true' : 'false'"
 						aria-controls="doc-rail"
 						:aria-label="railOpen ? t.railMenuCloseAria : t.railMenuOpenAria"
@@ -397,7 +352,7 @@ watch(
 					</main>
 					<aside v-show="tocItems.length > 0" class="toc" :aria-label="t.tocAsideAria" data-pagefind-ignore>
 						<div class="toc__inner">
-							<ul ref="tocListEl" class="toc__list" id="doc-toc-list" style="--top: 0px; --height: 0px">
+							<ul ref="tocListEl" class="toc__list" style="--top: 0px; --height: 0px">
 								<li v-for="h in tocItems" :key="h.slug" :class="`toc-depth-${h.depth}`">
 									<a :href="`#${h.slug}`">{{ h.text }}</a>
 								</li>

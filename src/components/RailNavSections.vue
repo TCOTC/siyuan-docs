@@ -8,7 +8,6 @@ import type { AppLocale } from '../lib/locales';
 
 const props = defineProps<{
 	locale: AppLocale;
-	idPrefix: string;
 	rail: RailEntry[];
 	railNavAria: string;
 	currentStem?: string;
@@ -62,9 +61,9 @@ function toggleGroup(key: string): void {
 					<button
 						type="button"
 						class="rail-nav__trigger"
-						:id="`${idPrefix}-rail-nav-head-${ei}`"
+						:id="`rail-nav-head-${ei}`"
 						:aria-expanded="isExpanded(entry.key) ? 'true' : 'false'"
-						:aria-controls="`${idPrefix}-rail-nav-panel-${ei}`"
+						:aria-controls="`rail-nav-panel-${ei}`"
 						@click="toggleGroup(entry.key)"
 					>
 						<span class="rail-nav__trigger-text">{{ entry.label }}</span>
@@ -72,10 +71,10 @@ function toggleGroup(key: string): void {
 					</button>
 					<div
 						class="rail-nav__panel"
-						:id="`${idPrefix}-rail-nav-panel-${ei}`"
+						:id="`rail-nav-panel-${ei}`"
 						role="region"
 						:hidden="!isExpanded(entry.key)"
-						:aria-labelledby="`${idPrefix}-rail-nav-head-${ei}`"
+						:aria-labelledby="`rail-nav-head-${ei}`"
 					>
 						<ul class="rail-nav__list">
 							<li v-for="item in entry.items" :key="item.stem">
@@ -96,3 +95,139 @@ function toggleGroup(key: string): void {
 		</ul>
 	</nav>
 </template>
+
+<style scoped lang="scss">
+.rail-nav {
+	&__root {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	&__section {
+		margin: 0 0 var(--sp-1);
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
+		&[data-state='closed'] .rail-nav__chev {
+			transform: rotate(-90deg);
+		}
+	}
+
+	&__home {
+		margin: 0 0 var(--sp-1);
+	}
+
+	&__home-link {
+		display: block;
+		width: 100%;
+		margin: 0;
+		padding: var(--sp-2) var(--sp-1) var(--sp-2) var(--sp-micro);
+		font-size: var(--tp-body);
+		font-weight: 500;
+		letter-spacing: 0.01em;
+		color: var(--ink-faint);
+		border-radius: var(--r);
+		line-height: 1.3;
+
+		&:hover,
+		&.is-active {
+			color: var(--ink);
+		}
+
+		&:focus-visible {
+			outline: var(--sp-micro) solid var(--accent);
+			outline-offset: var(--sp-micro);
+		}
+	}
+
+	&__trigger {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		margin: 0;
+		padding: var(--sp-2) var(--sp-1) var(--sp-2) var(--sp-micro);
+		font: inherit;
+		font-size: var(--tp-body);
+		font-weight: 500;
+		letter-spacing: 0.01em;
+		color: var(--ink-faint);
+		background: transparent;
+		border: none;
+		border-radius: var(--r);
+		cursor: pointer;
+		text-align: left;
+		line-height: 1.3;
+
+		&:hover {
+			color: var(--ink);
+		}
+
+		&:focus-visible {
+			outline: var(--sp-micro) solid var(--accent);
+			outline-offset: var(--sp-micro);
+		}
+	}
+
+	&__trigger-text {
+		flex: 1;
+		min-width: 0;
+	}
+
+	&__chev {
+		flex-shrink: 0;
+		margin-left: var(--sp-2);
+		opacity: 0.45;
+		transition:
+			transform 0.15s ease,
+			opacity 0.1s ease;
+	}
+
+	&__panel {
+		padding: 0 0 var(--sp-micro);
+
+		.rail-nav__list {
+			padding-left: var(--sp-3);
+		}
+	}
+
+	&__list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+
+		li {
+			margin: 0;
+		}
+	}
+
+	&__link {
+		display: block;
+		padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-micro);
+		margin: 0;
+		font-size: var(--tp-sm);
+		/* 与 .is-active 统一字重，避免切换当前文档时字宽变化导致列表微抖 */
+		font-weight: 500;
+		color: var(--ink-dim);
+		border-radius: var(--r);
+		border: none;
+		line-height: 1.45;
+
+		&:hover {
+			color: var(--ink);
+		}
+
+		&.is-active {
+			color: var(--ink);
+		}
+
+		&:focus-visible {
+			outline: var(--sp-micro) solid var(--accent);
+			outline-offset: var(--sp-micro);
+		}
+	}
+}
+</style>

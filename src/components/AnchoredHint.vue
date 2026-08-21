@@ -203,3 +203,78 @@ onUnmounted(() => {
 		</Teleport>
 	</div>
 </template>
+
+<style scoped lang="scss">
+.hint {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	overflow: visible;
+
+	&__layer {
+		position: absolute !important;
+		width: max-content !important;
+		max-width: min(280px, calc(100vw - 24px)) !important;
+		left: 50% !important;
+		top: calc(100% + var(--sp-2)) !important;
+		transform: translateX(-50%) translateY(calc(var(--sp-micro) * -1)) !important;
+		display: inline-flex !important;
+		flex-wrap: nowrap;
+		align-items: center;
+		justify-content: center;
+		gap: var(--sp-2) !important;
+		margin: 0 !important;
+		padding: var(--sp-2) var(--sp-3) !important;
+		background: var(--raised) !important;
+		color: var(--ink) !important;
+		border: var(--sp-line) solid var(--line-strong) !important;
+		border-radius: var(--r) !important;
+		box-shadow: var(--pf-shadow-md, 0 4px 12px rgba(0, 0, 0, 0.25)) !important;
+		/* 在窄父级内 absolute 时避免收缩成一条竖线；默认单行提示不换行 */
+		white-space: nowrap !important;
+		text-align: center;
+		opacity: 0 !important;
+		visibility: hidden !important;
+		pointer-events: none !important;
+		z-index: 100 !important;
+		transition:
+			opacity 0.12s ease,
+			transform 0.12s ease,
+			visibility 0s linear 0.12s !important;
+
+		/* Teleport 到 body 后不再处于锚点 :hover 子树内；延迟在 AnchoredHint 内完成，此处仅短过渡 */
+		&.js-floating-hint--anchored-open {
+			opacity: 1 !important;
+			visibility: visible !important;
+			transform: translateX(-50%) translateY(0) !important;
+			transition:
+				opacity 0.12s ease,
+				transform 0.12s ease,
+				visibility 0s !important;
+		}
+	}
+
+	&__txt {
+		font-size: var(--tp-xs) !important;
+		font-weight: 500 !important;
+		line-height: 1.35 !important;
+		color: var(--ink) !important;
+	}
+
+	&__key {
+		display: inline-flex !important;
+		align-items: center;
+		justify-content: center;
+		min-width: 20px;
+		height: 18px;
+		padding: 0 5px;
+		font-size: var(--tp-2xs);
+		font-weight: 500;
+		font-family: var(--font) !important;
+		color: var(--ink) !important;
+		background: var(--muted) !important;
+		border: 1px solid var(--line) !important;
+		border-radius: 4px;
+	}
+}
+</style>

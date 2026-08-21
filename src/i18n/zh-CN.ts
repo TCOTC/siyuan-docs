@@ -6,8 +6,6 @@ export const zhCNShellUi: ShellUi = {
 	skipToContent: '跳到正文 →',
 	themeToggleAria: '切换浅色或深色主题',
 	themeToggleHint: '切换主题',
-	topNavAria: '顶部',
-	topNavDocs: '文档',
 	docNavAria: '文档导航',
 	railNavAria: '侧栏目录',
 	railFooterDocs: '开发者',
@@ -26,15 +24,12 @@ export const zhCNShellUi: ShellUi = {
 	tocAsideAria: '本页目录',
 	langSwitcherAria: '界面语言',
 	langSwitcherHint: '切换语言',
-	navHome: '首页',
 	searchHint: '搜索',
 	searchOpenAria: '打开搜索',
-	shellTitle: '页面未找到',
-	shellDescription: '未找到该页面。可从侧栏进入其他章节或使用顶栏搜索。',
-	heading: '页面未找到',
-	body: '该地址可能已移动、拼写有误，或当前部署中尚不存在。',
-	button: '打开文档首页',
-	crumbLabel: '页面未找到',
+	notFoundTitle: '页面未找到',
+	notFoundDescription: '未找到该页面。可从侧栏进入其他章节或使用顶栏搜索。',
+	notFoundBody: '该地址可能已移动、拼写有误，或当前部署中尚不存在。',
+	notFoundHome: '打开文档首页',
 };
 
 export const zhCNCodeBlockCopyUi: CodeBlockCopyUi = {

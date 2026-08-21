@@ -76,7 +76,7 @@ function mountCodeBlockCopy(root: HTMLElement, locale: AppLocale): void {
 	for (const pre of root.querySelectorAll<HTMLElement>('pre')) {
 		const btn = document.createElement('button');
 		btn.type = 'button';
-		btn.className = 'icon-btn code-block-copy';
+		btn.className = 'code-block-copy';
 		btn.setAttribute('aria-label', copyAria);
 		btn.innerHTML =
 			`<span class="code-block-copy__state code-block-copy__state--idle">${copySvg}</span>` +

@@ -5,12 +5,13 @@ import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 import { parseNavYml } from './parse-nav-yml.mjs';
 import { docPath, withBase } from '../src/lib/docPath.ts';
+import { appI18nLocales } from '../src/lib/locales.ts';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const tmpDir = path.join(root, 'tmp');
 const contentDir = path.join(tmpDir, 'content');
 const docsJsonPath = path.join(tmpDir, 'docs.json');
-const localeSuffixes = ['en', 'zh-CN'];
+const localeSuffixes = [...appI18nLocales];
 
 function walkMarkdown(dir, acc = []) {
 	if (!fs.existsSync(dir)) return acc;
@@ -95,7 +96,6 @@ const files = walkMarkdown(contentDir)
 			id: `${parsed.locale}:${parsed.stem}`,
 			locale: parsed.locale,
 			stem: parsed.stem,
-			sourcePath: rel,
 			title,
 			description: fm.data.description ? String(fm.data.description) : undefined,
 			markdown: `# ${title}\n\n${fm.content.replace(/^\uFEFF/, '').replace(/^\s+/, '')}`,
@@ -139,12 +139,11 @@ const docs = files.map((f) => {
 		description: f.description,
 		html,
 		headings: extractHeadings(html),
-		sourcePath: f.sourcePath,
 		markdown: f.markdown.trim(),
 	};
 });
 
-const nav = { en: [], 'zh-CN': [] };
+const nav = Object.fromEntries(localeSuffixes.map((locale) => [locale, []]));
 for (const locale of localeSuffixes) {
 	const byStem = new Map(docs.filter((d) => d.locale === locale).map((d) => [d.stem, d]));
 	for (const entry of navSpec) {
@@ -172,7 +171,7 @@ for (const locale of localeSuffixes) {
 }
 
 const payload = {
-	docs,
+	docs: docs.map(({ markdown, ...doc }) => doc),
 	nav,
 };
 

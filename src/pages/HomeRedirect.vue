@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { detectRootLocale } from '../lib/localePreference';
+import { detectLocale } from '../lib/localePreference';
 import { docPath } from '../lib/docPath';
 
 const router = useRouter();
-
-onMounted(() => {
-	const locale = detectRootLocale();
-	void router.replace(docPath(locale));
-});
+if (!import.meta.env.SSR) {
+	void router.replace(docPath(detectLocale()));
+}
 </script>
 
 <template>
-	<p>Redirecting…</p>
+	<div aria-busy="true"></div>
 </template>

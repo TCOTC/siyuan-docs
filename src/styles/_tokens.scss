@@ -15,8 +15,6 @@
 	--line: #e6e6e6;
 	--line-strong: #d0d6e0;
 	/* 版式宽度 */
-	--w-topbar: 1120px;
-	--w-home: 560px;
 	--w-toc-max: 242px;
 	--w-read: 1200px;
 	/* 圆角 */
@@ -43,7 +41,7 @@
 	--sp-11: 120px;
 	--sp-12: 200px;
 
-	/* 文档 chrome（脚本写入像素） */
+	/* 文档 chrome */
 	--anchor-scroll: var(--sp-9);
 	--toc-track: rgba(0, 0, 0, 0.1);
 	/* 文档页 `body.doc-layout` 会覆盖为与 `--doc-rail-width` 同源的单列宽 */
@@ -69,7 +67,6 @@
 	--tp-base: 1rem;
 	--tp-h1: 2rem;
 	--tp-h2: 1.125rem;
-	--tp-home-lede: 1.875rem;
 	--tp-home-hero: clamp(2.75rem, 8vw, 3.75rem);
 
 	color-scheme: light;

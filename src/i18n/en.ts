@@ -6,8 +6,6 @@ export const enShellUi: ShellUi = {
 	skipToContent: 'Skip to content →',
 	themeToggleAria: 'Toggle light or dark theme',
 	themeToggleHint: 'Toggle theme',
-	topNavAria: 'Top',
-	topNavDocs: 'Docs',
 	docNavAria: 'Documentation navigation',
 	railNavAria: 'Sidebar',
 	railFooterDocs: 'Developers',
@@ -26,15 +24,12 @@ export const enShellUi: ShellUi = {
 	tocAsideAria: 'On this page',
 	langSwitcherAria: 'Interface language',
 	langSwitcherHint: 'Switch language',
-	navHome: 'Home',
 	searchHint: 'Search',
 	searchOpenAria: 'Open search',
-	shellTitle: 'Page not found',
-	shellDescription: 'This page does not exist. Use the sidebar or the search field in the header.',
-	heading: 'Page not found',
-	body: 'The URL may have moved, contain a typo, or not exist in this deployment.',
-	button: 'Open documentation home',
-	crumbLabel: 'Page not found',
+	notFoundTitle: 'Page not found',
+	notFoundDescription: 'This page does not exist. Use the sidebar or the search field in the header.',
+	notFoundBody: 'The URL may have moved, contain a typo, or not exist in this deployment.',
+	notFoundHome: 'Open documentation home',
 };
 
 export const enCodeBlockCopyUi: CodeBlockCopyUi = {

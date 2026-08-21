@@ -14,8 +14,6 @@ export type DocRecord = {
 	description?: string;
 	html: string;
 	headings: TocHeading[];
-	sourcePath: string;
-	markdown: string;
 };
 
 export type RailPage = {

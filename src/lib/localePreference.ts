@@ -52,10 +52,11 @@ function localeFromNavigator(): AppLocale | null {
 	return null;
 }
 
-export function detectRootLocale(): AppLocale {
+/** 可选从当前路径读语言段；否则依次为 localStorage、navigator、默认语言 */
+export function detectLocale(pathname?: string, baseStr?: string): AppLocale {
+	if (pathname != null && baseStr != null) {
+		const fromPath = localeFromPath(pathname, baseStr);
+		if (fromPath) return fromPath;
+	}
 	return localeFromStorage() ?? localeFromNavigator() ?? defaultLocale;
-}
-
-export function detectLocale(pathname: string, baseStr: string): AppLocale {
-	return localeFromPath(pathname, baseStr) ?? localeFromStorage() ?? localeFromNavigator() ?? defaultLocale;
 }
