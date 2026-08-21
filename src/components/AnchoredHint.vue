@@ -53,8 +53,7 @@ defineProps<{
 			visibility 0s linear 0.12s;
 	}
 
-	.hint:hover .hint__txt,
-	.hint:focus-within .hint__txt {
+	.hint:hover .hint__txt {
 		opacity: 1;
 		visibility: visible;
 		transition-delay: 0.3s;

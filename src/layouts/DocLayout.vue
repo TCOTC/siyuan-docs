@@ -70,7 +70,6 @@ const railScrollClip = ref<HTMLElement | null>(null);
 const railAside = ref<HTMLElement | null>(null);
 const tocListEl = ref<HTMLElement | null>(null);
 const mainEl = ref<HTMLElement | null>(null);
-const toolbarWide = useMediaQuery('(min-width: 750px)', true);
 const desktopRail = useMediaQuery('(width >= 850px)', true);
 const { syncRailScrollEdges, scrollActiveRailNavIntoView } = useRailScroll(
 	railScrollEl,
@@ -92,6 +91,7 @@ function closeHeaderMenu(): void {
 function setRailOpen(open: boolean): void {
 	if (railOpen.value === open) return;
 	railOpen.value = open;
+	if (!open) closeHeaderMenu();
 }
 
 function onRailClick(e: MouseEvent): void {
@@ -132,8 +132,12 @@ watch(railOpen, (open) => {
 	});
 });
 
-watch(desktopRail, (wide) => {
+watch(desktopRail, async (wide) => {
 	if (wide) setRailOpen(false);
+	closeHeaderMenu();
+	if (import.meta.env.SSR) return;
+	await nextTick();
+	ensurePagefindTriggers();
 });
 
 onMounted(() => {
@@ -212,11 +216,6 @@ watch(
 					<span class="brand-lockup__text">{{ t.railSiteLabel }}</span>
 				</RouterLink>
 				<div ref="slotRail" class="tool-slot tool-slot--rail"></div>
-				<div class="rail-header__actions">
-					<div class="rail-header__search-slot">
-						<PagefindToolbarTrigger :label="t.search" />
-					</div>
-				</div>
 			</header>
 			<div class="rail-body">
 				<div
@@ -279,11 +278,9 @@ watch(
 					</ol>
 				</nav>
 				<div class="bar__act">
-					<Teleport defer :disabled="toolbarWide || !slotRail" :to="slotRail ?? 'body'">
+					<Teleport defer :disabled="desktopRail || !slotRail" :to="slotRail ?? 'body'">
 						<div class="tool-float">
-							<div class="bar__search bar__search--drawer" data-pagefind-ignore>
-								<PagefindToolbarTrigger :label="t.search" />
-							</div>
+							<PagefindToolbarTrigger :label="t.search" />
 							<LangSwitcher
 								:locale="locale"
 								:href-by-locale="hrefByLocale"
@@ -292,17 +289,15 @@ watch(
 								@toggle="toggleHeaderMenu('lang')"
 								@close="closeHeaderMenu"
 							/>
-							<div class="bar__desk">
-								<ThemeToggleHint :label="t.themeToggle" />
-								<CopyPageMarkdownToolbar
-									v-if="!notFound && mdViewHref"
-									:md-view-href="mdViewHref"
-									:open="headerMenu === 'copy'"
-									:t="t"
-									@toggle="toggleHeaderMenu('copy')"
-									@close="closeHeaderMenu"
-								/>
-							</div>
+							<ThemeToggleHint :label="t.themeToggle" />
+							<CopyPageMarkdownToolbar
+								v-if="!notFound && mdViewHref"
+								:md-view-href="mdViewHref"
+								:open="headerMenu === 'copy'"
+								:t="t"
+								@toggle="toggleHeaderMenu('copy')"
+								@close="closeHeaderMenu"
+							/>
 						</div>
 					</Teleport>
 					<button

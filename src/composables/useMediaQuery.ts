@@ -1,6 +1,6 @@
 import { onMounted, onUnmounted, ref, type Ref } from 'vue';
 
-/** 客户端订阅 matchMedia；SSR / 首帧使用 `initial`（工具条默认按宽屏槽位输出） */
+/** 客户端订阅 matchMedia；SSR / 首帧使用 `initial` */
 export function useMediaQuery(query: string, initial = false): Ref<boolean> {
 	const matches = ref(initial);
 	let mql: MediaQueryList | null = null;

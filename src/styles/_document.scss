@@ -177,7 +177,6 @@ body.doc-layout .shell {
 	background: var(--panel);
 	/* 顶栏提示用 absolute，裁切放在 `.rail-body`，避免这里 overflow 把气泡切掉 */
 	overflow: visible;
-	/* 高于 .sheet，使侧栏内 position: fixed 的浮层（如搜索快捷键提示）能叠在 bar 之上，避免被主栏后绘遮挡 */
 	z-index: 2;
 }
 
@@ -194,27 +193,9 @@ body.doc-layout .shell {
 	min-height: var(--bar-h);
 	padding: 0 var(--sp-4) 0 var(--sp-5);
 	border-bottom: var(--sp-line) solid var(--line);
-
-	&__actions {
-		flex-shrink: 0;
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		justify-content: flex-end;
-		gap: var(--sp-2);
-		position: relative;
-		z-index: 2;
-		overflow: visible;
-	}
-
-	&__search-slot {
-		display: flex;
-		align-items: center;
-		flex-shrink: 0;
-	}
 }
 
-/* 窄屏顶栏：.tool-float 由 Teleport 挂到侧栏槽（次序：brand → 本槽 → actions） */
+/* 窄屏：工具钮 Teleport 到侧栏顶栏 */
 .tool-slot--rail {
 	display: none;
 	flex: 1;
@@ -222,7 +203,13 @@ body.doc-layout .shell {
 	align-items: center;
 	justify-content: flex-end;
 	gap: var(--sp-2);
-	flex-wrap: wrap;
+}
+
+.tool-float {
+	display: flex;
+	align-items: center;
+	gap: var(--sp-2);
+	flex-shrink: 0;
 }
 
 /* 侧栏中部可滚动，底部链接区不参与滚动（与 Linear scroll viewport 分工一致） */
@@ -389,13 +376,6 @@ body.doc-layout .shell {
 		flex-shrink: 0;
 		height: var(--tool-h);
 	}
-
-	&__desk {
-		display: flex;
-		align-items: center;
-		gap: var(--sp-2);
-		flex-shrink: 0;
-	}
 }
 
 /* 面包屑：对齐 Linear Developers（顶栏内 caption、列表语义、斜杠分隔） */
@@ -496,38 +476,6 @@ body.doc-layout .shell {
 	}
 }
 
-/* 搜索 + 主题 + 复制：宽屏在 .bar__act 内参与 flex；窄屏 Teleport 到侧栏占位 */
-.tool-float {
-	display: flex;
-	align-items: center;
-	gap: var(--sp-2);
-	flex-shrink: 0;
-}
-
-/* <750px：主栏顶栏仅面包屑与汉堡；搜索 / 主题 / 复制 经 .tool-float Teleport 入侧栏抽屉顶栏（无 LOGO） */
-@media (width < 750px) {
-	/* 与语言切换等相邻时由 margin-left 分缝；仅汉堡时避免再缩进，与已补偿的 bar 右内边距配合 */
-	body.doc-layout .rail-menu-trigger {
-		margin-left: 0;
-	}
-
-	body.doc-layout .tool-slot--rail {
-		display: flex;
-	}
-
-	body.doc-layout .rail-header .brand-lockup {
-		display: none !important;
-	}
-
-	body.doc-layout .rail-header__actions {
-		display: none !important;
-	}
-
-	body.doc-layout .rail-header {
-		justify-content: flex-end;
-	}
-}
-
 /*
  * 全站 Lucide：外框由 --icon-lucide 控制。
  * 路径坐标仍在 24×24 viewBox 内（库约定），勿改成 0 0 16 16，否则图形会错位。
@@ -620,22 +568,6 @@ body.doc-rail-open .rail-menu-trigger__bar {
 
 	&:nth-child(3) {
 		transform: translateY(calc((var(--sp-1) + var(--sp-micro)) * -1)) rotate(-45deg);
-	}
-}
-
-/* 侧栏为抽屉（<850px）时：主栏顶栏在主题按钮左侧显示搜索，避免仅依赖侧栏内搜索 */
-.bar__search--drawer {
-	display: none;
-	flex: 0 0 auto;
-	align-items: center;
-	position: relative;
-	z-index: 2;
-	overflow: visible;
-}
-
-@media (width < 850px) {
-	body.doc-layout .bar__search--drawer {
-		display: flex;
 	}
 }
 
@@ -855,7 +787,7 @@ body.doc-rail-open .rail-menu-trigger__bar {
 	body.doc-layout {
 		--doc-rail-width: 0px;
 		/*
-		 * 抽屉档右侧基准：与主栏汉堡外沿一致；侧栏顶栏工具钮与 `.rail-nav__trigger` 内 chevron 共用此列。
+		 * 抽屉档右侧基准：与主栏汉堡外沿、`.rail-nav__trigger` 内 chevron 同一垂线。
 		 */
 		--doc-drawer-pad-r: calc(
 			var(--sp-6) - (var(--tool-h) - (var(--sp-4) + var(--sp-micro))) / 2
@@ -879,7 +811,7 @@ body.doc-rail-open .rail-menu-trigger__bar {
 
 		.rail-menu-trigger {
 			display: inline-flex;
-			margin-left: var(--sp-1);
+			margin-left: 0;
 		}
 
 		.rail-backdrop {
@@ -948,6 +880,14 @@ body.doc-rail-open .rail-menu-trigger__bar {
 			/* 与主栏顶栏右缘、目录折叠 chevron 右缘同一垂线 */
 			.rail-header {
 				padding-right: var(--doc-drawer-pad-r);
+
+				.brand-lockup {
+					display: none;
+				}
+			}
+
+			.tool-slot--rail {
+				display: flex;
 			}
 		}
 
@@ -983,15 +923,6 @@ body.doc-rail-open .rail-menu-trigger__bar {
 			&__links {
 				padding-left: 0;
 			}
-		}
-	}
-}
-
-/* 750px–849px 抽屉档：侧栏与主栏顶栏功能重复，隐藏侧栏顶栏 */
-@media (width < 850px) and (min-width: 750px) {
-	body.doc-layout .rail {
-		.rail-header {
-			display: none;
 		}
 	}
 }
