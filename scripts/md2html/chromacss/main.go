@@ -143,26 +143,29 @@ func scssFor(style string, extraIndent string) string {
 	return out.String()
 }
 
-func outPath() string {
+func repoRoot() string {
 	_, src, _, ok := runtime.Caller(0)
 	if !ok {
 		panic("cannot resolve source path")
 	}
-	root := filepath.Join(filepath.Dir(src), "..", "..", "..")
-	return filepath.Clean(filepath.Join(root, "src", "styles", "_chroma.scss"))
+	return filepath.Clean(filepath.Join(filepath.Dir(src), "..", "..", ".."))
+}
+
+func outPath() string {
+	return filepath.Join(repoRoot(), "src", "styles", "_chroma.scss")
 }
 
 func main() {
 	var out strings.Builder
-	out.WriteString("// chroma github（亮）/ github-dark（暗）；class 前缀 highlight-，与 Lute 输出一致。\n")
+	out.WriteString("// chroma catppuccin-latte（亮）/ catppuccin-mocha（暗）；class 前缀 highlight-，与 Lute 输出一致。\n")
 	out.WriteString("// 重新生成：pnpm chroma-css\n")
 	out.WriteString("// 代码块底色沿用 --code-bg，已去掉 chroma 包装层的 background-color\n")
-	out.WriteString("// 亮色用 :not(dark) 包住，避免 github 有、github-dark 没有的 token 在暗色里继续套浅色规则\n\n")
+	out.WriteString("// 亮色用 :not(dark) 包住，避免 latte 有、mocha 没有的 token 在暗色里继续套浅色规则\n\n")
 	out.WriteString("html:not([data-theme='dark']) {\n")
-	out.WriteString(scssFor("github", "\t"))
+	out.WriteString(scssFor("catppuccin-latte", "\t"))
 	out.WriteString("}\n\n")
 	out.WriteString("html[data-theme='dark'] {\n")
-	out.WriteString(scssFor("github-dark", "\t"))
+	out.WriteString(scssFor("catppuccin-mocha", "\t"))
 	out.WriteString("}\n")
 	path := outPath()
 	if err := os.WriteFile(path, []byte(out.String()), 0o644); err != nil {
