@@ -13,23 +13,6 @@ export function normalizeLocale(value: string): AppLocale | null {
 	return null;
 }
 
-function stripBase(pathname: string, baseStr: string): string {
-	const b = baseStr.replace(/\/$/, '');
-	if (!b) return pathname;
-	if (pathname.startsWith(b)) {
-		const rest = pathname.slice(b.length);
-		return rest || '/';
-	}
-	return pathname;
-}
-
-function localeFromPath(pathname: string, baseStr: string): AppLocale | null {
-	let p = stripBase(pathname, baseStr);
-	if (!p.startsWith('/')) p = `/${p}`;
-	const seg = p.split('/').filter(Boolean)[0];
-	return seg ? normalizeLocale(seg) : null;
-}
-
 function localeFromStorage(): AppLocale | null {
 	const v = safeLocalGet(LOCALE_STORAGE_KEY);
 	return v ? normalizeLocale(v) : null;
@@ -52,11 +35,7 @@ function localeFromNavigator(): AppLocale | null {
 	return null;
 }
 
-/** 可选从当前路径读语言段；否则依次为 localStorage、navigator、默认语言 */
-export function detectLocale(pathname?: string, baseStr?: string): AppLocale {
-	if (pathname != null && baseStr != null) {
-		const fromPath = localeFromPath(pathname, baseStr);
-		if (fromPath) return fromPath;
-	}
+/** localStorage → navigator → 默认语言 */
+export function detectLocale(): AppLocale {
 	return localeFromStorage() ?? localeFromNavigator() ?? defaultLocale;
 }

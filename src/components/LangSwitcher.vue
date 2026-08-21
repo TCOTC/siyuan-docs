@@ -31,7 +31,6 @@ function onLocaleClick(loc: AppLocale): void {
 		<AnchoredHint :text="t.langSwitcherHint">
 			<IconBtn
 				id="lang-switch-btn"
-				data-floating-hint-anchor
 				:aria-expanded="open ? 'true' : 'false'"
 				aria-haspopup="menu"
 				aria-controls="lang-switch-panel"

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router';
-import DocArticle from './DocArticle.vue';
 import { docPath } from '../lib/docPath';
 import type { AppLocale } from '../lib/locales';
 import type { ShellUi } from '../i18n/types';
@@ -12,14 +11,14 @@ defineProps<{
 </script>
 
 <template>
-	<DocArticle data-pagefind-ignore :locale="locale">
+	<article class="prose" data-pagefind-ignore>
 		<p class="not-found__code" aria-hidden="true">404</p>
 		<h1>{{ t.notFoundTitle }}</h1>
 		<p>{{ t.notFoundBody }}</p>
 		<p class="not-found__actions">
 			<RouterLink class="btn" :to="docPath(locale)">{{ t.notFoundHome }}</RouterLink>
 		</p>
-	</DocArticle>
+	</article>
 </template>
 
 <style scoped lang="scss">

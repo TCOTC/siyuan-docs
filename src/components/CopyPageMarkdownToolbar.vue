@@ -69,7 +69,6 @@ onUnmounted(() => {
 				type="button"
 				class="copy-split__main"
 				id="copy-page-md"
-				data-floating-hint-anchor
 				:class="{
 					'copy-split__main--success': copyState === 'success',
 					'copy-split__main--error': copyState === 'error',

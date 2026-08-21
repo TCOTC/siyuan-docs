@@ -1,3 +1,5 @@
 /* 入口：设计令牌与版面样式分层，便于维护与按需扩展 */
 @use 'tokens';
 @use 'document';
+@use 'prose';
+@use 'chroma';

@@ -26,7 +26,7 @@ const props = defineProps<{
 	description?: string;
 	currentStem?: string;
 	rail: RailEntry[];
-	breadcrumbs: { label: string; href?: string }[];
+	breadcrumbs: { label: string }[];
 	headings: TocHeading[];
 	mdViewHref?: string;
 	notFound?: boolean;
@@ -178,9 +178,6 @@ watch(
 		closePagefindModal();
 		ensurePagefindTriggers();
 		tocSync();
-		requestAnimationFrame(() => {
-			tocSync();
-		});
 		mainEl.value?.focus({ preventScroll: true });
 	},
 );
@@ -268,37 +265,17 @@ watch(
 			</div>
 		</aside>
 
-		<div class="sheet" :data-doc-has-toc="tocItems.length > 0 ? '1' : undefined">
+		<div class="sheet">
 			<div class="bar" data-pagefind-ignore>
 				<nav v-if="breadcrumbs.length" class="breadcrumbs" :aria-label="t.breadcrumbsAria">
 					<ol class="breadcrumbs__list">
 						<li v-for="(c, i) in breadcrumbs" :key="i" class="breadcrumbs__item">
-							<RouterLink
-								v-if="c.href && i !== breadcrumbs.length - 1"
-								class="breadcrumbs__link"
-								:to="c.href"
-								active-class=""
-								exact-active-class=""
-							>
-								{{ c.label }}
-							</RouterLink>
-							<a
-								v-else-if="c.href"
-								class="breadcrumbs__link"
-								:class="{ breadcrumbs__current: i === breadcrumbs.length - 1 }"
-								:href="c.href"
+							<span
+								:class="i === breadcrumbs.length - 1 ? 'breadcrumbs__current' : 'breadcrumbs__text'"
 								:aria-current="i === breadcrumbs.length - 1 ? 'page' : undefined"
 							>
 								{{ c.label }}
-							</a>
-							<span
-								v-else-if="i === breadcrumbs.length - 1"
-								class="breadcrumbs__current"
-								aria-current="page"
-							>
-								{{ c.label }}
 							</span>
-							<span v-else class="breadcrumbs__text">{{ c.label }}</span>
 						</li>
 					</ol>
 				</nav>

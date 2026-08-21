@@ -1,0 +1,280 @@
+/* v-html 正文与注入的复制按钮没有 data-v，故放在全局样式里 */
+.prose {
+	max-width: 100%;
+	/* 宽 Markdown 表可在正文栏内横向滚动，避免被 `.read-main { overflow-x: hidden }` 裁切 */
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+
+	h1 {
+		margin: 0 0 0.5em;
+		font-size: var(--tp-h1);
+		font-weight: 600;
+		letter-spacing: -0.045em;
+		line-height: 1.15;
+		color: var(--ink);
+		scroll-margin-top: var(--anchor-scroll);
+	}
+
+	h2 {
+		margin: 2em 0 0.55em;
+		padding-top: 0.25em;
+		font-size: var(--tp-h2);
+		font-weight: 600;
+		letter-spacing: -0.03em;
+		line-height: 1.35;
+		color: var(--ink);
+		scroll-margin-top: var(--anchor-scroll);
+	}
+
+	h3 {
+		margin: 1.5em 0 0.45em;
+		font-size: var(--tp-base);
+		font-weight: 600;
+		letter-spacing: -0.02em;
+		color: var(--ink);
+		scroll-margin-top: var(--anchor-scroll);
+	}
+
+	h4 {
+		scroll-margin-top: var(--anchor-scroll);
+	}
+
+	p {
+		margin: 0.85em 0;
+		color: var(--ink);
+		line-height: 1.65;
+	}
+
+	a:not([class]) {
+		color: var(--ink);
+		font-weight: 500;
+		text-decoration: underline;
+		text-underline-offset: var(--sp-1);
+		text-decoration-color: rgba(0, 0, 0, 0.25);
+
+		html[data-theme='dark'] & {
+			text-decoration-color: rgba(255, 255, 255, 0.35);
+		}
+
+		&:hover {
+			text-decoration-color: var(--accent);
+			color: var(--accent-hover);
+		}
+	}
+
+	ul,
+	ol {
+		margin: 0.85em 0;
+		padding-left: 1.35em;
+		color: var(--ink);
+	}
+
+	li {
+		margin: 0.4em 0;
+		line-height: 1.6;
+	}
+
+	pre {
+		position: relative;
+		margin: 1.15em 0;
+		padding: var(--sp-4);
+		font-family: var(--font-mono);
+		font-size: var(--tp-sm);
+		line-height: 1.55;
+		font-weight: 400;
+		border: var(--sp-line) solid var(--line-strong);
+		border-radius: var(--r-card);
+		background: var(--code-bg);
+		overflow-x: auto;
+		box-shadow: inset 0 var(--sp-line) 0 rgba(255, 255, 255, 0.6);
+
+		html[data-theme='dark'] & {
+			box-shadow: inset 0 var(--sp-line) 0 rgba(255, 255, 255, 0.04);
+		}
+
+		code {
+			padding: 0;
+			border: none;
+			background: none;
+			font-size: inherit;
+			font-weight: inherit;
+		}
+
+		/* 代码块右上角复制（由 useCodeBlockCopy 注入 .code-block-copy；悬浮 / focus 时显示，不占文档流） */
+		.code-block-copy {
+			position: absolute;
+			top: var(--sp-2);
+			right: var(--sp-2);
+			left: auto;
+			z-index: 1;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: var(--sp-6);
+			height: var(--sp-6);
+			min-width: var(--sp-6);
+			min-height: var(--sp-6);
+			margin: 0;
+			padding: 0;
+			line-height: 0;
+			color: var(--ink-dim);
+			background: transparent;
+			border: var(--sp-line) solid var(--line);
+			border-radius: var(--r-pill);
+			cursor: pointer;
+			opacity: 0;
+			pointer-events: none;
+			transition:
+				opacity 0.12s ease,
+				color 0.12s ease,
+				background-color 0.12s ease,
+				border-color 0.12s ease;
+
+			&:hover {
+				color: var(--ink);
+				background: var(--muted);
+				border-color: var(--line-strong);
+			}
+
+			html[data-theme='dark'] &:hover {
+				background: rgba(255, 255, 255, 0.05);
+			}
+
+			&:focus-visible {
+				outline: var(--sp-micro) solid var(--accent);
+				outline-offset: var(--sp-micro);
+			}
+		}
+
+		&:hover .code-block-copy,
+		&:focus-within .code-block-copy,
+		& .code-block-copy.code-block-copy--success,
+		& .code-block-copy.code-block-copy--error {
+			opacity: 1;
+			pointer-events: auto;
+		}
+
+		.code-block-copy .code-block-copy__state {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 100%;
+			height: 100%;
+		}
+
+		/* [hidden] 的 display:none 被上一段 flex 覆盖，需显式恢复隐藏 */
+		.code-block-copy .code-block-copy__state[hidden] {
+			display: none;
+		}
+
+		.code-block-copy svg {
+			display: block;
+			flex-shrink: 0;
+		}
+
+		.code-block-copy--success,
+		.code-block-copy--error {
+			border-color: var(--line-strong);
+		}
+
+		.code-block-copy--error {
+			color: #e11d48;
+		}
+
+		html[data-theme='dark'] & .code-block-copy--error {
+			color: #fb7185;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.code-block-copy {
+				transition: none;
+			}
+		}
+
+		/* 无悬停指针（触屏等）：无法依赖 hover 唤出，复制按钮保持可见 */
+		@media (hover: none) {
+			.code-block-copy {
+				opacity: 1;
+				pointer-events: auto;
+			}
+		}
+	}
+
+	code {
+		font-family: var(--font-mono);
+		font-size: 0.88em;
+		font-weight: 400;
+	}
+
+	:not(pre) > code {
+		padding: 0.12em 0.4em;
+		border: var(--sp-line) solid var(--line);
+		border-radius: var(--sp-1);
+		background: var(--muted);
+		color: var(--ink);
+	}
+
+	/* 技术文档表格：网格边框、表头区分、斑马纹与悬停（与正文颜色 token 一致） */
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		margin: 1.15em 0;
+		font-size: var(--tp-sm);
+		line-height: 1.5;
+		border: var(--sp-line) solid var(--line-strong);
+		border-radius: var(--r-card);
+		background: var(--canvas);
+	}
+
+	caption {
+		caption-side: bottom;
+		margin-top: var(--sp-2);
+		font-size: var(--tp-xs);
+		font-weight: 500;
+		color: var(--ink-dim);
+		text-align: left;
+		line-height: 1.5;
+	}
+
+	th,
+	td {
+		padding: var(--sp-2) var(--sp-3);
+		vertical-align: top;
+		border: var(--sp-line) solid var(--line);
+		color: var(--ink);
+	}
+
+	th {
+		font-weight: 600;
+		color: var(--ink);
+	}
+
+	thead th {
+		text-align: left;
+		background: var(--muted);
+		border-color: var(--line-strong);
+		border-bottom: var(--sp-line) solid var(--line-strong);
+	}
+
+	tbody tr:nth-child(even) td {
+		background: rgba(0, 0, 0, 0.025);
+	}
+
+	html[data-theme='dark'] & tbody tr:nth-child(even) td {
+		background: rgba(255, 255, 255, 0.04);
+	}
+
+	tbody tr:hover td {
+		background: rgba(0, 0, 0, 0.05);
+	}
+
+	html[data-theme='dark'] & tbody tr:hover td {
+		background: rgba(255, 255, 255, 0.07);
+	}
+
+	hr {
+		margin: 2.25em 0;
+		border: none;
+		border-top: var(--sp-line) solid var(--line);
+	}
+}

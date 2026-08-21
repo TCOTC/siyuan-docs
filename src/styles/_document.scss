@@ -478,7 +478,6 @@ body.doc-layout .shell {
 		}
 	}
 
-	&__link,
 	&__text,
 	&__current {
 		font-size: var(--tp-sm);
@@ -492,33 +491,6 @@ body.doc-layout .shell {
 		white-space: nowrap;
 		color: var(--ink-faint);
 		font-weight: 510;
-	}
-
-	&__link {
-		color: var(--ink-faint);
-		font-weight: 510;
-
-		&:hover {
-			color: var(--ink);
-		}
-
-		&.breadcrumbs__current {
-			color: var(--ink);
-			font-weight: 590;
-
-			&:hover {
-				color: var(--ink);
-			}
-		}
-
-		body.doc-layout .bar & {
-			overflow: hidden;
-			text-overflow: ellipsis;
-			white-space: nowrap;
-			min-width: 0;
-			max-width: 100%;
-			display: block;
-		}
 	}
 
 	&__current {

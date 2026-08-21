@@ -13,6 +13,7 @@
 	"scripts": {
 		"fetch-docs": "node scripts/fetch-docs.mjs",
 		"prepare-docs": "node scripts/prepare-docs.mjs",
+		"chroma-css": "go run -C scripts/md2html ./chromacss",
 		"dev": "node scripts/fetch-docs.mjs && node scripts/prepare-docs.mjs && vite",
 		"build": "node scripts/fetch-docs.mjs && node scripts/prepare-docs.mjs && vite-ssg build && node scripts/run-pagefind.mjs",
 		"preview": "vite preview"

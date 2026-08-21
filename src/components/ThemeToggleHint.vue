@@ -14,7 +14,7 @@ const { toggleTheme } = useTheme();
 
 <template>
 	<AnchoredHint :text="themeToggleHint">
-		<IconBtn id="theme-toggle" data-floating-hint-anchor :aria-label="themeToggleAria" @click="toggleTheme">
+		<IconBtn id="theme-toggle" :aria-label="themeToggleAria" @click="toggleTheme">
 			<Sun class="theme-icon theme-icon--sun" :size="18" />
 			<Moon class="theme-icon theme-icon--moon" :size="18" />
 		</IconBtn>

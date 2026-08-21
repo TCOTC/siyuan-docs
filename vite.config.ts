@@ -9,11 +9,12 @@ const siteBase = process.env.SITE_BASE || '/';
 const docsJsonPath = path.join(process.cwd(), 'tmp', 'docs.json');
 
 function includedDocRoutes(): string[] {
-	if (!fs.existsSync(docsJsonPath)) return ['/'];
+	// `/` 是客户端 redirect，不预渲染，避免与默认语言首页重复
+	if (!fs.existsSync(docsJsonPath)) return ['/404'];
 	const data = JSON.parse(fs.readFileSync(docsJsonPath, 'utf8')) as {
 		docs: { locale: string; stem: string }[];
 	};
-	const routes = ['/', '/404'];
+	const routes = ['/404'];
 	for (const doc of data.docs) {
 		routes.push(docSsgRoute(doc.locale, doc.stem));
 	}

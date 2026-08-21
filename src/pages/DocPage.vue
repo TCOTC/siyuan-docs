@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import DocArticle from '../components/DocArticle.vue';
 import NotFoundArticle from '../components/NotFoundArticle.vue';
@@ -13,23 +13,32 @@ import {
 	stemFromRouteParam,
 	type GeneratedDocs,
 } from '../lib/docData';
+import { detectLocale, normalizeLocale } from '../lib/localePreference';
 import { defaultLocale, type AppLocale } from '../lib/locales';
-import { normalizeLocale } from '../lib/localePreference';
 
 const data = generated as GeneratedDocs;
 const route = useRoute();
 
-const locale = computed(
-	() => (normalizeLocale(String(route.params.locale ?? '')) ?? defaultLocale) as AppLocale,
-);
+/** 路径里有语言段才算文档页；`/404` 与未匹配路径没有该段 */
+const routeLocale = computed(() => normalizeLocale(String(route.params.locale ?? '')));
+/** 无语言段时 SSR / 首帧用默认语言，挂载后再按偏好切换，避免 hydration 不一致 */
+const detectedLocale = ref<AppLocale | null>(null);
+const locale = computed(() => routeLocale.value ?? detectedLocale.value ?? defaultLocale);
 const stem = computed(() => stemFromRouteParam(route.params.path));
-const doc = computed(() => findDoc(data.docs, locale.value, stem.value));
+const doc = computed(() => {
+	if (!routeLocale.value) return undefined;
+	return findDoc(data.docs, locale.value, stem.value);
+});
 const t = computed(() => shellUi(locale.value));
 const nav = computed(() => data.nav[locale.value] ?? []);
 const breadcrumbs = computed(() => {
 	if (!doc.value) return [{ label: t.value.notFoundTitle }];
 	const group = railGroupContaining(nav.value, stem.value);
 	return [...(group ? [{ label: group.label }] : []), { label: doc.value.title }];
+});
+
+onMounted(() => {
+	if (!routeLocale.value) detectedLocale.value = detectLocale();
 });
 </script>
 
